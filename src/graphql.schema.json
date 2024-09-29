@@ -35,6 +35,18 @@
         "isOneOf": null,
         "fields": [
           {
+            "name": "getCurrentUser",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "OBJECT",
+              "name": "User",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "verifyGoogleToken",
             "description": null,
             "args": [
@@ -147,7 +159,7 @@
             "deprecationReason": null
           },
           {
-            "name": "profileImageURL",
+            "name": "profileImageUrl",
             "description": null,
             "args": [],
             "type": {

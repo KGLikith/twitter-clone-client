@@ -1,14 +1,30 @@
-import { GraphQLClient } from "graphql-request";
+"use client"
+import {
+  ApolloClient,
+  createHttpLink,
+  InMemoryCache,
+} from "@apollo/client";
+import { setContext } from '@apollo/client/link/context';
 
-const isClient = typeof window !== "undefined";
+const createApolloClient = () => {
+  const httpLink = createHttpLink({
+    uri: 'http://localhost:8000/graphql',
+  });
+  const authLink = setContext((_, { headers }) => {
+    const token = localStorage.getItem('__twitter_token');
+    console.log(" apollo client",token)
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : "",
+      }
+    }
+  });
+  const client = new ApolloClient({
+    link: authLink.concat(httpLink),
+    cache: new InMemoryCache()
+  });
+  return client;
+};
 
-export const graphqlClient = new GraphQLClient(
-  "http://localhost:8000/graphql",
-  {
-    headers: {
-      Authorization: isClient
-        ? `Bearer ${window.localStorage.getItem("__twitter_token")}`
-        : "",
-    },
-  }
-);
+export const apolloClient = createApolloClient();

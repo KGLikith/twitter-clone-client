@@ -1,3 +1,4 @@
+"use server"
 import { Button } from "@/components/ui/button";
 import React from "react";
 import { CgProfile } from "react-icons/cg";
@@ -5,7 +6,7 @@ import { CiCircleMore } from "react-icons/ci";
 import { FaHome, FaSearch } from "react-icons/fa";
 import { FaBell, FaXTwitter } from "react-icons/fa6";
 import { MdOutlineMailOutline, MdPeopleOutline } from "react-icons/md";
-
+import Badge from "../normal_comp/Badge";
 
 interface TwitterSidebarButton {
   title: string;
@@ -50,6 +51,9 @@ const sideBarMenuItems: TwitterSidebarButton[] = [
 const SideBar: React.FC = () => {
   return (
     <>
+    <div className="relative h-screen">
+
+    
       <div className="text-6xl p-3 h-fit w-fit rounded-full hover:bg-gray-900 cursor-pointer transition-all">
         <FaXTwitter className="text-3xl" />
       </div>
@@ -72,6 +76,10 @@ const SideBar: React.FC = () => {
             Post
           </Button>
         </div>
+      </div>
+      <div >
+        <Badge />
+      </div>
       </div>
     </>
   );

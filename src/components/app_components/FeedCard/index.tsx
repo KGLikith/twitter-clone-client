@@ -1,3 +1,4 @@
+"use server"
 import React from "react";
 import Image from "next/image";
 import { FaRegComment } from "react-icons/fa6";
