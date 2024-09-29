@@ -5,7 +5,9 @@ import App from "@/components/app_components/App";
 export default async function Home() {
   return (
     <>
-      <App />
+    <div className="font-sans text-base">
+      <App  />
+    </div>
     </>
   );
 }

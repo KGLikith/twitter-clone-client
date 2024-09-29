@@ -1,8 +1,9 @@
-"use server"
+"use server";
 import React from "react";
-import FeedCard from "./FeedCard";
+import FeedCard from "../normal_comp/FeedCard";
 import Login from "./LoginSide";
 import SideBar from "./SideBar";
+import TweetModal from "../normal_comp/TweetModal";
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
         </div>
 
         <div className="col-span-5 border-x-[1px] border-gray-800 h-screen overflow-auto no-scrollbar transition-all">
+          <TweetModal />
           <div className="h-full ">
             <FeedCard />
             <FeedCard />

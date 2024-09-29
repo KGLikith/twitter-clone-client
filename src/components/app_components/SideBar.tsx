@@ -52,7 +52,7 @@ const SideBar: React.FC = () => {
   return (
     <>
     <div className="relative h-screen">
-
+    
     
       <div className="text-6xl p-3 h-fit w-fit rounded-full hover:bg-gray-900 cursor-pointer transition-all">
         <FaXTwitter className="text-3xl" />

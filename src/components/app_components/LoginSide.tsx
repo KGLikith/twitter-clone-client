@@ -8,18 +8,19 @@ import { apolloClient } from "@/clients/api";
 import queryclient from "@/clients/queryClient";
 import { User } from "@/gql/graphql";
 import Skel from "../normal_comp/Skeleton";
+import { ToastAction } from "@radix-ui/react-toast";
 
 const Login = () => {
   const { toast } = useToast();
 
-  const [loading, setLoading] = useState(true); // Loading state
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
   const { user: currentUser } = useCurrentUser();
 
   useEffect(() => {
     if (currentUser !== undefined) {
       setUser(currentUser || undefined);
-      setLoading(false); // Stop loading once the user state is determined
+      setLoading(false); 
     }
   }, [currentUser]);
 
@@ -55,7 +56,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Error during login:", error);
-      toast({ variant: "destructive", title: "An error occurred" });
+      toast({ variant: "destructive", title: "An error occurred", action: <ToastAction altText="Try again">Try again</ToastAction>, });
     }
   }, []);
 

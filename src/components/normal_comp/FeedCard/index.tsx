@@ -36,21 +36,21 @@ const FeedCard: React.FC = () => {
             </p>
             <div className="flex justify-between mt-4 text-xl">
               <div>
-                <FaRegComment />
+                <FaRegComment size={20} style={{"color":"#71767b"}} />
               </div>
               <div>
-                <AiOutlineRetweet />
+                <AiOutlineRetweet size={20} style={{"color":"#71767b"}}/>
               </div>
               <div>
-                <CiHeart />
+                <CiHeart size={20} style={{"color":"#71767b"}}/>
               </div>
               <div>
-                <VscGraph />
+                <VscGraph size={20} style={{"color":"#71767b"}}/>
               </div>
               <div>
                 <div className="flex gap-2">
-                  <CiBookmark />
-                  <GoUpload />
+                  <CiBookmark size={20} style={{"color":"#71767b"}}/>
+                  <GoUpload size={20} style={{"color":"#71767b"}}/>
                 </div>
               </div>
             </div>
