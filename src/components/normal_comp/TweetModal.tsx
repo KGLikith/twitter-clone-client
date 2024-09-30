@@ -25,36 +25,25 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { useCreateTweet } from "@/hooks/tweets";
+import { apolloClient } from "@/clients/api";
+import queryclient from "@/clients/queryClient";
 
 const FormSchema = z.object({
-  bio: z
+  content: z
     .string()
-    .min(10, {
-      message: "Bio must be at least 10 characters.",
+    .min(3, {
+      message: "Content must be at least 3 characters.",
     })
-    .max(160, {
-      message: "Bio must not be longer than 30 characters.",
+    .max(100, {
+      message: "Bio must not be longer than 100 characters.",
     }),
 });
 
 const TweetModal = () => {
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-  });
-
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    toast({
-      title: "Yo submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(`data`, null, 2)}</code>
-        </pre>
-      ),
-    });
-  }
-
   const [user, setUser] = useState<User | undefined>();
   const { user: currentUser } = useCurrentUser();
+  const { mutate } = useCreateTweet();
 
   useEffect(() => {
     if (currentUser !== undefined) {
@@ -62,12 +51,37 @@ const TweetModal = () => {
     }
   }, [currentUser]);
 
-    const handleSelectImage = useCallback(() => {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-        input.click();
-    }, []);
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+  });
+
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    console.log(data);
+    form.reset({
+      content: ""
+    });
+    mutate({ content: data.content },
+      {
+        onSuccess:async()=>{
+          await apolloClient.resetStore();
+          await queryclient.invalidateQueries({ queryKey: ["tweets"] });
+          toast({
+            title: "Tweeted Successfully",
+            duration: 2000
+          });
+        },
+        
+      }
+    );
+    
+    form.reset();
+  }
+  const handleSelectImage = useCallback(() => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.click();
+  }, []);
 
   return (
     <>
@@ -92,7 +106,7 @@ const TweetModal = () => {
               >
                 <FormField
                   control={form.control}
-                  name="bio"
+                  name="content"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl className="text-xl">
@@ -110,7 +124,7 @@ const TweetModal = () => {
                 <div className="flex justify-between items-center">
                   <div className="flex  items-center text-xl text-[#1d9bf0]">
                     <div className="hover:border hover:bg-gray-900 hover:border-none rounded-full p-2 transition-all">
-                      <MdPhotoSizeSelectActual onClick={handleSelectImage}/>
+                      <MdPhotoSizeSelectActual onClick={handleSelectImage} />
                     </div>
                     <div className="hover:border hover:bg-gray-900 hover:border-none rounded-full p-2 transition-all">
                       <MdGifBox />

@@ -14,7 +14,6 @@ export const useCurrentUser = () => {
         return data;
       } catch (error) {
         console.error("Error fetching current user:", error);
-        throw error; 
       }
     },
 

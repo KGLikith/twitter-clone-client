@@ -46,7 +46,8 @@ const Login = () => {
 
         await apolloClient.resetStore();
         await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
-
+        await queryclient.invalidateQueries({ queryKey: ["tweets"] });
+        
         toast({
           variant: "default",
           title: "Verified Successfully",

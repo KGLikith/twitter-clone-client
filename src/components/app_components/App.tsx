@@ -4,6 +4,7 @@ import FeedCard from "../normal_comp/FeedCard";
 import Login from "./LoginSide";
 import SideBar from "./SideBar";
 import TweetModal from "../normal_comp/TweetModal";
+import UseFeedCard from "./UseFeedCard";
 
 const App = () => {
   return (
@@ -15,22 +16,7 @@ const App = () => {
 
         <div className="col-span-5 border-x-[1px] border-gray-800 h-screen overflow-auto no-scrollbar transition-all">
           <TweetModal />
-          <div className="h-full ">
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-            <FeedCard />
-          </div>
+          <UseFeedCard />
         </div>
 
         <div className="col-span-4 mx-6 my-4 mr-20">

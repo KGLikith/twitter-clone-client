@@ -3,12 +3,12 @@ import { Skeleton } from '../ui/skeleton'
 
 const Skel = () => {
   return (
-    <div>
-        <div className="flex flex-col space-y-3">
-        <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+    <div className='m-4'>
+        <div className="flex flex-col space-y-3 ">
+        <Skeleton className="h-[125px] w-full rounded-xl" />
         <div className="space-y-2">
-          <Skeleton className="h-4 w-[250px]" />
-          <Skeleton className="h-4 w-[200px]" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
         </div>
       </div>
     </div>
