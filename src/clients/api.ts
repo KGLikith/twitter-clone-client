@@ -10,7 +10,7 @@ const createApolloClient = () => {
   const httpLink = createHttpLink({
     uri: 'http://localhost:8000/graphql',
   });
-  const authLink = setContext((_, { headers }) => {
+  const authLink = setContext(() => {
     const token = localStorage.getItem('__twitter_token');
     console.log(" apollo client",token)
     return {

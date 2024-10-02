@@ -12,8 +12,7 @@ const UseFeedCard = () => {
 
   useEffect(()=>{
     if(currentTweets ){
-        const validTweets = currentTweets.filter((tweet): tweet is Tweet => tweet !== null);
-        setTweets(validTweets);
+        setTweets(currentTweets as Tweet[]);
         setLoading(false);
     }
   },[currentTweets])
@@ -22,7 +21,7 @@ const UseFeedCard = () => {
   }
 
   return (
-    <div className="h-full ">
+    <div className="min-h-screen ">
       {tweets?.map((tweet) => (
         tweet && <FeedCard key={tweet.id} tweet={tweet} />
       ))}

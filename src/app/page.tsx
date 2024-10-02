@@ -1,13 +1,20 @@
-// "use client"
-import React from "react";
-import App from "@/components/app_components/App";
+"use server";
+import UseFeedCard from "@/components/app_components/UseFeedCard";
+import TwitterLayout from "@/components/Layout/TwitterLayout";
+// import TweetModal from "@/components/normal_comp/TweetModal";
+import React, { lazy } from "react";
+// const UseFeedCard = lazy(() => import("@/components/app_components/UseFeedCard"));
+const TweetModal = lazy(() => import("@/components/normal_comp/TweetModal"));
 
-export default async function Home() {
+const App = () => {
   return (
     <>
-    <div className="font-sans text-base">
-      <App  />
-    </div>
+      <TwitterLayout>
+          <TweetModal />
+          <UseFeedCard />
+      </TwitterLayout>
     </>
   );
-}
+};
+
+export default App;

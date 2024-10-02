@@ -39,6 +39,14 @@ export const useCreateTweet = () => {
             title: "Creating Tweet",
         });
     },
+    onSuccess:async()=>{
+      await apolloClient.resetStore();
+      await queryclient.invalidateQueries({ queryKey: ["tweets"] });
+      toast({
+        title: "Tweeted Successfully",
+        duration: 2000
+      });
+    },
   });
   return { ...mutation, createTweet: mutation.data?.createTweet };
 };

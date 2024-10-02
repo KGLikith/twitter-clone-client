@@ -7,6 +7,7 @@ import { CiBookmark, CiHeart } from "react-icons/ci";
 import { VscGraph } from "react-icons/vsc";
 import { GoUpload } from "react-icons/go";
 import { Tweet } from "@/gql/graphql";
+import Link from "next/link";
 
 interface FeedCardProps {
   tweet: Tweet;
@@ -15,10 +16,11 @@ interface FeedCardProps {
 const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
   return (
     <>
-      <div className="border  border-gray-800 p-4 cursor-pointer hover:bg-gray-950 transition-all">
+      <div className="border  border-gray-800 p-4 cursor-pointer hover:bg-[#0a0606] transition-all">
         <div className="grid grid-cols-12 gap-2">
+          <Link href={`/${tweet.user.id}`}>
           <div className="col-span-1  ">
-            {tweet.user.profileImageUrl && (
+            {tweet.user?.profileImageUrl && (
               <Image
                 className="rounded-full"
                 src={tweet.user.profileImageUrl}
@@ -28,8 +30,11 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
               />
             )}
           </div>
+          </Link>
           <div className="col-span-11">
-            <h5 className="font-bold">Likith</h5>
+          <Link href={`/${tweet.user.id}`}>
+            <h5 className="font-bold hover:underline w-fit">{tweet.user.firstName} {tweet.user.lastName}</h5>
+          </Link>
             <p>{tweet.content}</p>
             <div className="flex justify-between mt-4 text-xl">
               <div>

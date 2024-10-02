@@ -19,13 +19,14 @@ const Login = () => {
 
   useEffect(() => {
     if (currentUser !== undefined) {
-      setUser(currentUser || undefined);
+      setUser(currentUser as User);
       setLoading(false); 
     }
   }, [currentUser]);
 
   const handleLogin = useCallback(async (cred: CredentialResponse) => {
     const googleToken = cred.credential;
+    console.log(googleToken)
 
     if (!googleToken) {
       return toast({
@@ -39,6 +40,7 @@ const Login = () => {
         query: verifyUserGoogleTokenQuery,
         variables: { token: googleToken },
       });
+      console.log(data)
 
       const { verifyGoogleToken } = data;
       if (verifyGoogleToken) {
@@ -46,7 +48,6 @@ const Login = () => {
 
         await apolloClient.resetStore();
         await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
-        await queryclient.invalidateQueries({ queryKey: ["tweets"] });
         
         toast({
           variant: "default",
@@ -59,10 +60,9 @@ const Login = () => {
       console.error("Error during login:", error);
       toast({ variant: "destructive", title: "An error occurred", action: <ToastAction altText="Try again">Try again</ToastAction>, });
     }
-  }, []);
+  }, [toast]);
 
   if (loading) {
-    // Optionally, you can show a loading spinner or simply return null while loading
     return <Skel />;
   }
 
