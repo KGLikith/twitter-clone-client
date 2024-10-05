@@ -38,7 +38,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
             <h1 className="font-bold text-xl">
               {user?.firstName} {user?.lastName}
             </h1>
-            <p className="text-sm text-gray-500"> 10 posts posts</p>
+            <p className="text-sm text-gray-500">{user.tweets?.length ?? 0} {user.tweets && user.tweets.length > 1 ? "posts" : "post"}</p>
           </div>
         </nav>
         <div className="p-4 border">
@@ -49,6 +49,11 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
               className="rounded-full"
               width={100}
               height={100}
+              quality={75}
+              priority={false}
+              onError={(err)=>{
+                console.log(err)
+              }}
             />
           )}
           <h1 className="text-xl font-bold">

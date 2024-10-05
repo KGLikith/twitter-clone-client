@@ -1,4 +1,3 @@
-"use client"
 import {
   ApolloClient,
   createHttpLink,
@@ -6,12 +5,23 @@ import {
 } from "@apollo/client";
 import { setContext } from '@apollo/client/link/context';
 
-const createApolloClient = () => {
+const isServer = () => typeof window === 'undefined';
+
+ const getClientToken = () => {
+  return typeof window !== 'undefined' ? localStorage.getItem('__twitter_token') : null;
+};
+
+// Initialize Apollo Client
+ const initializeApollo = () => {
+  const token = isServer() ? null : getClientToken(); // Use cookies on the server if needed
+  return createApolloClient(token);
+};
+
+const createApolloClient = (token : string | null) => {
   const httpLink = createHttpLink({
     uri: 'http://localhost:8000/graphql',
   });
   const authLink = setContext(() => {
-    const token = localStorage.getItem('__twitter_token');
     console.log(" apollo client",token)
     return {
       headers: {
@@ -27,4 +37,4 @@ const createApolloClient = () => {
   return client;
 };
 
-export const apolloClient = createApolloClient();
+export const apolloClient = initializeApollo();

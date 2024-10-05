@@ -2,8 +2,16 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const nextConfig = {
     reactStrictMode: true,
+
     images: {
-        domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
+        remotePatterns: [
+            {
+              protocol: 'https',
+              hostname: 'twitter-clone-likith.s3.ap-south-1.amazonaws.com',
+              pathname: '/uploads/**',
+            },
+        ],
+        domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com','twitter-clone-likith.s3.ap-south-1.amazonaws.com'],
     },
 };
 

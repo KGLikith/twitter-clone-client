@@ -1,4 +1,6 @@
 import { graphql } from "@/gql";
+// import { gql } from "@apollo/client";
+
 
 export const getAllTweetsQuery = graphql(`
     #graphql
@@ -30,5 +32,12 @@ export const getTweetQuery= graphql(`
                 lastName
             }
         }
+    }
+`)
+
+export const getSignedUrlforTweetQuery= graphql(`
+    #graphql
+    query getSignedUrlforTweet($imageType: String!, $imageName: String!){
+        getSignedURLForTweet(imageType: $imageType, imageName: $imageName)
     }
 `)

@@ -16,26 +16,33 @@ interface FeedCardProps {
 const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
   return (
     <>
-      <div className="border  border-gray-800 p-4 cursor-pointer hover:bg-[#0a0606] transition-all">
+      <div className="border  border-gray-800 p-4 cursor-pointer hover:bg-[#0a0606] ">
         <div className="grid grid-cols-12 gap-2">
           <Link href={`/${tweet.user.id}`}>
-          <div className="col-span-1  ">
-            {tweet.user?.profileImageUrl && (
-              <Image
-                className="rounded-full"
-                src={tweet.user.profileImageUrl}
-                alt="user-image"
-                height={50}
-                width={50}
-              />
-            )}
-          </div>
+            <div className="col-span-1  ">
+              {tweet.user?.profileImageUrl && (
+                <Image
+                  className="rounded-full"
+                  src={tweet.user.profileImageUrl}
+                  alt="user-image"
+                  height={50}
+                  width={50}
+                />
+              )}
+            </div>
           </Link>
-          <div className="col-span-11">
-          <Link href={`/${tweet.user.id}`}>
-            <h5 className="font-bold hover:underline w-fit">{tweet.user.firstName} {tweet.user.lastName}</h5>
-          </Link>
+          <div className="col-span-11 space-y-3">
+            <Link href={`/${tweet.user.id}`}>
+              <h5 className="font-bold hover:underline w-fit">
+                {tweet.user.firstName} {tweet.user.lastName}
+              </h5>
+            </Link>
             <p>{tweet.content}</p>
+            { tweet.imageUrl && (
+              <div>
+                <Image src={tweet.imageUrl} alt="tweet-image" width={400} height={400} className="rounded-lg" />
+              </div>
+            )}
             <div className="flex justify-between mt-4 text-xl">
               <div>
                 <FaRegComment size={20} style={{ color: "#71767b" }} />

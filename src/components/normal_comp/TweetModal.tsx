@@ -11,6 +11,7 @@ import { BiPoll } from "react-icons/bi";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { RiCalendarScheduleLine } from "react-icons/ri";
 import { CiLocationOn } from "react-icons/ci";
+import axios from "axios"
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateTweet } from "@/hooks/tweets";
 import { User } from "@/gql/graphql";
+import { apolloClient } from "@/clients/api";
+import { getSignedUrlforTweetQuery } from "@/graphql/query/tweet";
+import { toast } from "@/hooks/use-toast";
 // import { apolloClient } from "@/clients/api";
 // import queryclient from "@/clients/queryClient";
 
@@ -41,10 +45,11 @@ const TweetModal = () => {
   const [user, setUser] = useState<User | undefined>();
   const { user: currentUser } = useCurrentUser();
   const { mutate } = useCreateTweet();
+  const [imageUrl,setImageUrl] = useState<string | null>();
 
   useEffect(() => {
     if (currentUser !== undefined && currentUser !== null) {
-        setUser(currentUser as User);
+      setUser(currentUser as User);
     }
   }, [currentUser]);
 
@@ -52,21 +57,58 @@ const TweetModal = () => {
     resolver: zodResolver(FormSchema),
   });
 
+  
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log(data);
     form.reset({
-      content: ""
+      content: "",
     });
-    mutate({ content: data.content },
-      
-    );
-    
+    mutate({ content: data.content,imageUrl });
+    setImageUrl(null)
     form.reset();
   }
+
+  const handleImageChange = useCallback((input: HTMLInputElement)=>{
+    return async(e: Event)=>{
+      e.preventDefault();
+        const file: File | null | undefined =input.files?.item(0);
+        console.log(file);
+        if(!file) return;
+        const { data } = await apolloClient.query({
+          query: getSignedUrlforTweetQuery,
+          variables: {
+            imageType: file.type,
+            imageName: file.name
+          }
+        })
+        const { getSignedURLForTweet } = data;
+        if(getSignedURLForTweet){
+          // toast({
+          //   title: "Uploading..."
+          // });
+          await axios.put(getSignedURLForTweet, file, {
+            headers: {
+              "Content-Type": file.type
+            }
+          });
+          // toast({
+          //   title: "Uploaded",
+          //   variant: "default"
+          // });
+          const url = new URL(getSignedURLForTweet);
+          const imageUrl = url.origin + url.pathname;
+          setImageUrl(imageUrl);
+        }
+    }
+  },[])
+
   const handleSelectImage = useCallback(() => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
+    const handlerFn = handleImageChange(input);
+    input.addEventListener("change",handlerFn);
+
     input.click();
   }, []);
 
@@ -107,6 +149,11 @@ const TweetModal = () => {
                     </FormItem>
                   )}
                 />
+                {imageUrl && (
+                  <div className="w-full">
+                    <Image src={imageUrl} alt="tweet-image"  width={300} height={300} />
+                  </div>
+                )}
                 <div className="border border-gray-800"></div>
                 <div className="flex justify-between items-center">
                   <div className="flex  items-center text-xl text-[#1d9bf0]">

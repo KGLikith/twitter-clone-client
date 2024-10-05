@@ -1,5 +1,5 @@
 import { apolloClient } from "@/clients/api";
-import { getCurrentUserByIdQuery, getCurrentUserQuery } from "@/graphql/query/user";
+import { getUserByIdQuery, getCurrentUserQuery } from "@/graphql/query/user";
 import { useQuery } from "@tanstack/react-query";
 
 export const useCurrentUser = () => {
@@ -27,7 +27,7 @@ export const useCurrentUserById = (id: string) => {
     queryFn: async () => {
       try {
         const { data } = await apolloClient.query({
-          query: getCurrentUserByIdQuery,
+          query: getUserByIdQuery,
           variables: { id },
         });
         return data;
@@ -36,5 +36,5 @@ export const useCurrentUserById = (id: string) => {
       }
     },
   });
-  return { ...query, user: query.data?.getCurrentUserById };
+  return { ...query, user: query.data?.getUserById };
 }
