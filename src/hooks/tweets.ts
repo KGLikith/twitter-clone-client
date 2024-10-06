@@ -14,7 +14,7 @@ export const useGetAllTweets = () => {
         const { data } = await apolloClient.query({
           query: getAllTweetsQuery,
         });
-        console.log(data);
+        // console.log(data);
         return data;
       } catch (error) {
         console.log("Error fetching tweets", error);
@@ -37,6 +37,7 @@ export const useCreateTweet = () => {
     onMutate: () => {
         toast({
             title: "Creating Tweet",
+            duration: 1000
         });
     },
     onSuccess:async()=>{
@@ -44,6 +45,14 @@ export const useCreateTweet = () => {
       await queryclient.invalidateQueries({ queryKey: ["tweets"] });
       toast({
         title: "Tweeted Successfully",
+        duration: 2000
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error creating tweet",
+        description: error.message,
+        variant: "destructive",
         duration: 2000
       });
     },

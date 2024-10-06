@@ -9,6 +9,9 @@ import queryclient from "@/clients/queryClient";
 import { User } from "@/gql/graphql";
 import Skel from "../normal_comp/Skeleton";
 import { ToastAction } from "@radix-ui/react-toast";
+import RecommendedUsers from "../normal_comp/RecommendedUsers";
+import Image from "next/image";
+import Link from "next/link";
 
 const Login = () => {
   const { toast } = useToast();
@@ -20,47 +23,62 @@ const Login = () => {
   useEffect(() => {
     if (currentUser !== undefined) {
       setUser(currentUser as User);
-      setLoading(false); 
+      setLoading(false);
+      // console.log(currentUser?.recommendedUsers)
     }
   }, [currentUser]);
 
-  const handleLogin = useCallback(async (cred: CredentialResponse) => {
-    const googleToken = cred.credential;
-    console.log(googleToken)
+  const handleLogin = useCallback(
+    async (cred: CredentialResponse) => {
+      const googleToken = cred.credential;
+      // console.log(googleToken);
 
-    if (!googleToken) {
-      return toast({
-        variant: "destructive",
-        title: "Google Token Not Found",
-      });
-    }
-
-    try {
-      const { data } = await apolloClient.query({
-        query: verifyUserGoogleTokenQuery,
-        variables: { token: googleToken },
-      });
-      console.log(data)
-
-      const { verifyGoogleToken } = data;
-      if (verifyGoogleToken) {
-        window.localStorage.setItem("__twitter_token", verifyGoogleToken);
-
-        await apolloClient.resetStore();
-        await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
-        
-        toast({
-          variant: "default",
-          title: "Verified Successfully",
+      if (!googleToken) {
+        return toast({
+          variant: "destructive",
+          title: "Google Token Not Found",
+          duration: 2000,
         });
-      } else {
-        toast({ variant: "destructive", title: "Verification Failed" });
       }
-    } catch (error) {
-      console.error("Error during login:", error);
-      toast({ variant: "destructive", title: "An error occurred", action: <ToastAction altText="Try again">Try again</ToastAction>, });
-    }
-  }, [toast]);
+
+      try {
+        const { data } = await apolloClient.query({
+          query: verifyUserGoogleTokenQuery,
+          variables: { token: googleToken },
+        });
+        // console.log(data);
+
+        const { verifyGoogleToken } = data;
+        if (verifyGoogleToken) {
+          window.localStorage.setItem("__twitter_token", verifyGoogleToken);
+
+          await apolloClient.resetStore();
+          await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+
+          toast({
+            variant: "default",
+            title: "Verified Successfully",
+            duration: 1000,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Verification Failed",
+            duration: 1000,
+          });
+        }
+      } catch (error) {
+        // console.error("Error during login:", error);
+        toast({
+          variant: "destructive",
+          title: (error as Error).message,
+          action: <ToastAction altText="Try again">Try again</ToastAction>,
+          duration: 2000,
+        });
+      }
+    },
+    [toast]
+  );
 
   if (loading) {
     return <Skel />;
@@ -68,7 +86,7 @@ const Login = () => {
 
   return (
     <>
-      {!user && (
+      {!user ? (
         <div className="p-3 pr-5 border flex flex-col border-gray-800 rounded-2xl space-y-4">
           <h1 className="font-bold text-xl">New to X?</h1>
           <p className="text-xs text-gray-500">
@@ -76,7 +94,16 @@ const Login = () => {
           </p>
           <div className=" rounded-full overflow-hidden p-2 shadow-lg flex justify-center">
             <GoogleLogin
-              onError={() => console.log("Login failed")}
+              onError={() => {
+                toast({
+                  title: "Login Failed",
+                  action: (
+                    <ToastAction altText="Try again">Try again</ToastAction>
+                  ),
+                  duration: 2000,
+                });
+                return;
+              }}
               onSuccess={(cred) => {
                 handleLogin(cred);
               }}
@@ -89,6 +116,51 @@ const Login = () => {
             <span className="text-blue-600">Cookie Use.</span>
           </p>
         </div>
+      ) : (
+        <>
+          {user?.recommendedUsers && user.recommendedUsers.length > 0 && (
+            <>
+              <div className="p-3 border flex flex-col border-gray-800 rounded-2xl space-y-2">
+                <h1 className="font-bold text-xl text-center">
+                  You might know?!
+                </h1>
+                <div className="space-y-1">
+                  {user.recommendedUsers?.map((user) => (
+                    <div key={user?.id} className=" flex gap-2 py-1 md:px-3 items-center hover:bg-gray-900 cursor-pointer transition-all w-full rounded-full ">
+                      {user?.profileImageUrl && (
+                        <Link href={`/${user?.id}`} >
+                          <Image
+                            src={user.profileImageUrl}
+                            alt="Profile Image"
+                            width={30}
+                            height={30}
+                            className="rounded-full "
+                          />
+                        </Link>
+                      )}
+                      <div className="hidden sm:flex justify-between w-full items-center ">
+                        <div>
+                          <Link href={`/${user?.id}`}>
+                            <h3 className="text-white text-md hover:underline">
+                              {user?.firstName} {user?.lastName}
+                            </h3>
+                          </Link>
+                          <h3 className="text-gray-400 text-sm">
+                            @{user?.firstName}
+                            {user?.lastName}
+                          </h3>
+                        </div>
+                        <div>
+                          <RecommendedUsers user={user as User} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </>
       )}
     </>
   );

@@ -1,7 +1,8 @@
-"use server"
-import React from "react";
-import Login from "../app_components/LoginSide";
+"use server";
+import React, { lazy, Suspense } from "react";
 import SideBar from "../app_components/SideBar";
+import Skel from "../normal_comp/Skeleton";
+const Login = lazy(() => import("../app_components/LoginSide"));
 
 interface TwitterLayoutProps {
   children: React.ReactNode;
@@ -20,7 +21,9 @@ const TwitterLayout: React.FC<TwitterLayoutProps> = ({ children }) => {
           </div>
 
           <div className="hidden md:inline col-span-0 md:col-span-4 mx-6 my-4 mr-20">
-            <Login />
+            <Suspense fallback={<Skel />}>
+              <Login />
+            </Suspense>
           </div>
         </div>
       </div>

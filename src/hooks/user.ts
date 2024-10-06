@@ -10,7 +10,6 @@ export const useCurrentUser = () => {
         const { data } = await apolloClient.query({
           query: getCurrentUserQuery,
         });
-        console.log(data)
         return data;
       } catch (error) {
         console.error("Error fetching current user:", error);

@@ -26,7 +26,7 @@ import { useCreateTweet } from "@/hooks/tweets";
 import { User } from "@/gql/graphql";
 import { apolloClient } from "@/clients/api";
 import { getSignedUrlforTweetQuery } from "@/graphql/query/tweet";
-import { toast } from "@/hooks/use-toast";
+// import { toast } from "@/hooks/use-toast";
 // import { apolloClient } from "@/clients/api";
 // import queryclient from "@/clients/queryClient";
 

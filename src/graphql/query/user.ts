@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+// import { gql } from "@apollo/client";
 import { graphql } from "../../gql";
 
 export const verifyUserGoogleTokenQuery = graphql(`
@@ -17,6 +17,13 @@ export const getCurrentUserQuery = graphql(`
       firstName
       lastName
       profileImageUrl
+      recommendedUsers{
+        id
+        email
+        firstName
+        lastName
+        profileImageUrl
+      }
       tweets {
         id
         content
@@ -27,6 +34,18 @@ export const getCurrentUserQuery = graphql(`
           lastName
           profileImageUrl
         }
+      }
+      followers{
+        id
+        firstName
+        lastName
+        profileImageUrl
+      }
+      following{
+        id
+        firstName
+        lastName
+        profileImageUrl
       }
     }
   }
@@ -51,6 +70,18 @@ export const getUserByIdQuery = graphql(`
           lastName
           profileImageUrl
         }
+      }
+      followers{
+        id
+        firstName
+        lastName
+        profileImageUrl
+      }
+      following{
+        id
+        firstName
+        lastName
+        profileImageUrl
       }
     }
   }
