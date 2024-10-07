@@ -47,6 +47,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   if (loading) {
     return <Skel />;
   }
+  
   if (!user) return <h1>User Not Found</h1>;
 
   return (
