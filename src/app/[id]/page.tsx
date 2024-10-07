@@ -1,6 +1,7 @@
-import {  NextPage } from "next/types";
+import { NextPage } from "next/types";
 import UserProfilePage from "./UserProfilePage";
-import TwitterLayout from "@/components/Layout/TwitterLayout";
+import { Suspense } from "react";
+import Skel from "@/components/normal_comp/Skeleton";
 
 interface UserProfilePageProps {
   params: {
@@ -10,15 +11,14 @@ interface UserProfilePageProps {
 
 const Page: NextPage<UserProfilePageProps> = ({ params }) => {
   // console.log(params)
-  if(!params.id) return null;
+  if (!params.id) return null;
   return (
     <>
-    <TwitterLayout>
-      <UserProfilePage id={params.id} />
-    </TwitterLayout>
+        <Suspense fallback={<Skel />}>
+          <UserProfilePage id={params.id} />
+        </Suspense>
     </>
   );
 };
-
 
 export default Page;

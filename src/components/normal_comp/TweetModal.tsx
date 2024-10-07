@@ -46,9 +46,8 @@ const TweetModal = () => {
   const { user: currentUser } = useCurrentUser();
   const { mutate } = useCreateTweet();
   const [imageUrl,setImageUrl] = useState<string | null>();
-
   useEffect(() => {
-    if (currentUser !== undefined && currentUser !== null) {
+    if (currentUser !== undefined ) {
       setUser(currentUser as User);
     }
   }, [currentUser]);
@@ -83,18 +82,13 @@ const TweetModal = () => {
         })
         const { getSignedURLForTweet } = data;
         if(getSignedURLForTweet){
-          // toast({
-          //   title: "Uploading..."
-          // });
+
           await axios.put(getSignedURLForTweet, file, {
             headers: {
               "Content-Type": file.type
             }
           });
-          // toast({
-          //   title: "Uploaded",
-          //   variant: "default"
-          // });
+
           const url = new URL(getSignedURLForTweet);
           const imageUrl = url.origin + url.pathname;
           setImageUrl(imageUrl);

@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { CgProfile } from "react-icons/cg";
 import { CiCircleMore } from "react-icons/ci";
 import { FaHome, FaSearch } from "react-icons/fa";
@@ -9,6 +9,16 @@ import { MdOutlineMailOutline, MdPeopleOutline } from "react-icons/md";
 import Badge from "../normal_comp/Badge";
 import { useCurrentUser } from "@/hooks/user";
 import Link from "next/link";
+import { LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { apolloClient } from "@/clients/api";
+import queryclient from "@/clients/queryClient";
+import { toast } from "@/hooks/use-toast";
 
 interface TwitterSidebarButton {
   title: string;
@@ -24,6 +34,17 @@ const SideBar: React.FC = () => {
       setUser(currentUser);
     }
   }, [currentUser]);
+
+  const handleLogout = useCallback(async () => {
+    window.localStorage.removeItem("__twitter_token");
+    await apolloClient.resetStore();
+    await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+    toast({
+      title: "Logged out successfully",
+      duration: 2000,
+    });
+  }, []);
+
   const sideBarMenuItems: TwitterSidebarButton[] = [
     {
       title: "Home",
@@ -78,9 +99,7 @@ const SideBar: React.FC = () => {
             <ul className="mb-3">
               {sideBarMenuItems.map((item) => (
                 <Link key={item.title} href={item.link}>
-                  <li
-                    className="flex py-3 md:p-3 sm:pr-1 sm:pl-1 md:pr-5 justify-start items-center gap-5 w-fit rounded-full hover:bg-gray-900 cursor-pointer transition-all"
-                  >
+                  <li className="flex py-3 md:p-3 sm:pr-1 sm:pl-1 md:pr-5 justify-start items-center gap-5 w-fit rounded-full hover:bg-gray-900 cursor-pointer transition-all">
                     <span className="font-normal">{item.icon}</span>
                     <span className="hidden sm:inline">{item.title}</span>
                   </li>
@@ -94,8 +113,18 @@ const SideBar: React.FC = () => {
             </div>
           </div>
         </div>
-        <div>
-          <Badge />
+        <div className="w-full">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="w-full focus-visible:none focus-visible:outline-none focus-visible:border-none">
+              <Badge />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-full">
+              <DropdownMenuItem className="w-full" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </>

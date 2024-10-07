@@ -17,7 +17,6 @@ const createApolloClient = () => {
     // console.log(" apollo client",token)
     return {
       headers: {
-        // ...headers,
         authorization: token ? `Bearer ${token}` : "",
       }
     }

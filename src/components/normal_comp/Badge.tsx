@@ -10,7 +10,7 @@ const Badge = () => {
   const { user: currentUser } = useCurrentUser();
   useEffect(() => {
     if (currentUser !== undefined) {
-      setUser(currentUser as User || undefined);
+      setUser((currentUser as User) || undefined);
     }
   }, [currentUser]);
 

@@ -1,16 +1,9 @@
 "use client";
 import { FollowUser, UnFollowUser } from "@/actions/follow_unfollow";
-import { apolloClient } from "@/clients/api";
-import queryclient from "@/clients/queryClient";
 import FeedCard from "@/components/normal_comp/FeedCard";
 import Skel from "@/components/normal_comp/Skeleton";
 import { Button } from "@/components/ui/button";
 import { Tweet, User } from "@/gql/graphql";
-import {
-  followUserMutation,
-  unfollowUserMutation,
-} from "@/graphql/mutation/user";
-import { toast } from "@/hooks/use-toast";
 import { useCurrentUser, useCurrentUserById } from "@/hooks/user";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";

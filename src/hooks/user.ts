@@ -1,3 +1,4 @@
+"use client"
 import { apolloClient } from "@/clients/api";
 import { getUserByIdQuery, getCurrentUserQuery } from "@/graphql/query/user";
 import { useQuery } from "@tanstack/react-query";
@@ -12,7 +13,7 @@ export const useCurrentUser = () => {
         });
         return data;
       } catch (error) {
-        console.error("Error fetching current user:", error);
+        console.error("Error fetching current user:", (error as Error).message);
       }
     },
 

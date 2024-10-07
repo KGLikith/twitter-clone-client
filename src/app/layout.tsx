@@ -6,6 +6,7 @@ import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import ClientProvider from "@/components/ClientProvider";
 import ProviderApollo from "@/components/ApolloProvider";
+import TwitterLayout from "@/components/Layout/TwitterLayout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,9 +22,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className} >
+      <body className={inter.className}>
         <GoogleOAuthProvider clientId={process.env.GOOGLE_ID || ""}>
-          <ProviderApollo >
+          <ProviderApollo>
             <ThemeProvider
               attribute="class"
               defaultTheme="dark"
@@ -31,8 +32,10 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <ClientProvider>
-                {children}
-                <Toaster />
+                <TwitterLayout>
+                  {children}
+                  <Toaster />
+                </TwitterLayout>
               </ClientProvider>
             </ThemeProvider>
           </ProviderApollo>

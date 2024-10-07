@@ -1,18 +1,23 @@
 import withBundleAnalyzer from '@next/bundle-analyzer';
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
+  reactStrictMode: true,
 
-    images: {
-        remotePatterns: [
-            {
-              protocol: 'https',
-              hostname: 'twitter-clone-likith.s3.ap-south-1.amazonaws.com',
-              pathname: '/uploads/**',
-            },
-        ],
-        domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com','twitter-clone-likith.s3.ap-south-1.amazonaws.com'],
-    },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'twitter-clone-likith.s3.ap-south-1.amazonaws.com',
+        pathname: '/uploads/**',
+      },
+    ],
+    domains: [
+      'avatars.githubusercontent.com',
+      'lh3.googleusercontent.com',
+      'twitter-clone-likith.s3.ap-south-1.amazonaws.com',
+    ],
+  },
 };
 
 export default withBundleAnalyzer({ enabled: process.env.ANALYZE === 'true' })(nextConfig);

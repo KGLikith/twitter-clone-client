@@ -4,29 +4,40 @@ import { User } from "@/gql/graphql";
 import { followUserMutation, unfollowUserMutation } from "@/graphql/mutation/user";
 import { toast } from "@/hooks/use-toast";
 
-export const FollowUser = (user: User | undefined, setButtonLoading: any) => {
+export const FollowUser = (user: User | undefined, setButtonLoading: (loading: boolean) => void) => {
   return async () => {
     if (!user?.id) return;
-    setButtonLoading(true);
-    await apolloClient.mutate({
-      mutation: followUserMutation,
-      variables: { to: user?.id },
-    });
-    await apolloClient.resetStore();
-    await queryclient.invalidateQueries({
-      queryKey: ["currentUserById", user.id],
-    });
-    await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
-
-    toast({
-      title: "Followed Successfully",
-      duration: 1000,
-    });
-    setButtonLoading(false);
+    try{
+      setButtonLoading(true);
+      await apolloClient.mutate({
+        mutation: followUserMutation,
+        variables: { to: user?.id },
+      });
+      await apolloClient.resetStore();
+      await queryclient.invalidateQueries({
+        queryKey: ["currentUserById", user.id],
+      });
+      await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+  
+      toast({
+        title: "Followed Successfully",
+        duration: 1000,
+      });
+      setButtonLoading(false);
+    }
+    catch(e){
+      toast({
+        title: "Error Following",
+        description: (e as Error).message,
+        variant: "destructive",
+        duration: 2000
+      })
+      setButtonLoading(false)
+    }
   };
 };
 
-export const UnFollowUser = (user: User | undefined, setButtonLoading: any) => {
+export const UnFollowUser = (user: User | undefined, setButtonLoading: (loading: boolean) => void) => {
   return async () => {
     setButtonLoading(true);
     if (!user?.id) return;
