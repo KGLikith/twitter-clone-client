@@ -67,7 +67,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
           </div>
         </nav>
         <div className="p-4 border space-y-3">
-          {user && user.profileImageUrl && (
+          {user?.profileImageUrl && (
             <Image
               src={user.profileImageUrl}
               alt="Profile Image"
