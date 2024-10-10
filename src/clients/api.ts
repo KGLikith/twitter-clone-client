@@ -6,11 +6,9 @@ import {
 } from "@apollo/client";
 import { setContext } from '@apollo/client/link/context';
 
-
-
 const createApolloClient = () => {
   const httpLink = createHttpLink({
-    uri: 'http://localhost:8000/graphql',
+    uri: process.env.NEXT_PUBLIC_API_URL,
   });
   const authLink = setContext(() => {
     const token = window.localStorage.getItem("__twitter_token")
