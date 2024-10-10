@@ -9,12 +9,14 @@ import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FaArrowLeftLong } from "react-icons/fa6";
+import { useRouter } from "next/navigation";
 
 interface UserProfilePageProps {
   id: string;
 }
 
 const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
+  const router = useRouter();
   const { user: currentUser } = useCurrentUserById(id);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
@@ -54,8 +56,9 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
     <>
       <div>
         <nav className="border flex items-center gap-8 px-3 py-1">
-          <div className="hover:border hover:bg-gray-900 hover:border-none rounded-full p-3 transition-all">
-            <FaArrowLeftLong size={15} />
+          <div className="hover:border hover:bg-gray-900 hover:border-none rounded-full p-3 transition-all" onClick={()=>{
+            router.push('/')}}>
+            <FaArrowLeftLong size={15}  />
           </div>
           <div>
             <h1 className="font-bold text-xl">
