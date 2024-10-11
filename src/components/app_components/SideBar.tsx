@@ -54,37 +54,37 @@ const SideBar: React.FC = () => {
     {
       title: "Explore",
       icon: <FaSearch className="text-3xl" />,
-      link: "/explore",
+      link: `${user ? `/explore` : "/not_authorised"}`
     },
     {
       title: "Notifications",
       icon: <FaBell className="text-3xl" />,
-      link: "/notifications",
+      link: `${user ? `/notifications` : "/not_authorised"}`
     },
     {
       title: "Message",
       icon: <MdOutlineMailOutline className="text-3xl" />,
-      link: "/messages",
+      link: `${user ? `/messages` : "/not_authorised"}`
     },
     {
       title: "Community",
       icon: <MdPeopleOutline className="text-3xl" />,
-      link: "/community",
+      link: `${user ? `/community` : "/not_authorised"}`
     },
     {
       title: "Premium",
       icon: <FaXTwitter className="text-3xl" />,
-      link: "/premium",
+      link: `${user ? `/premium` : "/not_authorised"}`
     },
     {
       title: "Profile",
       icon: <CgProfile className="text-3xl" />,
-      link: `${user ? `/${user.id}` : "/"}`,
+      link: `${user ? `/${user.id}` : "/not_authorised"}`,
     },
     {
       title: "More",
       icon: <CiCircleMore className="text-3xl" />,
-      link: "/more",
+      link: `${user ? `/more` : "/not_authorised"}`
     },
   ];
 

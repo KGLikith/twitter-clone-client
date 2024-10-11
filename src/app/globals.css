@@ -80,3 +80,13 @@ body {
     @apply bg-background text-foreground;
   }
 }
+ 
+.heart-icon{
+  color: #71767b;
+  cursor: pointer; /* Optional: Adds a pointer cursor on hover */
+  transition: color 0.3s ease;
+}
+
+.heart-icon:hover {
+  color: #f91880;
+}

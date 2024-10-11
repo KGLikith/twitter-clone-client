@@ -1,5 +1,5 @@
 import { graphql } from "@/gql";
-// import { gql } from "@apollo/client";
+import { gql } from "@apollo/client";
 
 export const createTweetMutation = graphql(`
     #graphql
@@ -7,5 +7,19 @@ export const createTweetMutation = graphql(`
         createTweet(payload: $payload){
             id
         }
+    }
+`)
+
+export const likeTweetMutation = graphql(`
+    #graphql
+    mutation LikeTweet($tweetId: ID!){
+        LikeTweet(tweetId: $tweetId)
+    }
+`)
+
+export const unlikeTweetMutation = graphql(`
+    #graphql
+    mutation UnlikeTweet($tweetId: ID!){
+        UnlikeTweet(tweetId: $tweetId)
     }
 `)

@@ -12,9 +12,11 @@ import { ToastAction } from "@radix-ui/react-toast";
 import RecommendedUsers from "../normal_comp/RecommendedUsers";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const Login = () => {
   const { toast } = useToast();
+  const router= useRouter()
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
@@ -60,6 +62,7 @@ const Login = () => {
             title: "Verified Successfully",
             duration: 1000,
           });
+          router.push('/')
         } else {
           toast({
             variant: "destructive",

@@ -17,10 +17,10 @@ interface UserProfilePageProps {
 
 const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   const router = useRouter();
+  const { user: USER } = useCurrentUser();
   const { user: currentUser } = useCurrentUserById(id);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
-  const { user: USER } = useCurrentUser();
   const [buttonLoading, setButtonLoading] = useState(false);
 
   const amIFollowing = useMemo(() => {
@@ -32,6 +32,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   }, [USER?.following, user]);
 
   useEffect(() => {
+    if(!USER) router.push('/not_authorised')
     if (currentUser !== undefined) {
       setUser(currentUser as User);
       setLoading(false);
@@ -49,8 +50,8 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   if (loading) {
     return <Skel />;
   }
-  
-  if (!user) return <h1>User Not Found</h1>;
+  if(!USER) router.push('/not_authorised')
+  if (!user) return <h1 className="text-center h-full flex justify-center items-center">Page Not Done Yet or User Not Found</h1>;
 
   return (
     <>

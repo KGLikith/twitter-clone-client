@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useCurrentUser } from "@/hooks/user";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { z } from "zod";
 import { MdPhotoSizeSelectActual } from "react-icons/md";
 import { MdGifBox } from "react-icons/md";
@@ -49,6 +49,12 @@ const TweetModal = () => {
   useEffect(() => {
     if (currentUser !== undefined ) {
       setUser(currentUser as User);
+      setImageUrl(null)
+      form.reset({
+        content: ""
+      });
+    }else{
+      setUser(undefined)
     }
   }, [currentUser]);
 
@@ -71,7 +77,7 @@ const TweetModal = () => {
     return async(e: Event)=>{
       e.preventDefault();
         const file: File | null | undefined =input.files?.item(0);
-        console.log(file);
+        // console.log(file);
         if(!file) return;
         const { data } = await apolloClient.query({
           query: getSignedUrlforTweetQuery,
@@ -91,6 +97,7 @@ const TweetModal = () => {
 
           const url = new URL(getSignedURLForTweet);
           const imageUrl = url.origin + url.pathname;
+          console.log(imageUrl)
           setImageUrl(imageUrl);
         }
     }

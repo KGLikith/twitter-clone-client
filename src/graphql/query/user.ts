@@ -64,6 +64,7 @@ export const getUserByIdQuery = graphql(`
         id
         content
         imageUrl
+        likes
         user {
           id
           firstName

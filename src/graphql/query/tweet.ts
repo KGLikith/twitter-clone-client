@@ -9,6 +9,7 @@ export const getAllTweetsQuery = graphql(`
             id
             content 
             imageUrl
+            likes
             user{
                 id
                 firstName
@@ -26,6 +27,7 @@ export const getTweetQuery= graphql(`
             id
             content
             imageUrl
+            likes
             user{
                 id
                 firstName
