@@ -36,3 +36,14 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/graphql
 GOOGLE_ID=Google-cloud-client-id
 GOOGLE_SECRET=Google-cloud-client-secret
 ```
+
+## Building and Starting the application
+
+```bash
+npm run codegen
+```
+
+```bash
+npm run build
+npm start
+```
