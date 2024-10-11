@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useCurrentUser } from "@/hooks/user";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { set, useForm } from "react-hook-form";
+import {  useForm } from "react-hook-form";
 import { z } from "zod";
 import { MdPhotoSizeSelectActual } from "react-icons/md";
 import { MdGifBox } from "react-icons/md";

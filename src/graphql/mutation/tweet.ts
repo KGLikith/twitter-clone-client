@@ -1,5 +1,5 @@
 import { graphql } from "@/gql";
-import { gql } from "@apollo/client";
+// import { gql } from "@apollo/client";
 
 export const createTweetMutation = graphql(`
     #graphql
