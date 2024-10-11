@@ -2,6 +2,8 @@
 
 This is the client-side application for the Twitter Clone project.
 
+https://github.com/user-attachments/assets/650b719f-afdc-4a2f-9e35-9c6e4d73f607
+
 ## Prerequisites
 
 - Ensure you have the server-side application set up. Follow the instructions at [twitter-clone-server](https://github.com/KGLikith/twitter-clone-server).
