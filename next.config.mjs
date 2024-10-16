@@ -15,7 +15,7 @@ const nextConfig = {
     domains: [
       'avatars.githubusercontent.com',
       'lh3.googleusercontent.com',
-      'twitter-clone-likith.s3.ap-south-1.amazonaws.com',
+      ' ',
     ],
   },
 };
