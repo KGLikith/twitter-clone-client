@@ -40,9 +40,9 @@ GOOGLE_SECRET=Google-cloud-client-secret
 ```
 
 
-### Add Host Name in [next.config.mjs](https://github.com/KGLikith/twitter-clone-client/blob/main/next.config.mjs) for images(ex: bucker_name.ap-south-1.amazonaws.com)
+### Add Host Name and Domain in [next.config.mjs](https://github.com/KGLikith/twitter-clone-client/blob/main/next.config.mjs) for images(ex: bucker_name.ap-south-1.amazonaws.com)
 
-
+### 
 
 ## Building and Starting the application
 
