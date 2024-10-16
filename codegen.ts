@@ -6,7 +6,7 @@ env.config();
 
 const config: CodegenConfig = {
   overwrite: true,
-  schema: "https://d1sv5yadi7eom3.cloudfront.net/graphql",
+  schema: "http://localhost:8000/graphql",
   documents: ['src/**/*.{tsx,ts}'],
   generates: {
     "src/gql/": {

@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useCurrentUser } from "@/hooks/user";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {  useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { MdPhotoSizeSelectActual } from "react-icons/md";
 import { MdGifBox } from "react-icons/md";
@@ -11,7 +11,7 @@ import { BiPoll } from "react-icons/bi";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { RiCalendarScheduleLine } from "react-icons/ri";
 import { CiLocationOn } from "react-icons/ci";
-import axios from "axios"
+import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,7 @@ import { useCreateTweet } from "@/hooks/tweets";
 import { User } from "@/gql/graphql";
 import { apolloClient } from "@/clients/api";
 import { getSignedUrlforTweetQuery } from "@/graphql/query/tweet";
+import { toast } from "@/hooks/use-toast";
 // import { toast } from "@/hooks/use-toast";
 // import { apolloClient } from "@/clients/api";
 // import queryclient from "@/clients/queryClient";
@@ -45,16 +46,16 @@ const TweetModal = () => {
   const [user, setUser] = useState<User | undefined>();
   const { user: currentUser } = useCurrentUser();
   const { mutate } = useCreateTweet();
-  const [imageUrl,setImageUrl] = useState<string | null>();
+  const [imageUrl, setImageUrl] = useState<string | null>();
   useEffect(() => {
-    if (currentUser !== undefined ) {
+    if (currentUser !== undefined) {
       setUser(currentUser as User);
-      setImageUrl(null)
+      setImageUrl(null);
       form.reset({
-        content: ""
+        content: "",
       });
-    }else{
-      setUser(undefined)
+    } else {
+      setUser(undefined);
     }
   }, [currentUser]);
 
@@ -62,53 +63,59 @@ const TweetModal = () => {
     resolver: zodResolver(FormSchema),
   });
 
-  
+  const contentValue = form.watch("content");
+
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     console.log(data);
     form.reset({
       content: "",
     });
-    mutate({ content: data.content,imageUrl });
-    setImageUrl(null)
+    mutate({ content: data.content, imageUrl });
+    setImageUrl(null);
     form.reset();
   }
 
-  const handleImageChange = useCallback((input: HTMLInputElement)=>{
-    return async(e: Event)=>{
+  const handleImageChange = useCallback((input: HTMLInputElement) => {
+    return async (e: Event) => {
       e.preventDefault();
-        const file: File | null | undefined =input.files?.item(0);
-        // console.log(file);
-        if(!file) return;
-        const { data } = await apolloClient.query({
+      const file: File | null | undefined = input.files?.item(0);
+      if (!file) return;
+      try {
+        const { data, error } = await apolloClient.query({
           query: getSignedUrlforTweetQuery,
           variables: {
             imageType: file.type,
-            imageName: file.name
-          }
-        })
+            imageName: file.name,
+          },
+        });
         const { getSignedURLForTweet } = data;
-        if(getSignedURLForTweet){
-
+        if (getSignedURLForTweet) {
           await axios.put(getSignedURLForTweet, file, {
             headers: {
-              "Content-Type": file.type
-            }
+              "Content-Type": file.type,
+            },
           });
-
           const url = new URL(getSignedURLForTweet);
           const imageUrl = url.origin + url.pathname;
-          console.log(imageUrl)
+          console.log(imageUrl);
           setImageUrl(imageUrl);
         }
-    }
-  },[])
+      } catch (error) {
+        console.log(error);
+        toast({
+          variant: "destructive",
+          title: "Not authorised",
+        });
+      }
+    };
+  }, []);
 
   const handleSelectImage = useCallback(() => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
     const handlerFn = handleImageChange(input);
-    input.addEventListener("change",handlerFn);
+    input.addEventListener("change", handlerFn);
 
     input.click();
   }, []);
@@ -152,12 +159,17 @@ const TweetModal = () => {
                 />
                 {imageUrl && (
                   <div className="w-full">
-                    <Image src={imageUrl} alt="tweet-image"  width={300} height={300} />
+                    <Image
+                      src={imageUrl}
+                      alt="tweet-image"
+                      width={300}
+                      height={300}
+                    />
                   </div>
                 )}
                 <div className="border border-gray-800"></div>
                 <div className="flex justify-between items-center">
-                  <div className="flex  items-center text-xl text-[#1d9bf0]">
+                  <div className="flex items-center text-xl text-[#1d9bf0]">
                     <div className="hover:border hover:bg-gray-900 hover:border-none rounded-full p-1 md:p-2 transition-all">
                       <MdPhotoSizeSelectActual onClick={handleSelectImage} />
                     </div>
@@ -177,12 +189,17 @@ const TweetModal = () => {
                       <CiLocationOn />
                     </div>
                   </div>
-                  <Button
-                    type="submit"
-                    className="w-fit py-1 px-5 flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 rounded-full text-center font-bold text-base dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                  >
-                    Post
-                  </Button>
+                  <div>
+                    <Button
+                      type="submit"
+                      disabled={
+                        contentValue?.length < 3 || contentValue?.length > 100
+                      }
+                      className="w-fit py-1 px-5 flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 rounded-full text-center font-bold text-base dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    >
+                      Post
+                    </Button>
+                  </div>
                 </div>
               </form>
             </Form>

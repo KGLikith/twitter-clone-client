@@ -30,9 +30,6 @@ export const getCurrentUserQuery = graphql(`
         imageUrl
         user {
           id
-          firstName
-          lastName
-          profileImageUrl
         }
       }
       followers{

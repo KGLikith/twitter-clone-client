@@ -39,6 +39,8 @@ export const FollowUser = (user: User | undefined, setButtonLoading: (loading: b
 
 export const UnFollowUser = (user: User | undefined, setButtonLoading: (loading: boolean) => void) => {
   return async () => {
+    console.log("unfollwing")
+    console.log(user)
     setButtonLoading(true);
     if (!user?.id) return;
     await apolloClient.mutate({

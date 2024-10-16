@@ -121,6 +121,7 @@ const Login = () => {
         </div>
       ) : (
         <>
+          {/* <Searchbar></Searchbar> */}
           {user?.recommendedUsers && user.recommendedUsers.length > 0 && (
             <>
               <div className="p-3 border flex flex-col border-gray-800 rounded-2xl space-y-2">
