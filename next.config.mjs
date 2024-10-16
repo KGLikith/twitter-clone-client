@@ -8,7 +8,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'twitter-clone-likith.s3.ap-south-1.amazonaws.com',
+        hostname: ,
         pathname: '/uploads/**',
       },
     ],
