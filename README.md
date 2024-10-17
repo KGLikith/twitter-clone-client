@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Twitter Clone Client
 
-## Getting Started
+This is the client-side application for the Twitter Clone project.
 
-First, run the development server:
+https://github.com/user-attachments/assets/650b719f-afdc-4a2f-9e35-9c6e4d73f607
+
+## Prerequisites
+
+- Ensure you have the server-side application set up. Follow the instructions at [twitter-clone-server](https://github.com/KGLikith/twitter-clone-server).
+
+## Installation
+
+1. Clone the repository:
+
+    ```bash
+    git clone https://github.com/KGLikith/twitter-clone-client.git
+    ```
+
+2. Navigate to the project directory:
+
+    ```bash
+    cd twitter-clone-client
+    ```
+
+3. Install dependencies:
+
+    ```bash
+    npm install
+    ```
+
+## Environment Variables
+
+Create a `.env` file in the root directory and add the following variables:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+AUTH_SECRET=auth_secret
+NEXT_PUBLIC_API_URL=http://localhost:8000/graphql
+GOOGLE_ID=Google-cloud-client-id
+GOOGLE_SECRET=Google-cloud-client-secret
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Add Host Name and Domain in [next.config.mjs](https://github.com/KGLikith/twitter-clone-client/blob/main/next.config.mjs) for images(ex: bucker_name.ap-south-1.amazonaws.com)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 
 
-## Learn More
+## Building and Starting the application
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run codegen
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build
+npm start
+```
