@@ -66,7 +66,6 @@ const TweetModal = () => {
   const contentValue = form.watch("content");
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
     form.reset({
       content: "",
     });
@@ -90,14 +89,18 @@ const TweetModal = () => {
         });
         const { getSignedURLForTweet } = data;
         if (getSignedURLForTweet) {
-          await axios.put(getSignedURLForTweet, file, {
-            headers: {
-              "Content-Type": file.type,
-            },
-          });
+          try {
+            await axios.put(getSignedURLForTweet, file, {
+              headers: {
+                "Content-Type": file.type,
+              },
+            });
+            
+          } catch (error) {
+            console.log(error);
+          }
           const url = new URL(getSignedURLForTweet);
           const imageUrl = url.origin + url.pathname;
-          console.log(imageUrl);
           setImageUrl(imageUrl);
         }
       } catch (error) {

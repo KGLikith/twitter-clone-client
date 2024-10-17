@@ -32,18 +32,18 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   }, [USER?.following, user]);
 
   useEffect(() => {
-    if(!USER) router.push('/not_authorised')
+    if(USER == undefined && !loading) router.push('/not_authorised')
     if (currentUser !== undefined) {
       setUser(currentUser as User);
       setLoading(false);
     }
   }, [currentUser, USER]);
 
-  const handleFollowUser = useCallback(FollowUser(user, setButtonLoading), [
+  const handleFollowUser = useCallback(()=>FollowUser(user, setButtonLoading), [
     user,
   ]);
 
-  const handleunFollowUser = useCallback(UnFollowUser(user, setButtonLoading), [
+  const handleunFollowUser = useCallback(()=>UnFollowUser(user, setButtonLoading), [
     user,
   ]);
 

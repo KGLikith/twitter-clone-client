@@ -7,8 +7,6 @@ import { VscGraph } from "react-icons/vsc";
 import { GoUpload } from "react-icons/go";
 import { Tweet, User } from "@/gql/graphql";
 import Link from "next/link";
-import { toast } from "@/hooks/use-toast";
-import { apolloClient } from "@/clients/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +28,8 @@ import {
   RiUserUnfollowFill,
 } from "react-icons/ri";
 import { FollowUser, UnFollowUser } from "@/actions/follow_unfollow";
+import { dislike, like } from "@/actions/liket_dislike";
+import { deletePost } from "@/actions/deletePost";
 
 interface FeedCardProps {
   tweet: Tweet;
@@ -48,90 +48,28 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
     }
   }, [currentUser, tweet]);
 
-  const handleLike = async () => {
-    if (!user) {
-      return toast({
-        variant: "destructive",
-        description: "Please login to like the tweet",
-        duration: 1000,
-      });
-    }
-    try {
-      if (liked) return;
-      await apolloClient.mutate({
-        mutation: likeTweetMutation,
-        variables: { tweetId: tweet.id },
-      });
-      setLiked(true);
-      await apolloClient.resetStore();
-      await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-      await queryclient.invalidateQueries({
-        queryKey: ["currentUserById", tweet.user.id],
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        description: (error as Error).message,
-        duration: 1000,
-      });
-    }
-  };
-  const dislike = async () => {
-    if (!user) {
-      return toast({
-        variant: "destructive",
-        description: "Please login to like the tweet",
-      });
-    }
-    try {
-      await apolloClient.mutate({
-        mutation: unlikeTweetMutation,
-        variables: { tweetId: tweet.id },
-      });
-      setLiked(false);
-      await apolloClient.resetStore();
-      await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-      await queryclient.invalidateQueries({
-        queryKey: ["currentUserById", tweet.user.id],
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        description: (error as Error).message,
-      });
-    }
-  };
+  const handleLike = useCallback(
+    async () => await like(user as User, tweet, setLiked, liked),
+    [user, tweet]
+  );
 
-  const handleDeletePost = async () => {
-    const { data, errors } = await apolloClient.mutate({
-      mutation: deleteTweetMutation,
-      variables: { tweetId: tweet.id },
-    });
-    if (errors) {
-      return toast({
-        variant: "destructive",
-        description: errors[0].message,
-        duration: 1000,
-      });
-    }
-    await apolloClient.resetStore();
-    await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-    await queryclient.invalidateQueries({
-      queryKey: ["currentUserById", tweet.user.id],
-    });
-    return toast({
-      description: "Tweet Deleted Successfully",
-      duration: 2000,
-    });
-  };
+  const handledislike = useCallback(
+    async () => await dislike(user as User, tweet, setLiked, liked),
+    [user, tweet]
+  );
+
+  const handleDeletePost = useCallback(
+    async () => await deletePost(tweet),
+    [tweet]
+  );
 
   const handleUnfollowUser = useCallback(
-    UnFollowUser(tweet.user, () => {}),
+    async () => await UnFollowUser((tweet as Tweet).user, () => {}),
     [tweet.user]
   );
 
   const handleFollowUser = useCallback(
-    FollowUser(tweet.user, () => {}),
+    async () => await FollowUser((tweet as Tweet).user, () => {}),
     [tweet.user]
   );
 
@@ -139,7 +77,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
     <>
       <div className="border  border-gray-800 p-4 cursor-pointer hover:bg-[#0a0606] ">
         <div className="grid grid-cols-12 gap-2">
-          <Link href={`/${tweet.user.id}`}>
+          <Link href={`/user/${tweet.user.id}`}>
             <div className="col-span-1  ">
               {tweet.user?.profileImageUrl && (
                 <Image
@@ -154,59 +92,74 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
           </Link>
           <div className="col-span-11 space-y-3">
             <div className="flex justify-between items-center">
-              <Link href={`/${tweet.user.id}`}>
+              <Link href={`/user/${tweet.user.id}`}>
                 <h5 className="font-bold hover:underline w-fit">
                   {tweet.user.firstName} {tweet.user.lastName}
                 </h5>
               </Link>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="p-1 py-2 rounded-full hover:bg-gray-900">
-                    <CiMenuKebab />
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-36 bg-black " style={{boxShadow: "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px"}}>
-                  <DropdownMenuGroup>
-                    <Link href={`/${tweet.user.id}`}>
-                      <DropdownMenuItem className="flex justify-between items-center px-4 hover:bg-gray-900">
-                        <FaUser className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </DropdownMenuItem>
-                    </Link>
-                    {user?.id === tweet.user.id ? (
-                      <DropdownMenuItem
-                        className="flex justify-between items-center px-4 hover:bg-gray-900"
-                        onClick={handleDeletePost}
-                      >
-                        <MdDelete className="mr-2 h-4 w-4" />
-                        <span>Delete</span>
-                      </DropdownMenuItem>
-                    ) : (
-                      <>
-                        {user?.following?.findIndex(
-                          (el) => el?.id === tweet.user.id
-                        ) !== -1 ? (
-                          <DropdownMenuItem
-                            className="flex justify-between items-center px-4 hover:bg-gray-900"
-                            onClick={handleUnfollowUser}
-                          >
-                            <RiUserUnfollowFill className="mr-2 h-4 w-4" />
-                            <span>Unfollow</span>
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem
-                            className="flex justify-between items-center px-4 hover:bg-gray-900"
-                            onClick={handleFollowUser}
-                          >
-                            <RiUserFollowFill className="mr-2 h-4 w-4" />
-                            <span>Follow</span>
-                          </DropdownMenuItem>
-                        )}
-                      </>
-                    )}
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="p-1 py-2 rounded-full hover:bg-gray-900 hover:text-[#1d9bf0]">
+                      <CiMenuKebab />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-36 bg-black "
+                    style={{
+                      boxShadow:
+                        "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px",
+                    }}
+                  >
+                    <DropdownMenuGroup>
+                      <Link href={`/user/${tweet.user.id}/posts/${tweet.id}`}>
+                        <DropdownMenuItem className="flex justify-between items-center px-4 hover:bg-gray-900">
+                          <FaUser className="mr-2 h-4 w-4" />
+                          <span>View</span>
+                        </DropdownMenuItem>
+                      </Link>
+
+                      <Link href={`/user/${tweet.user.id}`}>
+                        <DropdownMenuItem className="flex justify-between items-center px-4 hover:bg-gray-900">
+                          <FaUser className="mr-2 h-4 w-4" />
+                          <span>Profile</span>
+                        </DropdownMenuItem>
+                      </Link>
+                      {user?.id === tweet.user.id ? (
+                        <DropdownMenuItem
+                          className="flex justify-between items-center px-4 hover:bg-gray-900"
+                          onClick={handleDeletePost}
+                        >
+                          <MdDelete className="mr-2 h-4 w-4" />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      ) : (
+                        <>
+                          {user?.following?.findIndex(
+                            (el) => el?.id === tweet.user.id
+                          ) !== -1 ? (
+                            <DropdownMenuItem
+                              className="flex justify-between items-center px-4 hover:bg-gray-900"
+                              onClick={handleUnfollowUser}
+                            >
+                              <RiUserUnfollowFill className="mr-2 h-4 w-4" />
+                              <span>Unfollow</span>
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              className="flex justify-between items-center px-4 hover:bg-gray-900"
+                              onClick={handleFollowUser}
+                            >
+                              <RiUserFollowFill className="mr-2 h-4 w-4" />
+                              <span>Follow</span>
+                            </DropdownMenuItem>
+                          )}
+                        </>
+                      )}
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
             <p>{tweet.content}</p>
             {tweet.imageUrl && (
@@ -238,7 +191,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
                   <>
                     <div className="text-[#f91880]  flex gap-2  justify-center items-center transition-all">
                       <FaHeart
-                        onClick={dislike}
+                        onClick={handledislike}
                         size={20}
                         // className="text-[#f91880]"
                       />
@@ -251,9 +204,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
                   <>
                     <div className="flex gap-2 justify-center items-center transition-all ">
                       <CiHeart
-                        onClick={() => {
-                          handleLike();
-                        }}
+                        onClick={handleLike}
                         size={20}
                         className="text-[#959494] hover:text-[#f91880] "
                       />
@@ -270,20 +221,18 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
                   className="text-[#959494] hover:text-[#1d9bf0]"
                 />
               </div>
-              <div>
-                <div className="flex gap-2">
-                  <div className="rounded-full  p-2 flex justify-center items-center">
-                    <CiBookmark
-                      size={20}
-                      className="text-[#959494] hover:text-[#1d9bf0] "
-                    />
-                  </div>
-                  <div className="rounded-full  p-2 flex justify-center items-center">
-                    <GoUpload
-                      size={20}
-                      className="text-[#959494] hover:text-[#1d9bf0]"
-                    />
-                  </div>
+              <div className="flex gap-2">
+                <div className="rounded-full  p-2 flex justify-center items-center">
+                  <CiBookmark
+                    size={20}
+                    className="text-[#959494] hover:text-[#1d9bf0] "
+                  />
+                </div>
+                <div className="rounded-full  p-2 flex justify-center items-center">
+                  <GoUpload
+                    size={20}
+                    className="text-[#959494] hover:text-[#1d9bf0]"
+                  />
                 </div>
               </div>
             </div>

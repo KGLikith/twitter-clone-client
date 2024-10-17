@@ -4,8 +4,8 @@ import { User } from "@/gql/graphql";
 import { followUserMutation, unfollowUserMutation } from "@/graphql/mutation/user";
 import { toast } from "@/hooks/use-toast";
 
-export const FollowUser = (user: User | undefined, setButtonLoading: (loading: boolean) => void) => {
-  return async () => {
+export const FollowUser =async (user: User | undefined, setButtonLoading: (loading: boolean) => void) => {
+  
     if (!user?.id) return;
     try{
       setButtonLoading(true);
@@ -34,13 +34,9 @@ export const FollowUser = (user: User | undefined, setButtonLoading: (loading: b
       })
       setButtonLoading(false)
     }
-  };
 };
 
-export const UnFollowUser = (user: User | undefined, setButtonLoading: (loading: boolean) => void) => {
-  return async () => {
-    console.log("unfollwing")
-    console.log(user)
+export const UnFollowUser =async (user: User | undefined, setButtonLoading: (loading: boolean) => void) => {
     setButtonLoading(true);
     if (!user?.id) return;
     await apolloClient.mutate({
@@ -53,10 +49,10 @@ export const UnFollowUser = (user: User | undefined, setButtonLoading: (loading:
       queryKey: ["currentUserById", user.id],
     });
     await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+    
     toast({
       title: "Unfollowed successfully",
       duration: 1000,
     });
     setButtonLoading(false);
-  };
 };

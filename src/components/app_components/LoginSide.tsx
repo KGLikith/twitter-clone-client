@@ -129,12 +129,12 @@ const Login = () => {
                   You might know?!
                 </h1>
                 <div className="space-y-1">
-                  {user.recommendedUsers?.map((user) => (
-                    <div key={user?.id} className=" flex gap-2 py-1 md:px-3 items-center hover:bg-gray-900 cursor-pointer transition-all w-full rounded-full ">
-                      {user?.profileImageUrl && (
-                        <Link href={`/${user?.id}`} >
+                  {user.recommendedUsers?.map((rec_user) => (
+                    <div key={rec_user?.id} className=" flex gap-2 py-1 md:px-3 items-center hover:bg-gray-900 cursor-pointer transition-all w-full rounded-full ">
+                      {rec_user?.profileImageUrl && (
+                        <Link href={`/${rec_user?.id}`} >
                           <Image
-                            src={user.profileImageUrl}
+                            src={rec_user.profileImageUrl}
                             alt="Profile Image"
                             width={30}
                             height={30}
@@ -144,18 +144,18 @@ const Login = () => {
                       )}
                       <div className="hidden sm:flex justify-between w-full items-center ">
                         <div>
-                          <Link href={`/${user?.id}`}>
+                          <Link href={`/user/${rec_user?.id}`}>
                             <h3 className="text-white text-md hover:underline">
-                              {user?.firstName} {user?.lastName}
+                              {rec_user?.firstName} {rec_user?.lastName}
                             </h3>
                           </Link>
                           <h3 className="text-gray-400 text-sm">
-                            @{user?.firstName}
-                            {user?.lastName}
+                            @{rec_user?.firstName}
+                            {rec_user?.lastName}
                           </h3>
                         </div>
                         <div>
-                          <RecommendedUsers user={user as User} />
+                          <RecommendedUsers user={rec_user as User} />
                         </div>
                       </div>
                     </div>

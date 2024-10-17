@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 const RecommendedUsers = ({ user }: { user: User }) => {
   const [LoadingButton, setLoadingButton] = useState(false);
-  const handleFollowUser = FollowUser(user, setLoadingButton);
+  const handleFollowUser =async()=> await FollowUser(user, setLoadingButton);
   return (
     <>
       {LoadingButton ? (

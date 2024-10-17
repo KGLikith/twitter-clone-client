@@ -1,4 +1,5 @@
 import { graphql } from "@/gql";
+import { gql } from "@apollo/client";
 // import { gql } from "@apollo/client";
 
 
@@ -41,5 +42,23 @@ export const getSignedUrlforTweetQuery= graphql(`
     #graphql
     query getSignedUrlforTweet($imageType: String!, $imageName: String!){
         getSignedURLForTweet(imageType: $imageType, imageName: $imageName)
+    }
+`)
+
+export const getTweetByIdQuery = graphql(`
+    #graphql
+    query getTweetById($tweetid: ID!){
+        getTweet(id: $tweetid){
+            id
+            content 
+            imageUrl
+            likes
+            user{
+                id
+                firstName
+                lastName
+                profileImageUrl
+            }
+        }
     }
 `)

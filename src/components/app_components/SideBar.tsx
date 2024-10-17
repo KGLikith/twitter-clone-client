@@ -79,7 +79,7 @@ const SideBar: React.FC = () => {
     {
       title: "Profile",
       icon: <CgProfile className="text-3xl" />,
-      link: `${user ? `/${user.id}` : "/not_authorised"}`,
+      link: `${user ? `user/${user.id}` : "/not_authorised"}`,
     },
     {
       title: "More",
@@ -118,8 +118,8 @@ const SideBar: React.FC = () => {
             <DropdownMenuTrigger className="w-full focus-visible:none focus-visible:outline-none focus-visible:border-none">
               <Badge />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-full">
-              <DropdownMenuItem className="w-full" onClick={handleLogout}>
+            <DropdownMenuContent className="w-48 rounded-full">
+              <DropdownMenuItem className="flex justify-center items-center" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
