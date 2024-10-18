@@ -19,7 +19,7 @@ interface TweetPageProps {
 }
 
 const Page: NextPage<TweetPageProps> = ({ params }) => {
-  const { user: USER } = useCurrentUser();
+  const { user: USER,isLoading } = useCurrentUser();
   const {  tweetid } = params;
   const router = useRouter();
   const { tweet: currentTweet } = useGetTweet(tweetid);
@@ -29,7 +29,7 @@ const Page: NextPage<TweetPageProps> = ({ params }) => {
   const [user, setUser] = useState<User | undefined>();
 
   useEffect(() => {
-    if (USER == undefined && !loading) {
+    if (USER == undefined && !isLoading) {
       router.push("/not_authorised");
     }
     if (currentTweet !== undefined) {

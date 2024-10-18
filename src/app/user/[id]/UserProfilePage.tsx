@@ -17,7 +17,7 @@ interface UserProfilePageProps {
 
 const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   const router = useRouter();
-  const { user: USER } = useCurrentUser();
+  const { user: USER,isLoading } = useCurrentUser();
   const { user: currentUser } = useCurrentUserById(id);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
@@ -32,7 +32,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   }, [USER?.following, user]);
 
   useEffect(() => {
-    if(!USER  && !loading) router.push('/not_authorised')
+    if(!USER  && !isLoading) router.push('/not_authorised')
     if (currentUser !== undefined) {
       setUser(currentUser as User);
       setLoading(false);
@@ -47,7 +47,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
     user,
   ]);
 
-  if (loading) {
+  if (loading || isLoading) {
     return <Skel />;
   }
   if(!USER || USER==undefined) return null

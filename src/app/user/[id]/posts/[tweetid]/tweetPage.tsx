@@ -64,6 +64,9 @@ const TweetPage = ({
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      content: "", // Set the initial value
+    },
   });
 
   const contentValue = form.watch("content");
