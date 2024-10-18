@@ -69,7 +69,7 @@ GOOGLE_SECRET=Google-cloud-client-secret
 
 ### 
 
-## Building and Starting the application
+## Building and Starting the application for production build
 
 ```bash
 npm run build
