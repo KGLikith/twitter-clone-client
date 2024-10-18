@@ -31,3 +31,36 @@ export const deleteTweetMutation= graphql(`
         deleteTweet(tweetId: $tweetId)
     }
 `)
+
+export const deleteCommentMutation= graphql(`
+    #graphql
+    mutation deleteComment($commentId: ID!){
+        deleteComment(commentId: $commentId)
+    }
+`)
+
+export const createCommentMutation= gql(`
+    #graphql
+    mutation createComment($payload: CreateCommentData!){
+        createComment(payload: $payload){
+            id
+            tweet{
+                id
+            }
+        }
+    }
+`)
+
+export const likeCommentMutation = gql(`
+    #graphql
+    mutation likeComment($commentId: ID!){
+        likeComment(commentId: $commentId)
+    }
+`)
+
+export const unlikeCommentMutation = gql(`
+    #graphql
+    mutation unlikeComment($commentId: ID!){
+        unlikeComment(commentId: $commentId)
+    }
+`)

@@ -3,7 +3,7 @@ import { gql } from "@apollo/client";
 // import { gql } from "@apollo/client";
 
 
-export const getAllTweetsQuery = graphql(`
+export const getAllTweetsQuery = gql(`
     #graphql
     query getAllTweets{
         getAllTweets{
@@ -11,6 +11,17 @@ export const getAllTweetsQuery = graphql(`
             content 
             imageUrl
             likes
+            comments{
+                id 
+                content
+                likes
+                user{
+                    id
+                    firstName
+                    lastName
+                    profileImageUrl
+                }
+            }
             user{
                 id
                 firstName
@@ -21,23 +32,6 @@ export const getAllTweetsQuery = graphql(`
     }
 `);
 
-export const getTweetQuery= graphql(`
-    #graphql
-    query getTweet($id: ID!){
-        getTweet(id: $id){
-            id
-            content
-            imageUrl
-            likes
-            user{
-                id
-                firstName
-                lastName
-            }
-        }
-    }
-`)
-
 export const getSignedUrlforTweetQuery= graphql(`
     #graphql
     query getSignedUrlforTweet($imageType: String!, $imageName: String!){
@@ -45,7 +39,7 @@ export const getSignedUrlforTweetQuery= graphql(`
     }
 `)
 
-export const getTweetByIdQuery = graphql(`
+export const getTweetByIdQuery = gql(`
     #graphql
     query getTweetById($tweetid: ID!){
         getTweet(id: $tweetid){
@@ -53,6 +47,17 @@ export const getTweetByIdQuery = graphql(`
             content 
             imageUrl
             likes
+            comments{
+                id 
+                content
+                likes
+                user{
+                    id
+                    firstName
+                    lastName
+                    profileImageUrl
+                }
+            }
             user{
                 id
                 firstName

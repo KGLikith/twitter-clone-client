@@ -80,7 +80,7 @@ const TweetModal = () => {
       const file: File | null | undefined = input.files?.item(0);
       if (!file) return;
       try {
-        const { data, error } = await apolloClient.query({
+        const { data } = await apolloClient.query({
           query: getSignedUrlforTweetQuery,
           variables: {
             imageType: file.type,

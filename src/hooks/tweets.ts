@@ -1,7 +1,7 @@
 import { apolloClient } from "@/clients/api";
 import queryclient from "@/clients/queryClient";
-import { CreateTweetData } from "@/gql/graphql";
-import { createTweetMutation } from "@/graphql/mutation/tweet";
+import { CreateCommentData, CreateTweetData } from "@/gql/graphql";
+import { createCommentMutation, createTweetMutation } from "@/graphql/mutation/tweet";
 import { getAllTweetsQuery, getTweetByIdQuery } from "@/graphql/query/tweet";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "./use-toast";
@@ -60,6 +60,7 @@ export const useCreateTweet = () => {
   return { ...mutation, createTweet: mutation.data?.createTweet };
 };
 
+
 export const useGetTweet =(tweetid: string)=>{
   const query = useQuery({
     queryKey: ["tweet",tweetid],
@@ -76,4 +77,34 @@ export const useGetTweet =(tweetid: string)=>{
     },
   });
   return { ...query, tweet: query.data?.getTweet };
+}
+
+export const useCreateComment=()=>{
+  const mutation = useMutation({
+    mutationFn: async(payload: CreateCommentData)=>{
+      const { data } = await apolloClient.mutate({
+        mutation: createCommentMutation,
+        variables: { payload },
+      });
+      return data;
+    },
+    onSuccess:async(data)=>{
+      await apolloClient.resetStore();
+      await queryclient.invalidateQueries({ queryKey: ["tweets"] });
+      await queryclient.invalidateQueries({ queryKey: ["tweet",data.createComment.tweet.id] });
+      toast({
+        title: "Commented Successfully",
+        duration: 2000
+      });
+    },
+    onError:(error)=>{
+      toast({
+        title: "Error creating comment",
+        description: error.message,
+        variant: "destructive",
+        duration: 2000
+      });
+    }
+  })
+  return {...mutation, createComment: mutation.data?.createComment}
 }

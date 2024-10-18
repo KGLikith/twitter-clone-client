@@ -28,21 +28,18 @@ export const getCurrentUserQuery = graphql(`
         id
         content
         imageUrl
+        comments{
+          id
+        }
         user {
           id
         }
       }
       followers{
         id
-        firstName
-        lastName
-        profileImageUrl
       }
       following{
         id
-        firstName
-        lastName
-        profileImageUrl
       }
     }
   }
@@ -62,6 +59,9 @@ export const getUserByIdQuery = graphql(`
         content
         imageUrl
         likes
+        comments{
+          id
+        }
         user {
           id
           firstName
@@ -71,15 +71,9 @@ export const getUserByIdQuery = graphql(`
       }
       followers{
         id
-        firstName
-        lastName
-        profileImageUrl
       }
       following{
         id
-        firstName
-        lastName
-        profileImageUrl
       }
     }
   }

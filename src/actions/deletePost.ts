@@ -5,7 +5,7 @@ import { deleteTweetMutation } from "@/graphql/mutation/tweet";
 import { toast } from "@/hooks/use-toast";
 
 export const deletePost = async (tweet: Tweet) => {
-  const { data, errors } = await apolloClient.mutate({
+  const { errors } = await apolloClient.mutate({
     mutation: deleteTweetMutation,
     variables: { tweetId: tweet.id },
   });
@@ -20,6 +20,9 @@ export const deletePost = async (tweet: Tweet) => {
   await queryclient.invalidateQueries({ queryKey: ["tweets"] });
   await queryclient.invalidateQueries({
     queryKey: ["currentUserById", tweet.user.id],
+  });
+  await queryclient.invalidateQueries({
+    queryKey: ["tweet", tweet.id],
   });
   return toast({
     description: "Tweet Deleted Successfully",

@@ -1,12 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
-import { FaArrowRight, FaHeart, FaRegComment, FaUser } from "react-icons/fa6";
-import { AiOutlineRetweet } from "react-icons/ai";
-import { CiBookmark, CiHeart, CiMenuKebab } from "react-icons/ci";
-import { VscGraph } from "react-icons/vsc";
-import { GoUpload } from "react-icons/go";
-import { Tweet, User } from "@/gql/graphql";
 import Link from "next/link";
+import Image from "next/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,65 +8,103 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useCurrentUser } from "@/hooks/user";
+import { Comment, Tweet, User } from "@/gql/graphql";
+import { AiOutlineRetweet } from "react-icons/ai";
+import { CiMenuKebab, CiHeart, CiBookmark } from "react-icons/ci";
+import {  FaUser, FaRegComment, FaHeart } from "react-icons/fa";
+import { GoUpload } from "react-icons/go";
 import { MdDelete } from "react-icons/md";
-import { RiUserFollowFill, RiUserUnfollowFill } from "react-icons/ri";
+import { RiUserUnfollowFill, RiUserFollowFill } from "react-icons/ri";
+import { VscGraph } from "react-icons/vsc";
 import { FollowUser, UnFollowUser } from "@/actions/follow_unfollow";
-import { dislike, like } from "@/actions/liket_dislike";
-import { deletePost } from "@/actions/deletePost";
+import { apolloClient } from "@/clients/api";
+import {
+  deleteCommentMutation,
+  likeCommentMutation,
+  unlikeCommentMutation,
+} from "@/graphql/mutation/tweet";
+import queryclient from "@/clients/queryClient";
+import { toast } from "@/hooks/use-toast";
 
-interface FeedCardProps {
+const CommentFile = ({
+  comment,
+  user,
+  tweet,
+}: {
+  comment: Comment;
+  user: User;
   tweet: Tweet;
-}
-
-const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
-  const { user: currentUser } = useCurrentUser();
-  const [user, setUser] = useState<User | undefined>();
+}) => {
   const [liked, setLiked] = useState(false);
-
   useEffect(() => {
-    if (currentUser !== undefined) {
-      setUser(currentUser as User);
-      if (tweet.likes?.includes((currentUser as User)?.id)) setLiked(true);
-      else setLiked(false);
+    if (comment?.likes?.findIndex((el) => el === user?.id) !== -1) {
+      setLiked(true);
+    } else {
+      setLiked(false);
     }
-  }, [currentUser, tweet]);
-
-  const handleLike = useCallback(
-    async () => await like(user as User, tweet, setLiked, liked),
-    [user, tweet]
-  );
-
-  const handledislike = useCallback(
-    async () => await dislike(user as User, tweet, setLiked, liked),
-    [user, tweet]
-  );
-
-  const handleDeletePost = useCallback(
-    async () => await deletePost(tweet),
-    [tweet]
-  );
+  }, []);
 
   const handleUnfollowUser = useCallback(
-    async () => await UnFollowUser((tweet as Tweet).user, () => {}),
-    [tweet.user]
+    async () => await UnFollowUser(comment.user, () => {}),
+    [comment.user]
   );
 
   const handleFollowUser = useCallback(
-    async () => await FollowUser((tweet as Tweet).user, () => {}),
-    [tweet.user]
+    async () => await FollowUser(comment.user, () => {}),
+    [comment.user]
   );
+
+  const handleDeleteComment = useCallback(async () => {
+    const {errors}=await apolloClient.mutate({
+      mutation: deleteCommentMutation,
+      variables: {
+        commentId: comment.id,
+      },
+    });
+    if(errors && errors[0]) toast({ variant: "destructive", description: errors[0].message, duration: 1000 });
+    await apolloClient.resetStore();
+    await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
+    await queryclient.invalidateQueries({ queryKey: ["curre"] });
+  }, [comment]);
+
+  const handleLike = useCallback(async () => {
+    const { data, errors } = await apolloClient.mutate({
+      mutation: likeCommentMutation,
+      variables: {
+        commentId: comment.id,
+      },
+    });
+    await apolloClient.resetStore();
+    await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
+    queryclient.invalidateQueries({ queryKey: ["tweets"] });
+    if (data.likeComment) setLiked(true);
+    else if (errors) console.log(errors[0]?.message);
+  }, [comment]);
+
+  const handledislike = useCallback(async () => {
+    const { data, errors } = await apolloClient.mutate({
+      mutation: unlikeCommentMutation,
+      variables: {
+        commentId: comment.id,
+      },
+    });
+    await apolloClient.resetStore();
+    await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
+    queryclient.invalidateQueries({ queryKey: ["tweets"] });
+    if (data.unlikeComment) setLiked(false);
+    else if (errors) console.log(errors[0]?.message);
+  }, [comment]);
 
   return (
     <>
-      <div className="border  border-gray-800 p-4 py-2 cursor-pointer hover:bg-[#0a0606] ">
+      <div className="border  border-gray-800 p-4 py-3 pb-2 cursor-pointer hover:bg-[#0a0606] ">
         <div className="grid grid-cols-12 gap-2">
-          <Link href={user?`/user/${tweet.user.id}`:'/not_authorised'}>
+          <Link href={`/user/${comment.user.id}`}>
             <div className="col-span-1  ">
-              {tweet.user?.profileImageUrl && (
+              {comment.user?.profileImageUrl && (
                 <Image
                   className="rounded-full"
-                  src={tweet.user.profileImageUrl}
+                  src={comment.user.profileImageUrl}
                   alt="user-image"
                   height={50}
                   width={50}
@@ -80,17 +112,17 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
               )}
             </div>
           </Link>
-          <div className="col-span-11 space-y-3">
-            <div className="flex justify-between items-center">
-              <Link href={user?`/user/${tweet.user.id}`:'/not_authorised'}>
+          <div className="col-span-11 ">
+            <div className="flex justify-between items-start">
+              <Link href={`/user/${comment.user.id}`}>
                 <h5 className="font-bold hover:underline w-fit">
-                  {tweet.user.firstName} {tweet.user.lastName}
+                  {comment.user.firstName} {comment.user.lastName}
                 </h5>
               </Link>
               {user && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <div className="p-1 py-2 rounded-full hover:bg-gray-900 hover:text-[#1d9bf0]">
+                    <div className="p-1 rounded-full hover:bg-gray-900 hover:text-[#1d9bf0]">
                       <CiMenuKebab />
                     </div>
                   </DropdownMenuTrigger>
@@ -102,23 +134,16 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
                     }}
                   >
                     <DropdownMenuGroup>
-                      <Link href={`/user/${tweet.user.id}/posts/${tweet.id}`}>
-                        <DropdownMenuItem className="flex justify-between items-center px-4 hover:bg-gray-900">
-                          <FaArrowRight className="mr-2 h-4 w-4" />
-                          <span>View Post</span>
-                        </DropdownMenuItem>
-                      </Link>
-
-                      <Link href={`/user/${tweet.user.id}`}>
+                      <Link href={`/user/${comment.user.id}`}>
                         <DropdownMenuItem className="flex justify-between items-center px-4 hover:bg-gray-900">
                           <FaUser className="mr-2 h-4 w-4" />
                           <span>Profile</span>
                         </DropdownMenuItem>
                       </Link>
-                      {user?.id === tweet.user.id ? (
+                      {user?.id === comment.user.id ? (
                         <DropdownMenuItem
                           className="flex justify-between items-center px-4 hover:bg-gray-900"
-                          onClick={handleDeletePost}
+                          onClick={handleDeleteComment}
                         >
                           <MdDelete className="mr-2 h-4 w-4" />
                           <span>Delete</span>
@@ -126,7 +151,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
                       ) : (
                         <>
                           {user?.following?.findIndex(
-                            (el) => el?.id === tweet.user.id
+                            (el) => el?.id === comment.user.id
                           ) !== -1 ? (
                             <DropdownMenuItem
                               className="flex justify-between items-center px-4 hover:bg-gray-900"
@@ -151,37 +176,21 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
                 </DropdownMenu>
               )}
             </div>
-            <p>{tweet.content}</p>
-            {tweet.imageUrl && (
-              <div>
-                <Image
-                  src={tweet.imageUrl}
-                  alt="tweet-image"
-                  width={400}
-                  height={400}
-                  className="rounded-lg"
-                />
-              </div>
-            )}
-            <div className="flex justify-between mt-4 text-xl">
-              <Link href={user?`/user/${tweet.user.id}/posts/${tweet.id}`:'not_authorised'}>
-              <div className="rounded-full gap-2 p-2 flex justify-center items-center">
+            <p className="text-base">{comment.content}</p>
+            <div className="flex justify-between text-xl">
+              <div className="rounded-full  p-2 flex justify-center items-center">
                 <FaRegComment
                   size={20}
                   className="text-[#959494] hover:text-[#1d9bf0] "
                 />
-                <p className="text-center text-sm text-[#959494]">
-                  {tweet.comments?.length | 0}
-                </p>
               </div>
-              </Link>
               <div className=" rounded-full  p-2 flex justify-center items-center">
                 <AiOutlineRetweet
                   size={20}
                   className="text-[#959494] hover:text-[#00ba7c]"
                 />
               </div>
-              <div className="rounded-full  p-2 gap-2 flex justify-center items-center hover:text-[#f91880]">
+              <div className="rounded-full  p-2 gap-2 flex justify-center items-center transition-all hover:text-[#f91880] transform-all">
                 {liked ? (
                   <>
                     <div className="text-[#f91880]  flex gap-2  justify-center items-center transition-all">
@@ -191,7 +200,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
                         // className="text-[#f91880]"
                       />
                       <p className=" text-center text-sm ">
-                        {tweet.likes?.length | 0}
+                        {comment?.likes?.length ?? 0}
                       </p>
                     </div>
                   </>
@@ -204,7 +213,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
                         className="text-[#959494] hover:text-[#f91880] "
                       />
                       <p className="text-[#959494]  text-center text-sm ">
-                        {tweet.likes?.length | 0}
+                        {comment?.likes?.length ?? 0}
                       </p>
                     </div>
                   </>
@@ -238,4 +247,4 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
   );
 };
 
-export default FeedCard;
+export default CommentFile;

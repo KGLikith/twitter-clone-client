@@ -32,12 +32,12 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   }, [USER?.following, user]);
 
   useEffect(() => {
-    if(USER == undefined && !loading) router.push('/not_authorised')
+    if(!USER  && !loading) router.push('/not_authorised')
     if (currentUser !== undefined) {
       setUser(currentUser as User);
       setLoading(false);
     }
-  }, [currentUser, USER]);
+  }, [loading,currentUser, USER,router]);
 
   const handleFollowUser = useCallback(()=>FollowUser(user, setButtonLoading), [
     user,
@@ -50,7 +50,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   if (loading) {
     return <Skel />;
   }
-  if(!USER) router.push('/not_authorised')
+  if(!USER || USER==undefined) return null
   if (!user) return <h1 className="text-center h-full flex justify-center items-center">Page Not Done Yet or User Not Found</h1>;
 
   return (
