@@ -12,7 +12,7 @@ A feature-rich Twitter clone built with modern web technologies such as Next.js,
 - **User Profiles**: Each user has a personal profile page displaying their posts and relevant information.
 - **Follow/Unfollow Users**: Users can follow and unfollow each other to stay updated with posts from people they are interested in.
 - **Posts**: Users can create, like, and delete posts.
-- - **Image Uploads**: Users can upload images as part of their posts.
+- **Image Uploads**: Users can upload images as part of their posts.
 - **Like System**: Engage with other users by liking their posts.
 - **Recommended Users**: Explore and discover new users to follow through a recommendation system.
 - **Comment System**: Users can comment on the posts.
