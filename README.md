@@ -31,7 +31,7 @@ A feature-rich Twitter clone built with modern web technologies such as Next.js,
 
 ## Prerequisites
 
-- Ensure you have the server-side application set up. Follow the instructions at [twitter-clone-server](https://github.com/KGLikith/twitter-clone-server).
+### Ensure you have the server-side application set up. Follow the instructions at [twitter-clone-server](https://github.com/KGLikith/twitter-clone-server).
 
 ## Installation
 
