@@ -42,7 +42,7 @@ const CommentFile = ({
     } else {
       setLiked(false);
     }
-  }, []);
+  }, [comment]);
 
   const handleUnfollowUser = useCallback(
     async () => await UnFollowUser(comment.user, () => {}),
@@ -65,7 +65,7 @@ const CommentFile = ({
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
     await queryclient.invalidateQueries({ queryKey: ["curre"] });
-  }, [comment]);
+  }, [comment,tweet.id]);
 
   const handleLike = useCallback(async () => {
     const { data, errors } = await apolloClient.mutate({
@@ -74,12 +74,12 @@ const CommentFile = ({
         commentId: comment.id,
       },
     });
+    if (data.likeComment) setLiked(true);
+    else if (errors) console.log(errors[0]?.message);
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
     queryclient.invalidateQueries({ queryKey: ["tweets"] });
-    if (data.likeComment) setLiked(true);
-    else if (errors) console.log(errors[0]?.message);
-  }, [comment]);
+  }, [comment,tweet.id]);
 
   const handledislike = useCallback(async () => {
     const { data, errors } = await apolloClient.mutate({
@@ -88,12 +88,12 @@ const CommentFile = ({
         commentId: comment.id,
       },
     });
+    if (data.unlikeComment) setLiked(false);
+    else if (errors) console.log(errors[0]?.message);
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
     queryclient.invalidateQueries({ queryKey: ["tweets"] });
-    if (data.unlikeComment) setLiked(false);
-    else if (errors) console.log(errors[0]?.message);
-  }, [comment]);
+  }, [comment,tweet.id]);
 
   return (
     <>

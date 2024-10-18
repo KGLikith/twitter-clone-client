@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 
 const Login = () => {
   const { toast } = useToast();
-  const router= useRouter()
+  const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
@@ -62,7 +62,7 @@ const Login = () => {
             title: "Verified Successfully",
             duration: 1000,
           });
-          router.push('/')
+          router.push("/");
         } else {
           toast({
             variant: "destructive",
@@ -80,7 +80,7 @@ const Login = () => {
         });
       }
     },
-    [toast]
+    [toast,router]
   );
 
   if (loading) {
@@ -130,9 +130,12 @@ const Login = () => {
                 </h1>
                 <div className="space-y-1">
                   {user.recommendedUsers?.map((rec_user) => (
-                    <div key={rec_user?.id} className=" flex gap-2 py-1 md:px-3 items-center hover:bg-gray-900 cursor-pointer transition-all w-full rounded-full ">
+                    <div
+                      key={rec_user?.id}
+                      className=" flex gap-2 py-1 md:px-3 items-center hover:bg-gray-900 cursor-pointer transition-all w-full rounded-full "
+                    >
                       {rec_user?.profileImageUrl && (
-                        <Link href={`/${rec_user?.id}`} >
+                        <Link href={`/${rec_user?.id}`}>
                           <Image
                             src={rec_user.profileImageUrl}
                             alt="Profile Image"

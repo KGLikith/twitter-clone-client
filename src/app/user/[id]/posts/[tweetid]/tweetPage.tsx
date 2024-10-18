@@ -20,7 +20,6 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -97,16 +96,16 @@ const TweetPage = ({
   const handleDeletePost = useCallback(async () => {
     await deletePost(tweet as Tweet);
     router.push("/");
-  }, [tweet]);
-
+  }, [tweet,router]);
+  const tweetUser= (tweet as Tweet)?.user
   const handleUnfollowUser = useCallback(
     async () => await UnFollowUser((tweet as Tweet).user, () => {}),
-    [(tweet as Tweet)?.user]
+    [tweetUser]
   );
 
   const handleFollowUser = useCallback(
     async () => await FollowUser((tweet as Tweet).user, () => {}),
-    [(tweet as Tweet)?.user]
+    [tweetUser]
   );
 
   return (

@@ -38,7 +38,7 @@ const Badge = () => {
       title: "Logged out successfully",
       duration: 2000,
     });
-  }, []);
+  },[router]);
 
   const handleLogin = useCallback(
     async (cred: CredentialResponse) => {
@@ -90,7 +90,7 @@ const Badge = () => {
         });
       }
     },
-    [toast]
+    [router]
   );
 
   return (

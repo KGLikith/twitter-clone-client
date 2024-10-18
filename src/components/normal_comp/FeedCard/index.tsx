@@ -55,12 +55,12 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
 
   const handleUnfollowUser = useCallback(
     async () => await UnFollowUser((tweet as Tweet).user, () => {}),
-    [tweet.user]
+    [tweet]
   );
 
   const handleFollowUser = useCallback(
     async () => await FollowUser((tweet as Tweet).user, () => {}),
-    [tweet.user]
+    [tweet]
   );
 
   return (
