@@ -22,10 +22,10 @@ A feature-rich Twitter clone built with modern web technologies such as Next.js,
 - **Next.js**: The React framework used for building the user interface and handling server-side rendering.
 - **Prisma**: A modern database ORM used to interact with the database layer.
 - **GraphQL**: Used for flexible, efficient data querying and mutation.
-- **NextAuth.js**: Authentication library for handling user sign-up, login, and session management.
 - **React Query**: For caching and synchronizing server-state in React applications.
 - **Apollo Client**: Manages GraphQL queries and mutations on the client side.
 - **AWS**: Utilized for image uploads and media storage.
+- **Codegen**: Provides type safety and schema synching
 
 # Run It Locally
 
