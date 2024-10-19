@@ -33,11 +33,14 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
 
   useEffect(() => {
     if(!USER  && !isLoading) router.push('/not_authorised')
+    if(!isLoading) {
+      if(USER?.id === id) setUser(USER as User)
+    }
     if (currentUser !== undefined) {
       setUser(currentUser as User);
       setLoading(false);
     }
-  }, [loading,currentUser, USER,router]);
+  }, [currentUser, USER,router,isLoading]);
 
   const handleFollowUser = useCallback(()=>FollowUser(user, setButtonLoading), [
     user,

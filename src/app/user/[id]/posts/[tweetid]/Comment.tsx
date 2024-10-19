@@ -113,6 +113,8 @@ const CommentFile = ({
             </div>
           </Link>
           <div className="col-span-11 ">
+            <div className="flex flex-col gap-2">
+
             <div className="flex justify-between items-start">
               <Link href={`/user/${comment.user.id}`}>
                 <h5 className="font-bold hover:underline w-fit">
@@ -239,6 +241,7 @@ const CommentFile = ({
                   />
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
