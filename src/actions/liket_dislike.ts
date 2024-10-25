@@ -20,6 +20,7 @@ export const dislike = async (
     });
   }
   try {
+
     if(!liked) return ;
     await apolloClient.mutate({
       mutation: unlikeTweetMutation,
@@ -28,9 +29,7 @@ export const dislike = async (
     setLiked(false);
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-    await queryclient.invalidateQueries({
-      queryKey: ["currentUserById", tweet.user.id],
-    });
+    await queryclient.invalidateQueries({ queryKey: ["userTweets",tweet.user.id] });
     await queryclient.invalidateQueries({
       queryKey: ["tweet", tweet.id],
     });
@@ -64,9 +63,7 @@ export const like = async (
     setLiked(true);
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-    await queryclient.invalidateQueries({
-      queryKey: ["currentUserById", tweet.user.id],
-    });
+    await queryclient.invalidateQueries({ queryKey: ["userTweets",tweet.user.id] });
     await queryclient.invalidateQueries({
       queryKey: ["tweet", tweet.id],
     });

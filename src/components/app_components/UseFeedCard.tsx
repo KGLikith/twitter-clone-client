@@ -16,6 +16,7 @@ const UseFeedCard = () => {
         setLoading(false);
     }
   },[currentTweets])
+  
   if(loading){
     return <Skeleton />
   }
@@ -23,7 +24,7 @@ const UseFeedCard = () => {
   return (
     <div className="min-h-screen ">
       {tweets?.map((tweet) => (
-        tweet && <FeedCard key={tweet.id} tweet={tweet} />
+        tweet && <FeedCard key={tweet.id} tweeet={tweet} />
       ))}
     </div>
   );

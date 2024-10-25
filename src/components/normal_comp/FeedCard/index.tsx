@@ -20,36 +20,47 @@ import { RiUserFollowFill, RiUserUnfollowFill } from "react-icons/ri";
 import { FollowUser, UnFollowUser } from "@/actions/follow_unfollow";
 import { dislike, like } from "@/actions/liket_dislike";
 import { deletePost } from "@/actions/deletePost";
+import { useGetTweet } from "@/hooks/tweets";
 
 interface FeedCardProps {
-  tweet: Tweet;
+  tweeet: Tweet;
 }
 
-const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
+const FeedCard: React.FC<FeedCardProps> = ({ tweeet }) => {
   const { user: currentUser } = useCurrentUser();
   const [user, setUser] = useState<User | undefined>();
   const [liked, setLiked] = useState(false);
+  const {tweet:currentTweet} = useGetTweet(tweeet.id)
+  const [tweet,setTweet]=useState<Tweet | undefined>()
 
   useEffect(() => {
     if (currentUser !== undefined) {
       setUser(currentUser as User);
-      if (tweet.likes?.includes((currentUser as User)?.id)) setLiked(true);
-      else setLiked(false);
+      // if (tweet.likes?.includes((currentUser as User)?.id)) setLiked(true);
+      // else setLiked(false);
     }
-  }, [currentUser, tweet]);
+  }, [currentUser]);
+
+  useEffect(() => { 
+    if(currentTweet){
+      setTweet(currentTweet)
+      if(currentTweet.likes.includes((currentUser as User)?.id)) setLiked(true);
+      else setLiked(false)
+    }
+  },[currentTweet]);
 
   const handleLike = useCallback(
-    async () => await like(user as User, tweet, setLiked, liked),
+    async () => await like(user as User, tweet as Tweet, setLiked, liked),
     [user, tweet]
   );
 
   const handledislike = useCallback(
-    async () => await dislike(user as User, tweet, setLiked, liked),
+    async () =>await dislike(user as User, tweet as Tweet, setLiked, liked),
     [user, tweet]
   );
 
   const handleDeletePost = useCallback(
-    async () => await deletePost(tweet),
+    async () => await deletePost(tweet as Tweet),
     [tweet]
   );
 
@@ -65,9 +76,10 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
 
   return (
     <>
+    {tweet &&
       <div className="border  border-gray-800 p-4 py-2 cursor-pointer hover:bg-[#0a0606] ">
         <div className="grid grid-cols-12 gap-2">
-          <Link href={user?`/user/${tweet.user.id}`:'/not_authorised'}>
+          <Link href={user?`/user/${tweet?.user.id}`:'/not_authorised'}>
             <div className="col-span-1  ">
               {tweet.user?.profileImageUrl && (
                 <Image
@@ -233,7 +245,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet }) => {
             </div>
           </div>
         </div>
-      </div>
+      </div>}
     </>
   );
 };

@@ -12,15 +12,28 @@ export const getAllTweetsQuery = gql(`
             imageUrl
             likes
             comments{
-                id 
-                content
-                likes
-                user{
-                    id
-                    firstName
-                    lastName
-                    profileImageUrl
-                }
+                id
+            }
+            user{
+                id
+                firstName
+                lastName
+                profileImageUrl
+            }
+        }
+    }
+`);
+
+export const getUserTweetsQuery = gql(`
+    #graphql
+    query getUserTweets($userId: ID!){
+        getUserTweets(userId: $userId){
+            id
+            content 
+            imageUrl
+            likes
+            comments{
+                id
             }
             user{
                 id

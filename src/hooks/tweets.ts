@@ -2,7 +2,7 @@ import { apolloClient } from "@/clients/api";
 import queryclient from "@/clients/queryClient";
 import { CreateCommentData, CreateTweetData } from "@/gql/graphql";
 import { createCommentMutation, createTweetMutation } from "@/graphql/mutation/tweet";
-import { getAllTweetsQuery, getTweetByIdQuery } from "@/graphql/query/tweet";
+import { getAllTweetsQuery, getTweetByIdQuery, getUserTweetsQuery } from "@/graphql/query/tweet";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "./use-toast";
 
@@ -23,6 +23,24 @@ export const useGetAllTweets = () => {
   });
   return { ...query, tweets: query.data?.getAllTweets };
 };
+
+export const useGetUserTweets=(userId:string)=>{
+  const query = useQuery({
+    queryKey: ["userTweets",userId],
+    queryFn: async () => {
+      try {
+        const { data } = await apolloClient.query({
+          query: getUserTweetsQuery,
+          variables: { userId },
+        });
+        return data;
+      } catch (error) {
+        console.error("Error fetching user tweets:", error);
+      }
+    },
+  })
+  return {...query, userTweets: query.data?.getUserTweets}
+}
 
 export const useCreateTweet = () => {
 

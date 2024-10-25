@@ -10,6 +10,7 @@ import Image from "next/image";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
+import { useGetUserTweets } from "@/hooks/tweets";
 
 interface UserProfilePageProps {
   id: string;
@@ -17,14 +18,16 @@ interface UserProfilePageProps {
 
 const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   const router = useRouter();
-  const { user: USER,isLoading } = useCurrentUser();
+  const { user: USER, isLoading } = useCurrentUser();
   const { user: currentUser } = useCurrentUserById(id);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
   const [buttonLoading, setButtonLoading] = useState(false);
+  const {userTweets }= useGetUserTweets(id);
+  const [tweets, setTweets] = useState<Tweet[]>([]);
 
   const amIFollowing = useMemo(() => {
-    const ind = USER?.following?.findIndex((el) => {
+    const ind = USER?.following?.findIndex((el: { id: string | undefined; }) => {
       return el?.id === user?.id;
     });
     if (ind == null) return false;
@@ -32,45 +35,62 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   }, [USER?.following, user]);
 
   useEffect(() => {
-    if(!USER  && !isLoading) router.push('/not_authorised')
-    if(!isLoading) {
-      if(USER?.id === id) setUser(USER as User)
+    if (!USER && !isLoading) router.push("/not_authorised");
+    if (!isLoading) {
+      if (USER?.id === id) setUser(USER as User);
     }
     if (currentUser !== undefined) {
       setUser(currentUser as User);
       setLoading(false);
     }
-  }, [currentUser, USER,router,isLoading]);
+  }, [currentUser, USER, router, isLoading]);
 
-  const handleFollowUser = useCallback(()=>FollowUser(user, setButtonLoading), [
-    user,
-  ]);
+  useEffect(() => { 
+    if(userTweets){
+      setTweets(userTweets);
+    }
+  }, [userTweets])
 
-  const handleunFollowUser = useCallback(()=>UnFollowUser(user, setButtonLoading), [
-    user,
-  ]);
+  const handleFollowUser = useCallback(
+    () => FollowUser(user, setButtonLoading),
+    [user]
+  );
+
+  const handleunFollowUser = useCallback(
+    () => UnFollowUser(user, setButtonLoading),
+    [user]
+  );
 
   if (loading || isLoading) {
     return <Skel />;
   }
-  if(!USER || USER==undefined) return null
-  if (!user) return <h1 className="text-center h-full flex justify-center items-center">Page Not Done Yet or User Not Found</h1>;
+  if (!USER || USER == undefined) return null;
+  if (!user)
+    return (
+      <h1 className="text-center h-full flex justify-center items-center">
+        Page Not Done Yet or User Not Found
+      </h1>
+    );
 
   return (
     <>
       <div>
         <nav className="border flex items-center gap-8 px-3 py-1">
-          <div className="hover:border hover:bg-gray-900 hover:border-none rounded-full p-3 transition-all" onClick={()=>{
-            router.push('/')}}>
-            <FaArrowLeftLong size={15}  />
+          <div
+            className="hover:border hover:bg-gray-900 hover:border-none rounded-full p-3 transition-all"
+            onClick={() => {
+              router.push("/");
+            }}
+          >
+            <FaArrowLeftLong size={15} />
           </div>
           <div>
             <h1 className="font-bold text-xl">
               {user?.firstName} {user?.lastName}
             </h1>
             <p className="text-sm text-gray-500">
-              {user.tweets?.length ?? 0}{" "}
-              {user.tweets && user.tweets.length > 1 ? "posts" : "post"}
+              {tweets?.length ?? 0}{" "}
+              {tweets && tweets.length > 1 ? "posts" : "post"}
             </p>
           </div>
         </nav>
@@ -108,7 +128,9 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
                 <p className="font-bold text-white">
                   {user.followers?.length || 0}
                 </p>
-                {user.followers?.length && user.followers?.length>1 ? "Followers" : "Follower"}
+                {user.followers?.length && user.followers?.length > 1
+                  ? "Followers"
+                  : "Follower"}
               </span>
             </div>
             {USER?.id !== user.id ? (
@@ -149,11 +171,11 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
             )}
           </div>
         </div>
-        {user?.tweets &&
-          user?.tweets
+        {tweets &&
+          tweets
             ?.filter((tweet): tweet is Tweet => tweet !== null)
             .map((tweet: Tweet) => {
-              return <FeedCard key={tweet.id} tweet={tweet} />;
+              return <FeedCard key={tweet.id} tweeet={tweet} />;
             })}
       </div>
     </>
