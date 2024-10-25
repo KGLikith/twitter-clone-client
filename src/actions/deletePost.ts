@@ -17,13 +17,11 @@ export const deletePost = async (tweet: Tweet) => {
     });
   }
   await apolloClient.resetStore();
-  await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-  await queryclient.invalidateQueries({
-    queryKey: ["currentUserById", tweet.user.id],
-  });
-  await queryclient.invalidateQueries({
-    queryKey: ["tweet", tweet.id],
-  });
+    await queryclient.invalidateQueries({ queryKey: ["tweets"] });
+    await queryclient.invalidateQueries({ queryKey: ["userTweets",tweet.user.id] });
+    await queryclient.invalidateQueries({
+      queryKey: ["tweet", tweet.id],
+    });
   return toast({
     description: "Tweet Deleted Successfully",
     duration: 2000,
