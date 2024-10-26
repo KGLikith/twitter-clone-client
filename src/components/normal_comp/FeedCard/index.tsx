@@ -30,14 +30,12 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweeet }) => {
   const { user: currentUser } = useCurrentUser();
   const [user, setUser] = useState<User | undefined>();
   const [liked, setLiked] = useState(false);
-  const {tweet:currentTweet} = useGetTweet(tweeet.id)
+  const {tweet:currentTweet} = useGetTweet(tweeet.id,currentUser?.id)
   const [tweet,setTweet]=useState<Tweet | undefined>()
 
   useEffect(() => {
     if (currentUser !== undefined) {
       setUser(currentUser as User);
-      // if (tweet.likes?.includes((currentUser as User)?.id)) setLiked(true);
-      // else setLiked(false);
     }
   }, [currentUser]);
 

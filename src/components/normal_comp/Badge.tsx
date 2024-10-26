@@ -33,7 +33,8 @@ const Badge = () => {
     router.push("/");
     window.localStorage.removeItem("__twitter_token");
     await apolloClient.resetStore();
-    await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+    queryclient.invalidateQueries();
+
     toast({
       title: "Logged out successfully",
       duration: 2000,

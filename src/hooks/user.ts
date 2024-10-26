@@ -1,6 +1,5 @@
 "use client"
 import { apolloClient } from "@/clients/api";
-import { getUserTweetsQuery } from "@/graphql/query/tweet";
 import { getUserByIdQuery, getCurrentUserQuery } from "@/graphql/query/user";
 import { useQuery } from "@tanstack/react-query";
 

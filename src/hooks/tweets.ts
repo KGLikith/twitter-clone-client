@@ -79,9 +79,9 @@ export const useCreateTweet = () => {
 };
 
 
-export const useGetTweet =(tweetid: string)=>{
+export const useGetTweet =(tweetid: string,currentUserId:string)=>{
   const query = useQuery({
-    queryKey: ["tweet",tweetid],
+    queryKey: ["tweet",tweetid,currentUserId],
     queryFn: async () => {
       try {
         const { data } = await apolloClient.query({

@@ -49,7 +49,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
     if(userTweets){
       setTweets(userTweets);
     }
-  }, [userTweets])
+  }, [userTweets,tweets,currentUser])
 
   const handleFollowUser = useCallback(
     () => FollowUser(user, setButtonLoading),

@@ -22,7 +22,7 @@ const Page: NextPage<TweetPageProps> = ({ params }) => {
   const { user: USER,isLoading } = useCurrentUser();
   const {  tweetid } = params;
   const router = useRouter();
-  const { tweet: currentTweet } = useGetTweet(tweetid);
+  const { tweet: currentTweet } = useGetTweet(tweetid, USER?.id);
   const [loading, setLoading] = useState(true);
   const [tweet, setTweet] = useState<Tweet | undefined>();
   const [liked, setLiked] = useState(false);
