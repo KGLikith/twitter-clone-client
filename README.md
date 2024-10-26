@@ -6,6 +6,8 @@ A feature-rich Twitter clone built with modern web technologies such as Next.js,
 
 ## Demo
 
+https://github.com/user-attachments/assets/c0942adb-3c48-4b79-8ac1-b189eb7abec0
+
 ## Features
 
 - **User Authentication**: Secure user authentication using NextAuth.js.
