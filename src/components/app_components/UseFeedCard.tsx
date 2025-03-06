@@ -13,12 +13,16 @@ const UseFeedCard = () => {
   useEffect(()=>{
     if(currentTweets ){
         setTweets(currentTweets as Tweet[]);
-        setLoading(false);
-    }
+      }
+      setLoading(false);
   },[currentTweets])
   
   if(loading){
     return <Skeleton />
+  }
+
+  if(!tweets || tweets.length === 0){
+    return <div>No Tweets Found</div>
   }
 
   return (

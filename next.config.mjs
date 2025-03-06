@@ -8,14 +8,14 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '  ',
+        hostname: 'twitter-bucket-likith.s3.ap-south-1.amazonaws.com',
         pathname: '/uploads/**',
       },
     ],
     domains: [
       'avatars.githubusercontent.com',
       'lh3.googleusercontent.com',
-      '  ',
+      'twitter-bucket-likith.s3.ap-south-1.amazonaws.com',
     ],
   },
 };
