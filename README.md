@@ -1,8 +1,8 @@
 # Twitter Clone Client
 
 This is the client-side application for the Twitter Clone project.
-
-A feature-rich Twitter clone built with modern web technologies such as Next.js, Prisma, GraphQL, and more. The app allows users to engage in social interactions through posts, likes, comments, follows, and much more.
+ 
+A feature-rich Twitter clone built with modern web technologies such as Next.js, Prisma, GraphQL, and more. The app allows users to engage in social interactions through posts, likes, comments, follows, and much more. 
 
 ## Demo
 
