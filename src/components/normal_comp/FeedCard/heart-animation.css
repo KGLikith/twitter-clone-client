@@ -1,0 +1,38 @@
+.heart-icon {
+  display: inline-block;
+}
+
+.heart-pop {
+  animation: heartPop 0.45s ease-in-out;
+}
+
+.heart-empty-pop {
+  animation: heartEmptyPop 0.45s ease-in-out;
+}
+
+@keyframes heartPop {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.2);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes heartEmptyPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

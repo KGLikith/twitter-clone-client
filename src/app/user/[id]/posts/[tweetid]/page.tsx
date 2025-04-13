@@ -4,25 +4,26 @@ import { Tweet, User } from "@/gql/graphql";
 import { useGetTweet } from "@/hooks/tweets";
 import { useCurrentUser } from "@/hooks/user";
 import { NextPage } from "next";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {  useEffect, useState } from "react";
 import {
   FaArrowLeftLong,
 } from "react-icons/fa6";
 import TweetPage from "./tweetPage";
 
-interface TweetPageProps {
-  params: {
-    id: string;
-    tweetid: string;
-  };
-}
+// interface TweetPageProps {
+//   params: {
+//     id: string;
+//     tweetid: string;
+//   };
+// }
 
-const Page: NextPage<TweetPageProps> = ({ params }) => {
+const Page: NextPage = ({  }) => {
+  
   const { user: USER,isLoading } = useCurrentUser();
-  const {  tweetid } = params;
+  const {  tweetid } = useParams();
   const router = useRouter();
-  const { tweet: currentTweet } = useGetTweet(tweetid, USER?.id);
+  const { tweet: currentTweet } = useGetTweet(tweetid as string || "", USER?.id || "");
   const [loading, setLoading] = useState(true);
   const [tweet, setTweet] = useState<Tweet | undefined>();
   const [liked, setLiked] = useState(false);

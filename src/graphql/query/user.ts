@@ -9,7 +9,7 @@ export const verifyUserGoogleTokenQuery = graphql(`
   }
 `);
 
-export const getCurrentUserQuery = gql(`
+export const getCurrentUserQuery = graphql(`
   #graphql
   query getCurrentUser {
     getCurrentUser {
@@ -35,7 +35,7 @@ export const getCurrentUserQuery = gql(`
   }
 `);
 
-export const getUserByIdQuery = gql(`
+export const getUserByIdQuery = graphql(`
   #graphql
   query getUserById($id: ID!) {
     getUserById(id: $id) {

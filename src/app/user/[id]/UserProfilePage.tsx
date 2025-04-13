@@ -23,11 +23,11 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
   const [buttonLoading, setButtonLoading] = useState(false);
-  const {userTweets }= useGetUserTweets(id);
+  const { userTweets } = useGetUserTweets(id);
   const [tweets, setTweets] = useState<Tweet[]>([]);
 
   const amIFollowing = useMemo(() => {
-    const ind = USER?.following?.findIndex((el: { id: string | undefined; }) => {
+    const ind = USER?.following?.findIndex((el: { __typename?: "User"; id: string } | null) => {
       return el?.id === user?.id;
     });
     if (ind == null) return false;
@@ -43,13 +43,13 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
       setUser(currentUser as User);
       setLoading(false);
     }
-  }, [currentUser, USER, router, isLoading]);
+  }, [currentUser, USER, isLoading]);
 
-  useEffect(() => { 
-    if(userTweets){
-      setTweets(userTweets);
+  useEffect(() => {
+    if (userTweets) {
+      setTweets(userTweets.filter((tweet): tweet is Tweet => tweet !== null));
     }
-  }, [userTweets,tweets,currentUser])
+  }, [userTweets])
 
   const handleFollowUser = useCallback(
     () => FollowUser(user, setButtonLoading),
@@ -71,6 +71,8 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
         Page Not Done Yet or User Not Found
       </h1>
     );
+
+  console.log(currentUser)
 
   return (
     <>
@@ -175,7 +177,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
           tweets
             ?.filter((tweet): tweet is Tweet => tweet !== null)
             .map((tweet: Tweet) => {
-              return <FeedCard key={tweet.id} tweeet={tweet} />;
+              return <FeedCard key={tweet.id} tweet={tweet} user={currentUser as User} />;
             })}
       </div>
     </>

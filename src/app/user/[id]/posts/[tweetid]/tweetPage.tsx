@@ -1,40 +1,46 @@
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect } from "react";
-import { FaHeart, FaRegComment, FaUser } from "react-icons/fa6";
-import { UnFollowUser, FollowUser } from "@/actions/follow_unfollow";
-import { like, dislike } from "@/actions/liket_dislike";
-import { AiOutlineRetweet } from "react-icons/ai";
-import { CiMenuKebab, CiHeart, CiBookmark } from "react-icons/ci";
-import { GoUpload } from "react-icons/go";
-import { MdDelete } from "react-icons/md";
-import { RiUserUnfollowFill, RiUserFollowFill } from "react-icons/ri";
-import { VscGraph } from "react-icons/vsc";
-import Image from "next/image";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { deletePost } from "@/actions/deletePost";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
+"use client"
+
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useState } from "react"
+import { FaHeart, FaRegComment, FaUser } from "react-icons/fa6"
+import { UnFollowUser, FollowUser } from "@/actions/follow_unfollow"
+import { like, dislike } from "@/actions/like_dislike"
+import { AiOutlineRetweet } from "react-icons/ai"
+import { CiMenuKebab, CiHeart, CiBookmark } from "react-icons/ci"
+import { GoUpload } from "react-icons/go"
+import { MdDelete } from "react-icons/md"
+import { RiUserUnfollowFill, RiUserFollowFill } from "react-icons/ri"
+import { VscGraph } from "react-icons/vsc"
+import Image from "next/image"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { deletePost } from "@/actions/deletePost"
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import React from "react";
-import { Comment, Tweet, User } from "@/gql/graphql";
-import CommentPage from "./Comment";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { useCreateComment } from "@/hooks/tweets";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/dropdown-menu"
+import type { Comment, Tweet, User } from "@/gql/graphql"
+import CommentPage from "./Comment"
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { Button } from "@/components/ui/button"
+import { useCreateComment } from "@/hooks/tweets"
+import { Input } from "@/components/ui/input"
+import "@/components/normal_comp/FeedCard/heart-animation.css"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Loader2 } from "lucide-react"
+import { DeleteTweetModal } from "@/components/global/deletetweetDialog"
 
 const FormSchema = z.object({
   content: z
@@ -45,7 +51,7 @@ const FormSchema = z.object({
     .max(50, {
       message: "Bio must not be longer than 50 characters.",
     }),
-});
+})
 
 const TweetPage = ({
   tweet,
@@ -53,63 +59,80 @@ const TweetPage = ({
   liked,
   setLiked,
 }: {
-  user: User;
-  tweet: Tweet;
-  setLiked: (liked: boolean) => void;
-  liked: boolean;
+  user: User
+  tweet: Tweet
+  setLiked: (liked: boolean) => void
+  liked: boolean
 }) => {
-  const router = useRouter();
+  const router = useRouter()
 
-  const { mutate } = useCreateComment();
+  const { mutate } = useCreateComment()
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [isDeleting, setDeleting] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      content: "", // Set the initial value
+      content: "",
     },
-  });
+  })
 
-  const contentValue = form.watch("content");
+  const iconColor = "text-gray-500"
+  const iconHoverColor = "text-orange-500"
+  const likedColor = "text-pink-500"
+  const likedHoverColor = "text-orange-300"
+
+  const contentValue = form.watch("content")
   useEffect(() => {
     if (user !== undefined) {
       form.reset({
         content: "",
-      });
+      })
     }
-  }, [user]);
+  }, [user])
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     form.reset({
       content: "",
-    });
-    mutate({ content: data.content, tweetId: tweet.id });
-    form.reset();
+    })
+    mutate({ content: data.content, tweetId: tweet.id })
+    form.reset()
   }
 
-  const handleLike = useCallback(
-    async () => await like(user as User, tweet as Tweet, setLiked, liked),
-    [user, tweet]
-  );
+  const handleLike = useCallback(async () => {
+    setIsAnimating(true)
+    await like(user.id, tweet as Tweet, setLiked, liked)
+  }, [user, tweet, liked])
 
-  const handledislike = useCallback(
-    async () => await dislike(user as User, tweet as Tweet, setLiked, liked),
-    [user, tweet]
-  );
+  const handledislike = useCallback(async () => {
+    setIsAnimating(true)
+    await dislike(user.id, tweet as Tweet, setLiked, liked)
+  }, [user, tweet, liked])
 
   const handleDeletePost = useCallback(async () => {
-    await deletePost(tweet as Tweet);
-    router.push("/");
-  }, [tweet,router]);
-  const tweetUser= (tweet as Tweet)?.user
-  const handleUnfollowUser = useCallback(
-    async () => await UnFollowUser((tweet as Tweet).user, () => {}),
-    [tweetUser]
-  );
+    setShowDeleteDialog(true)
+  }, [])
 
-  const handleFollowUser = useCallback(
-    async () => await FollowUser((tweet as Tweet).user, () => {}),
-    [tweetUser]
-  );
+  const confirmDelete = async () => {
+    setDeleting(true)
+    try {
+      await deletePost(tweet as Tweet)
+      setShowDeleteDialog(false)
+      router.push("/")
+    } catch (error) {
+      console.error("Failed to delete post:", error)
+    } finally {
+      setDeleting(false)
+    }
+  }
+  const tweetUser = (tweet as Tweet)?.user
+  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => { }), [tweetUser])
+
+  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user, () => { }), [tweetUser])
+  const handleAnimationEnd = () => {
+    setIsAnimating(false)
+  }
 
   return (
     <>
@@ -119,7 +142,7 @@ const TweetPage = ({
             {tweet.user?.profileImageUrl && (
               <Image
                 className="rounded-full"
-                src={tweet.user.profileImageUrl}
+                src={tweet.user.profileImageUrl || "/placeholder.svg"}
                 alt="user-image"
                 height={35}
                 width={35}
@@ -147,8 +170,7 @@ const TweetPage = ({
               <DropdownMenuContent
                 className="w-40  bg-black "
                 style={{
-                  boxShadow:
-                    "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px",
+                  boxShadow: "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px",
                 }}
               >
                 <DropdownMenuGroup>
@@ -160,7 +182,7 @@ const TweetPage = ({
                   </Link>
                   {user?.id === tweet.user.id ? (
                     <DropdownMenuItem
-                      className="flex justify-between items-center px-4 hover:bg-gray-900"
+                      className="flex justify-between items-center px-4 hover:bg-gray-900 text-red-500"
                       onClick={handleDeletePost}
                     >
                       <MdDelete className="mr-2 h-4 w-4" />
@@ -168,9 +190,7 @@ const TweetPage = ({
                     </DropdownMenuItem>
                   ) : (
                     <>
-                      {user?.following?.findIndex(
-                        (el) => el?.id === tweet.user.id
-                      ) !== -1 ? (
+                      {user?.following?.findIndex((el) => el?.id === tweet.user.id) !== -1 ? (
                         <DropdownMenuItem
                           className="flex justify-between items-center px-4 hover:bg-gray-900"
                           onClick={handleUnfollowUser}
@@ -195,81 +215,82 @@ const TweetPage = ({
           </div>
         </div>
         <div className="flex flex-col gap-2 mb-3">
-          <p className="text-lg font-semibold">{tweet.content}</p>
-          {tweet.imageUrl && (
-            <div>
-              <Image
-                src={tweet.imageUrl}
-                alt="tweet-image"
-                width={500}
-                height={500}
-                className="rounded-lg"
-              />
+          <p className="text-md mx-3 mt-4 mb-2">{tweet.content}</p>
+          {tweet.mediaUrl && tweet.mediaType === "image" && (
+            <div className="relative w-full">
+              <div className="group relative w-fit">
+                <Image
+                  src={`${process.env.NEXT_PUBLIC_CDN_URL}${tweet.mediaUrl}` || "/placeholder.svg"}
+                  alt="tweet-media"
+                  width={300}
+                  height={300}
+                  className="rounded-lg"
+                />
+              </div>
+            </div>
+          )}
+          {tweet.mediaUrl && tweet.mediaType === "video" && (
+            <div className="relative w-full">
+              <div className="group relative w-full">
+                <video controls className="w-full max-w-md rounded-lg">
+                  <source src={`${process.env.NEXT_PUBLIC_CDN_URL}${tweet.mediaUrl}`} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
             </div>
           )}
         </div>
         <div className="border border-gray-800 mb-2"></div>
-        <div className="flex justify-between mb-2 text-xl">
-          <div className="rounded-full  p-2 gap-2 flex justify-center items-center transition-colors ">
-            <FaRegComment
-              size={20}
-              className="text-[#959494] hover:text-[#1d9bf0] "
-            />
-            <p className="text-center text-sm text-[#959494]">
-              {tweet.comments?.length | 0}
-            </p>
+        <div className="flex justify-between my-2 text-lg">
+          <Link href={user ? `/user/${tweet.user.id}/posts/${tweet.id}` : "not_authorised"}>
+            <div className="rounded-full gap-2 p-2 flex justify-center items-center">
+              <FaRegComment size={16} className={`${iconColor} hover:text-orange-500`} />
+              <p className="text-center text-xs text-gray-500">{tweet.comments?.length | 0}</p>
+            </div>
+          </Link>
+          <div className="rounded-full p-2 flex justify-center items-center">
+            <AiOutlineRetweet size={16} className={`${iconColor} hover:text-orange-500`} />
           </div>
-          <div className=" rounded-full  p-2 flex justify-center items-center">
-            <AiOutlineRetweet
-              size={20}
-              className="text-[#959494] hover:text-[#00ba7c]"
-            />
-          </div>
-          <div className="rounded-full  p-2 gap-2 flex justify-center items-center  hover:text-[#f91880]">
+          <div className="rounded-full p-2 gap-2 flex justify-center items-center">
             {liked ? (
               <>
-                <div className="text-[#f91880]  flex gap-2  justify-center items-center ">
-                  <FaHeart onClick={handledislike} size={20} />
-                  <p className=" text-center text-sm ">
-                    {tweet.likes?.length | 0}
-                  </p>
+                <div className={`${likedColor} flex gap-2 justify-center items-center`}>
+                  <div
+                    className={`heart-icon ${isAnimating ? "heart-pop" : ""}`}
+                    onAnimationEnd={handleAnimationEnd}
+                  >
+                    <FaHeart
+                      onClick={handledislike}
+                      size={16}
+                      className={`${likedColor} hover:${likedHoverColor}`}
+                    />
+                  </div>
+                  <p className="text-center text-xs">{tweet.likes?.length | 0}</p>
                 </div>
               </>
             ) : (
               <>
-                <div className="flex gap-2 justify-center items-center transition-all ">
-                  <CiHeart
-                    onClick={handleLike}
-                    size={20}
-                    className="text-[#959494] hover:text-[#f91880] "
-                  />
-                  <p className="text-[#959494]  text-center text-sm ">
-                    {tweet.likes?.length | 0}
-                  </p>
+                <div className="flex gap-2 justify-center items-center">
+                  <div
+                    className={`heart-icon ${isAnimating ? "heart-empty-pop" : ""}`}
+                    onAnimationEnd={handleAnimationEnd}
+                  >
+                    <CiHeart onClick={handleLike} size={16} className={`${iconColor} hover:text-orange-500`} />
+                  </div>
+                  <p className={`${iconColor} text-center text-xs`}>{tweet.likes?.length | 0}</p>
                 </div>
               </>
             )}
           </div>
-          <div className="rounded-full  p-2 flex justify-center items-center">
-            <VscGraph
-              size={20}
-              className="text-[#959494] hover:text-[#1d9bf0]"
-            />
+          <div className="rounded-full p-2 flex justify-center items-center">
+            <VscGraph size={16} className={`${iconColor} hover:text-orange-500`} />
           </div>
-          <div>
-            <div className="flex gap-2">
-              <div className="rounded-full  p-2 flex justify-center items-center">
-                <CiBookmark
-                  size={20}
-                  className="text-[#959494] hover:text-[#1d9bf0] "
-                />
-              </div>
-              <div className="rounded-full  p-2 flex justify-center items-center">
-                <GoUpload
-                  size={20}
-                  className="text-[#959494] hover:text-[#1d9bf0]"
-                />
-              </div>
+          <div className="flex gap-2">
+            <div className="rounded-full p-2 flex justify-center items-center">
+              <CiBookmark size={16} className={`${iconColor} hover:text-orange-500`} />
+            </div>
+            <div className="rounded-full p-2 flex justify-center items-center">
+              <GoUpload size={16} className={`${iconColor} hover:text-orange-500`} />
             </div>
           </div>
         </div>
@@ -278,7 +299,7 @@ const TweetPage = ({
           <div className="w-14">
             {user?.profileImageUrl && (
               <Image
-                src={user.profileImageUrl}
+                src={user.profileImageUrl || "/placeholder.svg"}
                 alt="profile-image"
                 width={40}
                 height={40}
@@ -288,10 +309,7 @@ const TweetPage = ({
           </div>
           <div className="w-full">
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="w-full space-y-2 flex items-center"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-2 flex items-center">
                 <FormField
                   control={form.control}
                   name="content"
@@ -315,10 +333,8 @@ const TweetPage = ({
                 />
                 <Button
                   type="submit"
-                  disabled={
-                    contentValue?.length < 1 || contentValue?.length > 50
-                  }
-                  className="w-fit py-1 px-5 flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-blue-300 rounded-full text-center font-bold text-base dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  disabled={contentValue?.length < 1 || contentValue?.length > 50}
+                  className="w-fit py-1 px-5 flex items-center text-white bg-orange-700 hover:bg-orange-800 focus:outline-none focus:ring-orange-300 rounded-full text-center font-bold text-base dark:bg-orange-600 dark:hover:bg-orange-700 dark:focus:ring-orange-800"
                 >
                   Reply
                 </Button>
@@ -327,18 +343,14 @@ const TweetPage = ({
           </div>
         </div>
       </div>
+      <DeleteTweetModal showDeleteDialog={showDeleteDialog} isDeleting={isDeleting} confirmDelete={confirmDelete} setShowDeleteDialog={setShowDeleteDialog} />
       {tweet.comments
         ?.filter((comment): comment is Comment => comment !== null)
         .map((comment: Comment) => (
-          <CommentPage
-            key={comment.id}
-            comment={comment}
-            user={user}
-            tweet={tweet}
-          />
+          <CommentPage key={comment.id} comment={comment} user={user} tweet={tweet} />
         ))}
     </>
-  );
-};
+  )
+}
 
-export default TweetPage;
+export default TweetPage

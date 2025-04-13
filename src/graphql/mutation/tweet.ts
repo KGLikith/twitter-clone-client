@@ -37,7 +37,7 @@ export const deleteCommentMutation= graphql(`
     }
 `)
 
-export const createCommentMutation= gql(`
+export const createCommentMutation= graphql(`
     #graphql
     mutation createComment($payload: CreateCommentData!){
         createComment(payload: $payload){
@@ -49,16 +49,23 @@ export const createCommentMutation= gql(`
     }
 `)
 
-export const likeCommentMutation = gql(`
+export const likeCommentMutation = graphql(`
     #graphql
     mutation likeComment($commentId: ID!){
         likeComment(commentId: $commentId)
     }
 `)
 
-export const unlikeCommentMutation = gql(`
+export const unlikeCommentMutation = graphql(`
     #graphql
     mutation unlikeComment($commentId: ID!){
         unlikeComment(commentId: $commentId)
+    }
+`)
+
+export const deleteMediaMutation = graphql(`
+    #graphql
+    mutation deleteMedia($mediaUrl: String!){
+        deleteMedia(mediaUrl: $mediaUrl)
     }
 `)

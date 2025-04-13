@@ -8,25 +8,24 @@ import {
 import { toast } from "@/hooks/use-toast";
 
 export const dislike = async (
-  user: User,
+  userId: string,
   tweet: Tweet,
   setLiked: (liked: boolean) => void,
   liked: boolean
 ) => {
-  if (!user) {
+  if (!userId) {
     return toast({
       variant: "destructive",
       description: "Please login to like the tweet",
     });
   }
   try {
-
     if(!liked) return ;
+    setLiked(false);
     await apolloClient.mutate({
       mutation: unlikeTweetMutation,
       variables: { tweetId: tweet.id },
     });
-    setLiked(false);
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweets"] });
     await queryclient.invalidateQueries({ queryKey: ["userTweets",tweet.user.id] });
@@ -42,12 +41,12 @@ export const dislike = async (
 };
 
 export const like = async (
-  user: User,
+  userId: string,
   tweet: Tweet,
   setLiked: (liked: boolean) => void,
   liked: boolean
 ) => {
-  if (!user) {
+  if (!userId) {
     return toast({
       variant: "destructive",
       description: "Please login to like the tweet",
@@ -56,11 +55,11 @@ export const like = async (
   }
   try {
     if (liked) return;
+    setLiked(true);
     await apolloClient.mutate({
       mutation: likeTweetMutation,
       variables: { tweetId: tweet.id },
     });
-    setLiked(true);
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweets"] });
     await queryclient.invalidateQueries({ queryKey: ["userTweets",tweet.user.id] });

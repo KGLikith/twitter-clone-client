@@ -74,7 +74,7 @@ const CommentFile = ({
         commentId: comment.id,
       },
     });
-    if (data.likeComment) setLiked(true);
+    if (data?.likeComment) setLiked(true);
     else if (errors) console.log(errors[0]?.message);
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
@@ -88,7 +88,7 @@ const CommentFile = ({
         commentId: comment.id,
       },
     });
-    if (data.unlikeComment) setLiked(false);
+    if (data?.unlikeComment) setLiked(false);
     else if (errors) console.log(errors[0]?.message);
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });

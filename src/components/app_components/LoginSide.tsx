@@ -122,7 +122,7 @@ const Login = () => {
       ) : (
         <>
           {/* <Searchbar></Searchbar> */}
-          {user?.recommendedUsers && user.recommendedUsers.length > 0 && (
+          {user?.recommendedUsers  && (
             <>
               <div className="p-3 border flex flex-col border-gray-800 rounded-2xl space-y-2">
                 <h1 className="font-bold text-xl text-center">
@@ -163,6 +163,13 @@ const Login = () => {
                       </div>
                     </div>
                   ))}
+                  {
+                    user.recommendedUsers.length === 0 && (
+                      <div className="flex justify-center items-center text-gray-400 text-sm">
+                        Sorry, we don't have any reccommendations for you yet.
+                      </div>
+                    )
+                  }
                 </div>
               </div>
             </>

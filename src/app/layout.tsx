@@ -21,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}  >
         <GoogleOAuthProvider clientId={process.env.GOOGLE_ID || ""}>
           <ProviderApollo>
             <ThemeProvider
@@ -34,8 +34,8 @@ export default function RootLayout({
               <ClientProvider>
                 <TwitterLayout>
                   {children}
-                  <Toaster />
                 </TwitterLayout>
+                  <Toaster />
               </ClientProvider>
             </ThemeProvider>
           </ProviderApollo>

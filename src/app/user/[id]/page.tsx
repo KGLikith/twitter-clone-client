@@ -1,23 +1,26 @@
-import { NextPage } from "next/types";
-import UserProfilePage from "./UserProfilePage";
+// app/user/[id]/page.tsx
 import { Suspense } from "react";
 import Skel from "@/components/normal_comp/Skeleton";
+import UserProfilePage from "./UserProfilePage";
 
-interface UserProfilePageProps {
+interface UserPageProps {
   params: {
     id: string;
   };
 }
 
-const Page: NextPage<UserProfilePageProps> = ({ params }) => {
-  // console.log(params)
-  if (!params.id) return null;
+const Page = async ({ params
+}:
+  Readonly<{
+    children: React.ReactNode;
+    params: { id: string }
+  }>) => {
+  const {id} =await params;
+
   return (
-    <>
-        <Suspense fallback={<Skel />}>
-          <UserProfilePage id={params.id} />
-        </Suspense>
-    </>
+    <Suspense fallback={<Skel />}>
+      <UserProfilePage id={id} />
+    </Suspense>
   );
 };
 

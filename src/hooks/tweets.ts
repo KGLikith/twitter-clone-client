@@ -6,7 +6,7 @@ import { getAllTweetsQuery, getTweetByIdQuery, getUserTweetsQuery } from "@/grap
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "./use-toast";
 
-export const useGetAllTweets = () => {
+export const useGetAllTweets = (userId: string) => {
   const query = useQuery({
     queryKey: ["tweets"],
     queryFn: async () => {
@@ -14,7 +14,6 @@ export const useGetAllTweets = () => {
         const { data } = await apolloClient.query({
           query: getAllTweetsQuery,
         });
-        // console.log(data);
         return data;
       } catch (error) {
         console.log("Error fetching tweets", error);
@@ -70,7 +69,6 @@ export const useCreateTweet = () => {
       toast({
         title: "Error creating tweet",
         description: error.message,
-        variant: "destructive",
         duration: 2000
       });
     },
@@ -109,7 +107,7 @@ export const useCreateComment=()=>{
     onSuccess:async(data)=>{
       await apolloClient.resetStore();
       await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-      await queryclient.invalidateQueries({ queryKey: ["tweet",data.createComment.tweet.id] });
+      await queryclient.invalidateQueries({ queryKey: ["tweet",data?.createComment?.tweet.id] });
       toast({
         title: "Commented Successfully",
         duration: 2000
