@@ -1,9 +1,8 @@
 import { apolloClient } from "@/clients/api";
-import queryclient from "@/clients/queryClient";
 import { CreateCommentData, CreateTweetData } from "@/gql/graphql";
 import { createCommentMutation, createTweetMutation } from "@/graphql/mutation/tweet";
 import { getAllTweetsQuery, getTweetByIdQuery, getUserTweetsQuery } from "@/graphql/query/tweet";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "./use-toast";
 
 export const useGetAllTweets = (userId: string) => {
@@ -42,7 +41,7 @@ export const useGetUserTweets=(userId:string)=>{
 }
 
 export const useCreateTweet = () => {
-
+  const queryclient= useQueryClient()
   const mutation = useMutation({
     mutationFn: async (payload: CreateTweetData) => {
       const { data } = await apolloClient.mutate({
@@ -96,9 +95,11 @@ export const useGetTweet =(tweetid: string,currentUserId:string)=>{
 }
 
 export const useCreateComment=()=>{
+  const queryclient= useQueryClient()
+
   const mutation = useMutation({
     mutationFn: async(payload: CreateCommentData)=>{
-      const { data } = await apolloClient.mutate({
+      const {data} = await apolloClient.mutate({
         mutation: createCommentMutation,
         variables: { payload },
       });

@@ -1,7 +1,7 @@
 // app/user/[id]/page.tsx
 import { Suspense } from "react";
-import Skel from "@/components/normal_comp/Skeleton";
 import UserProfilePage from "./UserProfilePage";
+import UserSkel from "@/components/global/Skeleton/UserSkeleton";
 
 interface UserPageProps {
   params: {
@@ -18,7 +18,7 @@ const Page = async ({ params
   const {id} =await params;
 
   return (
-    <Suspense fallback={<Skel />}>
+    <Suspense fallback={<UserSkel />}>
       <UserProfilePage id={id} />
     </Suspense>
   );

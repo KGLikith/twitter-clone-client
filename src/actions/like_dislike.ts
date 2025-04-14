@@ -1,17 +1,18 @@
 import { apolloClient } from "@/clients/api";
-import queryclient from "@/clients/queryClient";
 import { Tweet, User } from "@/gql/graphql";
 import {
   likeTweetMutation,
   unlikeTweetMutation,
 } from "@/graphql/mutation/tweet";
 import { toast } from "@/hooks/use-toast";
+import { QueryClient } from "@tanstack/react-query";
 
 export const dislike = async (
   userId: string,
   tweet: Tweet,
   setLiked: (liked: boolean) => void,
-  liked: boolean
+  liked: boolean,
+  queryclient: QueryClient
 ) => {
   if (!userId) {
     return toast({
@@ -19,6 +20,7 @@ export const dislike = async (
       description: "Please login to like the tweet",
     });
   }
+
   try {
     if(!liked) return ;
     setLiked(false);
@@ -44,7 +46,9 @@ export const like = async (
   userId: string,
   tweet: Tweet,
   setLiked: (liked: boolean) => void,
-  liked: boolean
+  liked: boolean,
+  queryclient: QueryClient
+
 ) => {
   if (!userId) {
     return toast({
@@ -55,6 +59,7 @@ export const like = async (
   }
   try {
     if (liked) return;
+
     setLiked(true);
     await apolloClient.mutate({
       mutation: likeTweetMutation,

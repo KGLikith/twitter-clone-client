@@ -7,14 +7,15 @@ import { ToastAction } from "@/components/ui/toast"
 import { toast } from "@/hooks/use-toast"
 import { apolloClient } from "@/clients/api"
 import { verifyUserGoogleTokenQuery } from "@/graphql/query/user"
-import queryclient from "@/clients/queryClient"
 import { useRouter } from "next/navigation"
 import { LogIn, LogOut, MoreHorizontal } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { BiLeftArrow, BiLeftArrowAlt, BiRightArrow, BiSolidLeftArrow, BiSolidRightArrow } from "react-icons/bi"
+import { useQueryClient } from "@tanstack/react-query"
 
 const Badge = () => {
+  const queryclient= useQueryClient()
+
   const router = useRouter()
   const [user, setUser] = useState<User | undefined>()
   const { user: currentUser } = useCurrentUser()

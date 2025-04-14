@@ -2,7 +2,7 @@
 
 import React, { lazy, Suspense } from "react";
 // import SideBar from "../app_components/SideBar";
-import Skel from "../normal_comp/Skeleton";
+import Skel from "../global/Skeleton/Skeleton";
 import Sidebar from "../app_components/Sidebar-comp";
 
 const Login = lazy(() => import("../app_components/LoginSide"));

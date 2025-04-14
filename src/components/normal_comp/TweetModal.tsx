@@ -5,11 +5,11 @@ import { useCurrentUser } from "@/hooks/user"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { MdPhotoSizeSelectActual, MdGifBox, MdOutlineEmojiEmotions } from "react-icons/md"
-import { BiPoll } from "react-icons/bi"
-import { RiCalendarScheduleLine } from "react-icons/ri"
-import { CiLocationOn } from "react-icons/ci"
+import { HiOutlinePhotograph } from "react-icons/hi"
+import { FiSmile } from "react-icons/fi"
 import axios from "axios"
+import data from "@emoji-mart/data"
+import Picker from "@emoji-mart/react"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
@@ -21,7 +21,11 @@ import { getSignedUrlforTweetQuery } from "@/graphql/query/tweet"
 import { toast } from "@/hooks/use-toast"
 import { deleteMediaMutation } from "@/graphql/mutation/tweet"
 import { useMutation } from "@apollo/client"
-import { DeleteTweetModal } from "../global/deletetweetDialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Input } from "@/components/ui/input"
+import { AiOutlineGif } from "react-icons/ai"
+import { handleEmojiSelect, handleGifSelect, searchGifs } from "../global/postMenu/handleSelect"
+import TweetMenu from "../global/TweetMenu"
 
 const FormSchema = z.object({
   content: z
@@ -42,22 +46,26 @@ const TweetModal = () => {
   const [mediaUrl, setMediaUrl] = useState<string | null>()
   const [mediaType, setMediaType] = useState<string | null>(null)
   const [mediaUploading, setMediaUploading] = useState(false)
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [posting, setPosting] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showGifPicker, setShowGifPicker] = useState(false)
+  const [gifSearchTerm, setGifSearchTerm] = useState("")
+  const [gifs, setGifs] = useState<any[]>([])
 
   useEffect(() => {
-    const textarea = textareaRef.current;
+    const textarea = textareaRef.current
     if (textarea) {
       const handleInput = () => {
-        textarea.style.height = 'auto'; // Reset the height
-        textarea.style.height = `${textarea.scrollHeight}px`; // Set to scroll height
-      };
+        textarea.style.height = "auto" 
+        textarea.style.height = `${textarea.scrollHeight}px` 
+      }
 
-      textarea.addEventListener("input", handleInput);
+      textarea.addEventListener("input", handleInput)
 
       return () => {
-        textarea.removeEventListener("input", handleInput);
-      };
+        textarea.removeEventListener("input", handleInput)
+      }
     }
   }, [])
 
@@ -79,54 +87,72 @@ const TweetModal = () => {
   const contentValue = form.watch("content")
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
+    if(!user || posting) return
     setPosting(true)
-    await mutateAsync({ content: data.content, mediaUrl, mediaType })
-    setMediaUrl(null)
-    setMediaType(null)
-    form.reset({ content: "" })
-    setPosting(false)
+    try {
+
+      await mutateAsync({
+        content: data.content, 
+        mediaUrl,
+        mediaType,
+      })
+
+      setMediaUrl(null)
+      setMediaType(null)
+      form.reset({ content: "" })
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to post tweet",
+        description: "Please try again later",
+      })
+    } finally {
+      setPosting(false)
+    }
   }
 
-  const handleImageChange = useCallback((input: HTMLInputElement) => {
-    return async (e: Event) => {
-      if (posting) return
-      e.preventDefault()
-      const file: File | null | undefined = input.files?.item(0)
-      if (!file) return
+  const handleImageChange = useCallback(
+    (input: HTMLInputElement) => {
+      return async (e: Event) => {
+        if (posting) return
+        e.preventDefault()
+        const file: File | null | undefined = input.files?.item(0)
+        if (!file) return
 
-      setMediaUploading(true)
+        setMediaUploading(true)
 
-      try {
-        const { data } = await apolloClient.query({
-          query: getSignedUrlforTweetQuery,
-          variables: {
-            mediaType: file.type,
-            mediaName: file.name,
-          },
-        })
-
-        const { getSignedURLForTweet } = data
-        if (getSignedURLForTweet) {
-          await axios.put(getSignedURLForTweet, file, {
-            headers: {
-              "Content-Type": file.type,
+        try {
+          const { data } = await apolloClient.query({
+            query: getSignedUrlforTweetQuery,
+            variables: {
+              mediaType: file.type,
+              mediaName: file.name,
             },
           })
 
-          const url = new URL(getSignedURLForTweet)
-          setMediaUrl(url.pathname)
-          setMediaType(file.type.startsWith("image") ? "image" : "video")
+          const { getSignedURLForTweet } = data
+          if (getSignedURLForTweet) {
+            await axios.put(getSignedURLForTweet, file, {
+              headers: {
+                "Content-Type": file.type,
+              },
+            })
+
+            const url = new URL(getSignedURLForTweet)
+            setMediaUrl(url.pathname)
+            setMediaType(file.type.startsWith("image") ? "image" : "video")
+          }
+        } catch (error) {
+          toast({ variant: "destructive", title: "Upload failed" })
+        } finally {
+          setMediaUploading(false)
         }
-      } catch (error) {
-        toast({ variant: "destructive", title: "Upload failed" })
-      } finally {
-        setMediaUploading(false)
       }
-    }
-  }, [user])
+    },
+    [user],
+  )
 
   const handleSelectImage = useCallback(() => {
-    console.log('hlakjdfl ')
     if (posting || !user) return
     const input = document.createElement("input")
     input.type = "file"
@@ -145,7 +171,6 @@ const TweetModal = () => {
 
   return (
     <>
-
       <div className="border border-gray-800 p-2 md:p-4 cursor-pointer hover:bg-[#0a0606] transition-all min-h-fit">
         <div className="grid grid-cols-12 md:gap-2">
           <div className="col-span-1 mt-5 md:mt-2">
@@ -170,7 +195,7 @@ const TweetModal = () => {
                       <FormControl className="text-xl">
                         <Textarea
                           placeholder="What is happening?"
-                          className="resize-y rows={1} bg-inherit min-h-fit overflow-y border-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-none  foucs-visible:border-none focus-visible:ring-0 focus-visible:outline-none focus-visible:ring-offset-0"
+                          className="resize-y rows={1} text-lg bg-inherit min-h-fit overflow-y border-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-none foucs-visible:border-none focus-visible:ring-0 focus-visible:outline-none focus-visible:ring-offset-0"
                           {...field}
                           disabled={posting || !user}
                           ref={textareaRef}
@@ -183,7 +208,7 @@ const TweetModal = () => {
 
                 {mediaUploading && (
                   <div className="w-full flex justify-start items-center gap-2 py-2">
-                    <div className="w-5 h-5 border-2 border-t-transparent border-blue-500 rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-t-transparent border-orange-500 rounded-full animate-spin" />
                     <span className="text-sm text-muted-foreground">Uploading...</span>
                   </div>
                 )}
@@ -197,6 +222,7 @@ const TweetModal = () => {
                         width={300}
                         height={300}
                         className="rounded-lg"
+                        unoptimized
                       />
                       <button
                         type="button"
@@ -234,32 +260,29 @@ const TweetModal = () => {
 
                 <div className="border border-gray-800"></div>
                 <div className="flex justify-between items-center">
-                  <div className="flex items-center text-xl text-orange-400">
-                    <div onClick={handleSelectImage} className="hover:bg-gray-900 rounded-full p-2 transition-all">
-                      <MdPhotoSizeSelectActual />
-                    </div>
-                    <div className="hover:bg-gray-900 rounded-full p-2 transition-all">
-                      <MdGifBox />
-                    </div>
-                    <div className="hover:bg-gray-900 rounded-full p-2 transition-all">
-                      <BiPoll />
-                    </div>
-                    <div className="hover:bg-gray-900 rounded-full p-2 transition-all">
-                      <MdOutlineEmojiEmotions />
-                    </div>
-                    <div className="hover:bg-gray-900 rounded-full p-2 transition-all">
-                      <RiCalendarScheduleLine />
-                    </div>
-                    <div className="hover:bg-gray-900 rounded-full p-2 transition-all">
-                      <CiLocationOn />
-                    </div>
-                  </div>
+                  <TweetMenu
+                    handleGifSelect={(data) => {
+                      handleGifSelect(data, setMediaUploading, setShowGifPicker, setMediaUrl, setMediaType, mediaUrl,toast )
+                    }}
+                    searchGifs={() => searchGifs(gifSearchTerm, setGifs)}
+                    handleEmojiSelect={(emoji) => {
+                      handleEmojiSelect(textareaRef, emoji, form, setShowEmojiPicker)
+                    }}
+                    handleSelectImage={handleSelectImage}
+                    showGifPicker={showGifPicker}
+                    setShowGifPicker={setShowGifPicker}
+                    gifSearchTerm={gifSearchTerm}
+                    setGifSearchTerm={setGifSearchTerm}
+                    gifs={gifs}
+                    showEmojiPicker={showEmojiPicker}
+                    setShowEmojiPicker={setShowEmojiPicker}
+                  />
                   <Button
                     type="submit"
                     disabled={contentValue?.length < 3 || contentValue?.length > 300 || mediaUploading || posting}
                     className="py-1 px-5 text-white bg-orange-700 hover:bg-orange-800 rounded-full font-bold text-base"
                   >
-                    Post
+                    {posting ? "Posting..." : "Post"}
                   </Button>
                 </div>
               </form>
@@ -267,10 +290,173 @@ const TweetModal = () => {
           </div>
         </div>
       </div>
-
     </>
-
   )
 }
 
 export default TweetModal
+
+
+// <div className="flex items-center text-xl text-orange-400">
+
+// <div
+//   onClick={handleSelectImage}
+//   className="hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer"
+// >
+//   <HiOutlinePhotograph />
+// </div>
+
+// <Popover open={showGifPicker} onOpenChange={setShowGifPicker}>
+//   <PopoverTrigger asChild>
+//     <div className="hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer">
+//       <AiOutlineGif />
+//     </div>
+//   </PopoverTrigger>
+//   <PopoverContent className="w-[300px]">
+//     <Input
+//       placeholder="Search GIFs"
+//       className="mb-2"
+//       value={gifSearchTerm}
+//       onChange={(e) => setGifSearchTerm(e.target.value)}
+//       onKeyDown={(e) => e.key === "Enter" && searchGifs(gifSearchTerm, setGifs)}
+//     />
+//     <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
+//       {gifs.map((gif) => (
+//         <img
+//           key={gif.id}
+//           src={gif.images.fixed_height_small.url}
+//           alt="gif"
+//           className="cursor-pointer rounded-md"
+//           onClick={() => handleGifSelect(gif, setMediaUploading, setShowGifPicker, setMediaUrl, setMediaType, toast)}
+//         />
+//       ))}
+//     </div>
+//     {
+//       !gifSearchTerm && (
+//         <div className="text-center py-4 text-gray-400">
+//           Search for GIFs. Press Enter after typing.
+//         </div>
+//       )
+//     }
+//     {gifs.length === 0 && gifSearchTerm && (
+//       <div className="text-center py-4 text-gray-400">
+//         No GIFs found. Try a different search term.
+//       </div>
+//     )}
+//   </PopoverContent>
+// </Popover>
+
+
+// {/* <div
+//   onClick={() => setShowPollCreator(!showPollCreator)}
+//   className={`hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer ${showPollCreator ? "bg-gray-900" : ""}`}
+// >
+//   <HiOutlineChartBar />
+// </div> */}
+
+// <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+//   <PopoverTrigger asChild>
+//     <div className="hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer">
+//       <FiSmile />
+//     </div>
+//   </PopoverTrigger>
+//   <PopoverContent className="w-full p-0 border-gray-700">
+//     <Picker data={data} onEmojiSelect={(emoji: any) => {
+//       handleEmojiSelect(textareaRef, emoji, form, setShowEmojiPicker)
+//     }} theme="dark" />
+//   </PopoverContent>
+// </Popover>
+
+// {/* <div
+//   onClick={() => setShowScheduler(!showScheduler)}
+//   className={`hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer ${showScheduler ? "bg-gray-900" : ""}`}
+// >
+//   <FiCalendar />
+// </div> */}
+
+// {/* <div
+//   onClick={() => setShowLocationPicker(!showLocationPicker)}
+//   className={`hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer ${showLocationPicker ? "bg-gray-900" : ""}`}
+// >
+//   <FiMapPin />
+// </div> */}
+// </div>
+
+
+
+{/* {showPollCreator && (
+                  <div className="border border-gray-700 rounded-lg p-3 space-y-3">
+                    <h3 className="font-medium text-orange-400">Create a poll</h3>
+                    {pollOptions.map((option, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input
+                          value={option}
+                          onChange={(e) => updatePollOption(index, e.target.value)}
+                          placeholder={`Option ${index + 1}`}
+                          className="bg-transparent border-gray-700"
+                        />
+                        {pollOptions.length > 2 && (
+                          <button
+                            type="button"
+                            onClick={() => removePollOption(index)}
+                            className="text-gray-400 hover:text-red-500"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {pollOptions.length < 4 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addPollOption}
+                        className="w-full border-gray-700 text-orange-400 hover:bg-gray-900"
+                      >
+                        Add option
+                      </Button>
+                    )}
+                    <div>
+                      <Label className="text-sm text-gray-400">Poll duration</Label>
+                      <select
+                        value={pollDuration}
+                        onChange={(e) => setPollDuration(e.target.value)}
+                        className="w-full mt-1 bg-transparent border border-gray-700 rounded-md p-2"
+                      >
+                        <option value="1 day">1 day</option>
+                        <option value="3 days">3 days</option>
+                        <option value="1 week">1 week</option>
+                        <option value="1 month">1 month</option>
+                      </select>
+                    </div>
+                  </div>
+                )} */}
+
+{/* {showLocationPicker && (
+                  <div className="border border-gray-700 rounded-lg p-3">
+                    <h3 className="font-medium text-orange-400 mb-2">Add location</h3>
+                    <Input
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="Enter your location"
+                      className="bg-transparent border-gray-700"
+                    />
+                  </div>
+                )} */}
+
+{/* {showScheduler && (
+                  <div className="border border-gray-700 rounded-lg p-3">
+                    <h3 className="font-medium text-orange-400 mb-2">Schedule post</h3>
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      className="rounded-md border border-gray-700"
+                    />
+                    {date && (
+                      <div className="mt-2 text-sm text-gray-400">
+                        Your tweet will be posted on {date.toLocaleDateString()} at {date.toLocaleTimeString()}
+                      </div>
+                    )}
+                  </div>
+                )} */}

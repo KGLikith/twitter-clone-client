@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { FaHeart, FaRegComment, FaUser } from "react-icons/fa6"
 import { UnFollowUser, FollowUser } from "@/actions/follow_unfollow"
 import { like, dislike } from "@/actions/like_dislike"
@@ -31,16 +31,19 @@ import { Button } from "@/components/ui/button"
 import { useCreateComment } from "@/hooks/tweets"
 import { Input } from "@/components/ui/input"
 import "@/components/normal_comp/FeedCard/heart-animation.css"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Loader2 } from "lucide-react"
 import { DeleteTweetModal } from "@/components/global/deletetweetDialog"
+import PostMenu from "@/components/global/postMenu"
+import { Textarea } from "@/components/ui/textarea"
+import { useMutation } from "@apollo/client"
+import { deleteMediaMutation } from "@/graphql/mutation/tweet"
+import { apolloClient } from "@/clients/api"
+import { getSignedUrlforCommentQuery } from "@/graphql/query/tweet"
+import axios from "axios"
+import { toast } from "@/hooks/use-toast"
+import TweetMenu from "@/components/global/TweetMenu"
+import { handleEmojiSelect, handleGifSelect, searchGifs } from "@/components/global/postMenu/handleSelect"
+import { formatRelativeTime } from "@/components/global/functions"
+import { useQueryClient } from "@tanstack/react-query"
 
 const FormSchema = z.object({
   content: z
@@ -48,8 +51,8 @@ const FormSchema = z.object({
     .min(1, {
       message: "Content must be at least 1 characters.",
     })
-    .max(50, {
-      message: "Bio must not be longer than 50 characters.",
+    .max(150, {
+      message: "Reply must not be longer than 150 characters.",
     }),
 })
 
@@ -66,10 +69,38 @@ const TweetPage = ({
 }) => {
   const router = useRouter()
 
-  const { mutate } = useCreateComment()
+  const { mutateAsync } = useCreateComment()
   const [isAnimating, setIsAnimating] = useState(false)
   const [isDeleting, setDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deleteMedia] = useMutation(deleteMediaMutation)
+  const [mediaUrl, setMediaUrl] = useState<string | null>()
+  const [mediaType, setMediaType] = useState<string | null>(null)
+  const [mediaUploading, setMediaUploading] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [posting, setPosting] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showGifPicker, setShowGifPicker] = useState(false)
+  const [gifSearchTerm, setGifSearchTerm] = useState("")
+  const [gifs, setGifs] = useState<any[]>([])
+  const [focus, onFocus] = useState(false)
+  const queryclient = useQueryClient();
+
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      const handleInput = () => {
+        textarea.style.height = "auto"
+        textarea.style.height = `${textarea.scrollHeight}px`
+      }
+
+      textarea.addEventListener("input", handleInput)
+
+      return () => {
+        textarea.removeEventListener("input", handleInput)
+      }
+    }
+  }, [focus])
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -77,11 +108,6 @@ const TweetPage = ({
       content: "",
     },
   })
-
-  const iconColor = "text-gray-500"
-  const iconHoverColor = "text-orange-500"
-  const likedColor = "text-pink-500"
-  const likedHoverColor = "text-orange-300"
 
   const contentValue = form.watch("content")
   useEffect(() => {
@@ -93,21 +119,41 @@ const TweetPage = ({
   }, [user])
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    form.reset({
-      content: "",
-    })
-    mutate({ content: data.content, tweetId: tweet.id })
-    form.reset()
+    if (!user || posting) return
+    try {
+      setPosting(true)
+      const comment = await mutateAsync({ content: data.content, tweetId: tweet.id, mediaUrl: mediaUrl, mediaType: mediaType })
+      form.reset({
+        content: "",
+      })
+      setMediaUrl(null)
+      setMediaType(null)
+      form.reset()
+      const textarea = textareaRef.current;
+      if (textarea) {
+        textarea.style.height = "auto";
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Failed to reply...",
+        description: "Please try again later",
+      })
+    } finally {
+      setPosting(false)
+    }
+
+    setPosting(false)
   }
 
   const handleLike = useCallback(async () => {
     setIsAnimating(true)
-    await like(user.id, tweet as Tweet, setLiked, liked)
+    await like(user.id, tweet as Tweet, setLiked, liked, queryclient)
   }, [user, tweet, liked])
 
   const handledislike = useCallback(async () => {
     setIsAnimating(true)
-    await dislike(user.id, tweet as Tweet, setLiked, liked)
+    await dislike(user.id, tweet as Tweet, setLiked, liked, queryclient)
   }, [user, tweet, liked])
 
   const handleDeletePost = useCallback(async () => {
@@ -117,7 +163,7 @@ const TweetPage = ({
   const confirmDelete = async () => {
     setDeleting(true)
     try {
-      await deletePost(tweet as Tweet)
+      await deletePost(tweet as Tweet, queryclient)
       setShowDeleteDialog(false)
       router.push("/")
     } catch (error) {
@@ -127,11 +173,70 @@ const TweetPage = ({
     }
   }
   const tweetUser = (tweet as Tweet)?.user
-  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => { }), [tweetUser])
+  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => { },queryclient), [tweetUser])
 
-  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user, () => { }), [tweetUser])
+  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user.id, () => { },queryclient), [tweetUser])
   const handleAnimationEnd = () => {
     setIsAnimating(false)
+  }
+
+
+  const handleImageChange = useCallback(
+    (input: HTMLInputElement) => {
+      return async (e: Event) => {
+        if (posting) return
+        e.preventDefault()
+        const file: File | null | undefined = input.files?.item(0)
+        if (!file) return
+
+        setMediaUploading(true)
+
+        try {
+          const { data } = await apolloClient.query({
+            query: getSignedUrlforCommentQuery,
+            variables: {
+              mediaType: file.type,
+              mediaName: file.name,
+            },
+          })
+
+          const { getSignedURLForComment } = data
+          if (getSignedURLForComment) {
+            await axios.put(getSignedURLForComment, file, {
+              headers: {
+                "Content-Type": file.type,
+              },
+            })
+
+            const url = new URL(getSignedURLForComment)
+            setMediaUrl(url.pathname)
+            setMediaType(file.type.startsWith("image") ? "image" : "video")
+          }
+        } catch (error) {
+          toast({ variant: "destructive", title: "Upload failed" })
+        } finally {
+          setMediaUploading(false)
+        }
+      }
+    },
+    [user],
+  )
+
+  const handleSelectImage = useCallback(() => {
+    if (posting || !user) return
+    const input = document.createElement("input")
+    input.type = "file"
+    input.accept = "image/*,video/*"
+    const handlerFn = handleImageChange(input)
+    input.addEventListener("change", handlerFn)
+    input.click()
+  }, [posting, user])
+
+  const handleRemoveMedia = () => {
+    if (!mediaUrl) return
+    deleteMedia({ variables: { mediaUrl: mediaUrl || "" } })
+    setMediaUrl(null)
+    setMediaType(null)
   }
 
   return (
@@ -150,20 +255,19 @@ const TweetPage = ({
             )}
           </Link>
           <div className="flex justify-between items-center w-full">
-            <div className="flex flex-col  justify-start font-sans">
-              <Link href={`/user/${tweet.user.id}`}>
-                <h5 className="text-white font-bold text-sm hover:underline">
+            <div className="flex items-center gap-2">
+              <Link className="flex justify-center items-center gap-2" href={user ? `/user/${tweet.user.id}` : "/not_authorised"}>
+                <h5 className="font-bold hover:underline w-fit">
                   {tweet.user.firstName} {tweet.user.lastName}
                 </h5>
+                <p className="text-sm text-gray-400">@{tweet.user.userName}</p>
               </Link>
-              <p className="text-gray-400 text-sm">
-                @{tweet.user.firstName}
-                {tweet.user.lastName}
-              </p>
+              <span className="text-gray-500">·</span>
+              <div className="text-xs text-gray-500 hover:underline">{formatRelativeTime(tweet.createdAt)}</div>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="p-1 py-2 rounded-full hover:bg-gray-900 hover:text-[#1d9bf0]">
+                <div className="p-1 py-2 rounded-full hover:bg-gray-800 hover:text-orange-300">
                   <CiMenuKebab />
                 </div>
               </DropdownMenuTrigger>
@@ -241,61 +345,11 @@ const TweetPage = ({
           )}
         </div>
         <div className="border border-gray-800 mb-2"></div>
-        <div className="flex justify-between my-2 text-lg">
-          <Link href={user ? `/user/${tweet.user.id}/posts/${tweet.id}` : "not_authorised"}>
-            <div className="rounded-full gap-2 p-2 flex justify-center items-center">
-              <FaRegComment size={16} className={`${iconColor} hover:text-orange-500`} />
-              <p className="text-center text-xs text-gray-500">{tweet.comments?.length | 0}</p>
-            </div>
-          </Link>
-          <div className="rounded-full p-2 flex justify-center items-center">
-            <AiOutlineRetweet size={16} className={`${iconColor} hover:text-orange-500`} />
-          </div>
-          <div className="rounded-full p-2 gap-2 flex justify-center items-center">
-            {liked ? (
-              <>
-                <div className={`${likedColor} flex gap-2 justify-center items-center`}>
-                  <div
-                    className={`heart-icon ${isAnimating ? "heart-pop" : ""}`}
-                    onAnimationEnd={handleAnimationEnd}
-                  >
-                    <FaHeart
-                      onClick={handledislike}
-                      size={16}
-                      className={`${likedColor} hover:${likedHoverColor}`}
-                    />
-                  </div>
-                  <p className="text-center text-xs">{tweet.likes?.length | 0}</p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex gap-2 justify-center items-center">
-                  <div
-                    className={`heart-icon ${isAnimating ? "heart-empty-pop" : ""}`}
-                    onAnimationEnd={handleAnimationEnd}
-                  >
-                    <CiHeart onClick={handleLike} size={16} className={`${iconColor} hover:text-orange-500`} />
-                  </div>
-                  <p className={`${iconColor} text-center text-xs`}>{tweet.likes?.length | 0}</p>
-                </div>
-              </>
-            )}
-          </div>
-          <div className="rounded-full p-2 flex justify-center items-center">
-            <VscGraph size={16} className={`${iconColor} hover:text-orange-500`} />
-          </div>
-          <div className="flex gap-2">
-            <div className="rounded-full p-2 flex justify-center items-center">
-              <CiBookmark size={16} className={`${iconColor} hover:text-orange-500`} />
-            </div>
-            <div className="rounded-full p-2 flex justify-center items-center">
-              <GoUpload size={16} className={`${iconColor} hover:text-orange-500`} />
-            </div>
-          </div>
-        </div>
+
+        <PostMenu isAnimating={isAnimating} tweet={tweet} userId={user.id} liked={liked} handleLike={handleLike} handledislike={handledislike} handleAnimationEnd={handleAnimationEnd} />
+
         <div className="border border-gray-800 mb-3"></div>
-        <div className="flex justify-between gap-2 items-center">
+        <div className="flex justify-between gap-2 items-start">
           <div className="w-14">
             {user?.profileImageUrl && (
               <Image
@@ -307,39 +361,130 @@ const TweetPage = ({
               />
             )}
           </div>
-          <div className="w-full">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-2 flex items-center">
-                <FormField
-                  control={form.control}
-                  name="content"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormControl className="text-xl leading-3">
-                        <Input
-                          placeholder="Add a comment"
-                          {...field}
-                          className="w-full overflow-y bg-inherit text-base border-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-none  foucs-visible:border-none focus-visible:ring-0 focus-visible:outline-none focus-visible:ring-offset-0"
-                        />
-                        {/* <Textarea
-                          placeholder="Add a comment"
-                          className="w-full h-2 bg-inherit text-base border-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-none  foucs-visible:border-none focus-visible:ring-0 focus-visible:outline-none focus-visible:ring-offset-0"
-                          {...field}
-                        /> */}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+
+          <div className="w-full ">
+            {!focus ? (<>
+              <div className="w-full space-y-2 flex items-center">
+                <Input
+                  onFocus={() => onFocus(true)}
+                  placeholder="Add a comment"
+                  className="w-full overflow-y bg-inherit text-sm border-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-none  foucs-visible:border-none focus-visible:ring-0 focus-visible:outline-none focus-visible:ring-offset-0"
                 />
                 <Button
                   type="submit"
-                  disabled={contentValue?.length < 1 || contentValue?.length > 50}
+                  disabled={true}
                   className="w-fit py-1 px-5 flex items-center text-white bg-orange-700 hover:bg-orange-800 focus:outline-none focus:ring-orange-300 rounded-full text-center font-bold text-base dark:bg-orange-600 dark:hover:bg-orange-700 dark:focus:ring-orange-800"
                 >
                   Reply
                 </Button>
-              </form>
-            </Form>
+              </div>
+            </>) : (
+              <>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+                    <FormField
+                      control={form.control}
+                      name="content"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl className="text-xl">
+                            <Textarea
+                              placeholder="Add a comment"
+                              className="resize-y rows={1} text-base bg-inherit min-h-fit overflow-y border-none placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-none foucs-visible:border-none focus-visible:ring-0 focus-visible:outline-none focus-visible:ring-offset-0"
+                              {...field}
+                              disabled={posting || !user}
+                              ref={textareaRef}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {mediaUploading && (
+                      <div className="w-full flex justify-start items-center gap-2 py-2">
+                        <div className="w-5 h-5 border-2 border-t-transparent border-orange-500 rounded-full animate-spin" />
+                        <span className="text-sm text-muted-foreground">Uploading...</span>
+                      </div>
+                    )}
+
+                    {mediaUrl && mediaType === "image" && (
+                      <div className="relative w-full">
+                        <div className="group relative w-fit">
+                          <Image
+                            src={`${process.env.NEXT_PUBLIC_CDN_URL}${mediaUrl}` || "/placeholder.svg"}
+                            alt="tweet-media"
+                            width={300}
+                            height={300}
+                            className="rounded-lg"
+                            unoptimized
+                          />
+                          <button
+                            type="button"
+                            disabled={posting}
+                            onClick={handleRemoveMedia}
+                            className="absolute top-2 right-2 p-1.5 text-white bg-black/70 hover:bg-black/90 rounded-full focus:outline-none transition-all"
+                          >
+                            X
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {mediaUrl && mediaType === "video" && (
+                      <div className="relative w-full">
+                        <div className="group relative w-fit">
+                          <video controls className="w-full max-w-md rounded-lg">
+                            <source src={`${process.env.NEXT_PUBLIC_CDN_URL}${mediaUrl}`} type="video/mp4" />
+                            Your browser does not support the video tag.
+                          </video>
+                          <button
+                            type="button"
+                            onClick={handleRemoveMedia}
+                            disabled={posting}
+                            className="absolute top-2 right-2 p-2 px-4 text-white bg-black/70 hover:bg-black/90 rounded-full focus:outline-none transition-all"
+                          >
+                            X
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="text-sm text-muted-foreground flex justify-between ">
+                      <span>{contentValue?.length ?? 0}/150</span>
+                    </div>
+
+                    <div className="border border-gray-800"></div>
+                    <div className="flex justify-between items-center">
+                      <TweetMenu
+                        handleGifSelect={(data) => {
+                          handleGifSelect(data, setMediaUploading, setShowGifPicker, setMediaUrl, setMediaType, mediaUrl, toast)
+                        }}
+                        searchGifs={() => searchGifs(gifSearchTerm, setGifs)}
+                        handleEmojiSelect={(emoji) => {
+                          handleEmojiSelect(textareaRef, emoji, form, setShowEmojiPicker)
+                        }}
+                        handleSelectImage={handleSelectImage}
+                        showGifPicker={showGifPicker}
+                        setShowGifPicker={setShowGifPicker}
+                        gifSearchTerm={gifSearchTerm}
+                        setGifSearchTerm={setGifSearchTerm}
+                        gifs={gifs}
+                        showEmojiPicker={showEmojiPicker}
+                        setShowEmojiPicker={setShowEmojiPicker}
+                      />
+                      <Button
+                        type="submit"
+                        disabled={contentValue?.length < 3 || contentValue?.length > 150 || mediaUploading || posting}
+                        className="py-1 px-5 text-white bg-orange-700 hover:bg-orange-800 rounded-full font-bold text-base"
+                      >
+                        {posting ? "Replying..." : "Reply"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </>
+            )
+            }
           </div>
         </div>
       </div>

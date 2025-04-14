@@ -3,11 +3,8 @@
 import type React from "react"
 import { useCallback, useEffect, useState } from "react"
 import Image from "next/image"
-import { FaArrowRight, FaHeart, FaRegComment, FaUser } from "react-icons/fa6"
-import { AiOutlineRetweet } from "react-icons/ai"
-import { CiBookmark, CiHeart, CiMenuKebab } from "react-icons/ci"
-import { VscGraph } from "react-icons/vsc"
-import { GoUpload } from "react-icons/go"
+import { FaArrowRight, FaUser } from "react-icons/fa6"
+import { CiMenuKebab } from "react-icons/ci"
 import type { Tweet, User } from "@/gql/graphql"
 import Link from "next/link"
 import {
@@ -24,9 +21,12 @@ import { FollowUser, UnFollowUser } from "@/actions/follow_unfollow"
 import { dislike, like } from "@/actions/like_dislike"
 import { deletePost } from "@/actions/deletePost"
 import "./heart-animation.css"
-import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
 import { DeleteTweetModal } from "@/components/global/deletetweetDialog"
+import PostMenu from "@/components/global/postMenu"
+import { formatTweetContent } from "@/components/global/postMenu/handleSelect"
+import { toast } from "@/hooks/use-toast"
+import { formatRelativeTime } from "@/components/global/functions"
+import { useQueryClient } from "@tanstack/react-query"
 
 interface FeedCardProps {
   tweet: Tweet
@@ -34,16 +34,11 @@ interface FeedCardProps {
 }
 
 const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
+  const queryClient = useQueryClient();
   const [liked, setLiked] = useState(false)
   const [isDeleting, setDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
-
-  // Orange theme colors
-  const iconColor = "text-gray-500"
-  const iconHoverColor = "text-blue-500"
-  const likedColor = "text-pink-500"
-  const likedHoverColor = "text-pink-300"
 
   useEffect(() => {
     if (tweet) {
@@ -52,23 +47,38 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
   }, [tweet, user])
 
   const handleLike = useCallback(async () => {
+    if (!user) {
+      toast({ title: "Please login to like the post", variant: "destructive" })
+      return
+    }
     setIsAnimating(true)
-    await like(user.id, tweet as Tweet, setLiked, liked)
+
+    await like(user.id, tweet as Tweet, setLiked, liked, queryClient)
   }, [user, tweet, liked])
 
   const handledislike = useCallback(async () => {
+    if (!user) {
+      toast({ title: "Please login/sign-up to like the post", variant: "destructive" })
+      return
+    }
+
     setIsAnimating(true)
-    await dislike(user.id, tweet as Tweet, setLiked, liked)
+    await dislike(user.id, tweet as Tweet, setLiked, liked, queryClient)
   }, [user, tweet, liked])
 
   const handleDeletePost = useCallback(async () => {
+    if (!user) {
+      toast({ title: "Please login/sign-up to like the post", variant: "destructive" })
+      return
+    }
+
     setShowDeleteDialog(true)
   }, [])
 
   const confirmDelete = async () => {
     setDeleting(true)
     try {
-      await deletePost(tweet as Tweet)
+      await deletePost(tweet as Tweet, queryClient)
       setShowDeleteDialog(false)
     } catch (error) {
       console.error("Failed to delete post:", error)
@@ -77,9 +87,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
     }
   }
 
-  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => { }), [tweet])
+  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => {}, queryClient), [tweet])
 
-  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user, () => { }), [tweet])
+  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user.id, () => {}, queryClient), [tweet])
 
   const handleAnimationEnd = () => {
     setIsAnimating(false)
@@ -103,17 +113,22 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
                 )}
               </div>
             </Link>
-            <div className="col-span-11 space-y-3">
+            <div className="col-span-11 space-y-2 ">
               <div className="flex justify-between items-center">
-                <Link href={user ? `/user/${tweet.user.id}` : "/not_authorised"}>
-                  <h5 className="font-bold hover:underline w-fit">
-                    {tweet.user.firstName} {tweet.user.lastName}
-                  </h5>
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link className="flex justify-center items-center gap-2" href={user ? `/user/${tweet.user.id}` : "/not_authorised"}>
+                      <h5 className="font-bold hover:underline w-fit">
+                        {tweet.user.firstName} {tweet.user.lastName}
+                      </h5>
+                      <p className="text-sm text-gray-400">@{tweet.user.userName}</p>
+                  </Link>
+                  <span className="text-gray-500">·</span>
+                  <div className="text-xs text-gray-500 hover:underline">{formatRelativeTime(tweet.createdAt)}</div>
+                </div>
                 {user && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <div className={`p-1 py-2 rounded-full hover:bg-gray-900 ${iconColor} hover:${iconHoverColor}`}>
+                      <div className={`p-1 py-2 rounded-full hover:bg-gray-800  hover:text-orange-300`}>
                         <CiMenuKebab />
                       </div>
                     </DropdownMenuTrigger>
@@ -171,7 +186,10 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
                   </DropdownMenu>
                 )}
               </div>
-              <p>{tweet.content}</p>
+              <div
+                className="break-words whitespace-pre-wrap text-base text-zinc-300 font-sans"
+                dangerouslySetInnerHTML={{ __html: formatTweetContent(tweet.content) }}
+              />
               {tweet.mediaUrl && tweet.mediaType === "image" && (
                 <div className="relative w-full">
                   <div className="group relative w-fit">
@@ -181,6 +199,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
                       width={300}
                       height={300}
                       className="rounded-lg"
+                      unoptimized
                     />
                   </div>
                 </div>
@@ -195,64 +214,25 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
                   </div>
                 </div>
               )}
-              <div className="flex justify-between mt-4 text-lg">
-                <Link href={user ? `/user/${tweet.user.id}/posts/${tweet.id}` : "not_authorised"}>
-                  <div className="rounded-full gap-2 p-2 flex justify-center items-center">
-                    <FaRegComment size={16} className={`${iconColor} hover:text-orange-500`} />
-                    <p className="text-center text-xs text-gray-500">{tweet.comments?.length | 0}</p>
-                  </div>
-                </Link>
-                <div className="rounded-full p-2 flex justify-center items-center">
-                  <AiOutlineRetweet size={16} className={`${iconColor} hover:text-orange-500`} />
-                </div>
-                <div className="rounded-full p-2 gap-2 flex justify-center items-center">
-                  {liked ? (
-                    <>
-                      <div className={`${likedColor} flex gap-2 justify-center items-center`}>
-                        <div
-                          className={`heart-icon ${isAnimating ? "heart-pop" : ""}`}
-                          onAnimationEnd={handleAnimationEnd}
-                        >
-                          <FaHeart
-                            onClick={handledislike}
-                            size={16}
-                            className={`${likedColor} hover:${likedHoverColor}`}
-                          />
-                        </div>
-                        <p className="text-center text-xs">{tweet.likes?.length | 0}</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex gap-2 justify-center items-center">
-                        <div
-                          className={`heart-icon ${isAnimating ? "heart-empty-pop" : ""}`}
-                          onAnimationEnd={handleAnimationEnd}
-                        >
-                          <CiHeart onClick={handleLike} size={16} className={`${iconColor} hover:text-orange-500`} />
-                        </div>
-                        <p className={`${iconColor} text-center text-xs`}>{tweet.likes?.length | 0}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className="rounded-full p-2 flex justify-center items-center">
-                  <VscGraph size={16} className={`${iconColor} hover:text-orange-500`} />
-                </div>
-                <div className="flex gap-2">
-                  <div className="rounded-full p-2 flex justify-center items-center">
-                    <CiBookmark size={16} className={`${iconColor} hover:text-orange-500`} />
-                  </div>
-                  <div className="rounded-full p-2 flex justify-center items-center">
-                    <GoUpload size={16} className={`${iconColor} hover:text-orange-500`} />
-                  </div>
-                </div>
-              </div>
+              <PostMenu
+                tweet={tweet}
+                isAnimating={isAnimating}
+                userId={user?.id}
+                liked={liked}
+                handleLike={handleLike}
+                handledislike={handledislike}
+                handleAnimationEnd={handleAnimationEnd}
+              />
             </div>
           </div>
         </div>
       )}
-      <DeleteTweetModal showDeleteDialog={showDeleteDialog} isDeleting={isDeleting} confirmDelete={confirmDelete} setShowDeleteDialog={setShowDeleteDialog} />
+      <DeleteTweetModal
+        showDeleteDialog={showDeleteDialog}
+        isDeleting={isDeleting}
+        confirmDelete={confirmDelete}
+        setShowDeleteDialog={setShowDeleteDialog}
+      />
     </>
   )
 }

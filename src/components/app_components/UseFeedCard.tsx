@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import FeedCard from "../normal_comp/FeedCard";
 import { useGetAllTweets } from "@/hooks/tweets";
 import { Tweet, User } from "@/gql/graphql";
-import Skeleton from "../normal_comp/Skeleton";
+import Skeleton from "../global/Skeleton/Skeleton";
 import { useCurrentUser } from "@/hooks/user";
 
 const UseFeedCard = () => {
@@ -35,9 +35,6 @@ const UseFeedCard = () => {
       </div>
     );
   }
-
-  if (!currentUser) return <></>
-
 
   return (
     <div className="min-h-screen ">

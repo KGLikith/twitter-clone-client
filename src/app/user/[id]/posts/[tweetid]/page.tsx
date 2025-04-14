@@ -1,5 +1,5 @@
 "use client";
-import Skel from "@/components/normal_comp/Skeleton";
+import Skel from "@/components/global/Skeleton/Skeleton";
 import { Tweet, User } from "@/gql/graphql";
 import { useGetTweet } from "@/hooks/tweets";
 import { useCurrentUser } from "@/hooks/user";
@@ -10,13 +10,7 @@ import {
   FaArrowLeftLong,
 } from "react-icons/fa6";
 import TweetPage from "./tweetPage";
-
-// interface TweetPageProps {
-//   params: {
-//     id: string;
-//     tweetid: string;
-//   };
-// }
+import PostSkel from "@/components/global/Skeleton/PostSkeleton";
 
 const Page: NextPage = ({  }) => {
   
@@ -48,7 +42,7 @@ const Page: NextPage = ({  }) => {
 
 
   if (loading) {
-    return <Skel />;
+    return <PostSkel />;
   }
   if(!user) return null
 

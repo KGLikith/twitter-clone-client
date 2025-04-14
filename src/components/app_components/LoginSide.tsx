@@ -5,18 +5,21 @@ import { useToast } from "@/hooks/use-toast";
 import { verifyUserGoogleTokenQuery } from "@/graphql/query/user";
 import { useCurrentUser } from "@/hooks/user";
 import { apolloClient } from "@/clients/api";
-import queryclient from "@/clients/queryClient";
 import { User } from "@/gql/graphql";
-import Skel from "../normal_comp/Skeleton";
+import Skel from "../global/Skeleton/Skeleton";
 import { ToastAction } from "@radix-ui/react-toast";
 import RecommendedUsers from "../normal_comp/RecommendedUsers";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Login = () => {
   const { toast } = useToast();
   const router = useRouter();
+
+  const queryclient= useQueryClient()
+
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
@@ -84,7 +87,11 @@ const Login = () => {
   );
 
   if (loading) {
-    return <Skel />;
+    return (
+      <div className="">
+        <Skel />
+      </div>
+    )
   }
 
   return (
@@ -122,7 +129,7 @@ const Login = () => {
       ) : (
         <>
           {/* <Searchbar></Searchbar> */}
-          {user?.recommendedUsers  && (
+          {user?.recommendedUsers && (
             <>
               <div className="p-3 border flex flex-col border-gray-800 rounded-2xl space-y-2">
                 <h1 className="font-bold text-xl text-center">
@@ -158,7 +165,7 @@ const Login = () => {
                           </h3>
                         </div>
                         <div>
-                          <RecommendedUsers user={rec_user as User} />
+                          <RecommendedUsers user={rec_user as User} currentUser={user as User} />
                         </div>
                       </div>
                     </div>

@@ -1,21 +1,21 @@
 import { apolloClient } from "@/clients/api";
-import queryclient from "@/clients/queryClient";
 import { User } from "@/gql/graphql";
 import { followUserMutation, unfollowUserMutation } from "@/graphql/mutation/user";
 import { toast } from "@/hooks/use-toast";
+import { QueryClient } from "@tanstack/react-query";
 
-export const FollowUser =async (user: User | undefined, setButtonLoading: (loading: boolean) => void) => {
-  
-    if (!user?.id) return;
+export const FollowUser =async (userId: string, setButtonLoading: (loading: boolean) => void , queryclient: QueryClient) => {
+
+    if (!userId) return;
     try{
       setButtonLoading(true);
       await apolloClient.mutate({
         mutation: followUserMutation,
-        variables: { to: user?.id },
+        variables: { to: userId},
       });
       await apolloClient.resetStore();
       await queryclient.invalidateQueries({
-        queryKey: ["currentUserById", user.id],
+        queryKey: ["currentUserById", userId],
       });
       await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
   
@@ -36,7 +36,8 @@ export const FollowUser =async (user: User | undefined, setButtonLoading: (loadi
     }
 };
 
-export const UnFollowUser =async (user: User | undefined, setButtonLoading: (loading: boolean) => void) => {
+export const UnFollowUser =async (user: User | undefined, setButtonLoading: (loading: boolean) => void,queryclient: QueryClient) => {
+
     setButtonLoading(true);
     if (!user?.id) return;
     await apolloClient.mutate({
@@ -49,6 +50,7 @@ export const UnFollowUser =async (user: User | undefined, setButtonLoading: (loa
       queryKey: ["currentUserById", user.id],
     });
     await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+    
     
     toast({
       title: "Unfollowed successfully",

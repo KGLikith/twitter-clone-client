@@ -1,10 +1,11 @@
 import { apolloClient } from "@/clients/api";
-import queryclient from "@/clients/queryClient";
 import { Tweet } from "@/gql/graphql";
 import { deleteTweetMutation } from "@/graphql/mutation/tweet";
 import { toast } from "@/hooks/use-toast";
+import { QueryClient } from "@tanstack/react-query";
 
-export const deletePost = async (tweet: Tweet) => {
+export const deletePost = async (tweet: Tweet, queryclient: QueryClient) => {
+
   const { errors } = await apolloClient.mutate({
     mutation: deleteTweetMutation,
     variables: { tweetId: tweet.id },

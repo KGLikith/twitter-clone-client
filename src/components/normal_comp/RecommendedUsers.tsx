@@ -5,10 +5,15 @@ import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { FollowUser } from "@/actions/follow_unfollow";
 import { Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
-const RecommendedUsers = ({ user }: { user: User }) => {
+const RecommendedUsers = ({ user, currentUser }: { user: User, currentUser: User }) => {
+  const queryclient = useQueryClient();
   const [LoadingButton, setLoadingButton] = useState(false);
-  const handleFollowUser =async()=> await FollowUser(user, setLoadingButton);
+  const handleFollowUser = async () => { 
+    await FollowUser(user.id, setLoadingButton, queryclient);
+    queryclient.invalidateQueries({ queryKey: ["currentUserById",currentUser.id] });
+  }
   return (
     <>
       {LoadingButton ? (

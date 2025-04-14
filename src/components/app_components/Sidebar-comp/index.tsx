@@ -17,7 +17,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { User } from "@/gql/graphql"
+import Skel from "@/components/global/Skeleton/Skeleton"
+import SideabrSkel from "@/components/global/Skeleton/SidebarSkel"
 
 const Sidebar = () => {
   const { user: currentUser, isLoading } = useCurrentUser();
@@ -64,13 +65,17 @@ const Sidebar = () => {
     }
   }, [])
 
-  if (isLoading) return <></>
+  if (isLoading) return <>
+  <div className="w-full sm:min-w-[250px] h-full flex  justify-center">
+    <SideabrSkel />
+  </div>
+  </>
 
   return (
     <div className="h-full">
       <div
         className={cn(
-          "flex-none overflow-y-auto relative h-full no-scrollbar flex flex-col gap-4 items-center bg-black/40 rounded-md",
+          "flex-none overflow-y-auto relative h-full no-scrollbar flex flex-col gap-4 items-center bg-gradient-to-l from-black/40 via-black/60 to-inherit rounded-md",
           isMobile ? "w-[70px] p-2" : "w-full min-w-[220px] md:min-w-[250px] lg:min-w-[270px]  p-2",
         )}
       >
@@ -90,7 +95,7 @@ const Sidebar = () => {
           <ul>
             {menuItems.map((item) => (
               <SidebarItem
-                href={user ? item.href : (item.href === "/" ? '/' : '/not_authorised')}
+                href={user ? item.href == '/profile' ? `/user/${user.id}` : item.href : (item.href === "/" ? '/' : '/not_authorised')}
                 icon={item.icon}
                 selected={pathName === item.href}
                 title={item.title}

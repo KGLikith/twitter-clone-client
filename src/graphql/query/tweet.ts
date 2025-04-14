@@ -12,6 +12,7 @@ export const getAllTweetsQuery = graphql(`
             mediaUrl
             mediaType
             likes
+            createdAt
             comments{
                 id
             }
@@ -34,6 +35,7 @@ export const getUserTweetsQuery = graphql(`
             mediaUrl
             mediaType
             likes
+            createdAt
             comments{
                 id
             }
@@ -54,6 +56,13 @@ export const getSignedUrlforTweetQuery= graphql(`
     }
 `)
 
+export const getSignedUrlforCommentQuery= graphql(`
+    #graphql
+    query getSignedUrlforComment($mediaType: String!, $mediaName: String!){
+        getSignedURLForComment(mediaType: $mediaType, mediaName: $mediaName)
+    }
+`)
+
 export const getTweetByIdQuery = gql(`
     #graphql
     query getTweetById($tweetid: ID!){
@@ -63,10 +72,15 @@ export const getTweetByIdQuery = gql(`
             mediaUrl
             mediaType
             likes
+            createdAt
+            createdAt
             comments{
                 id 
                 content
                 likes
+                mediaUrl
+                mediaType
+                createdAt
                 user{
                     id
                     firstName

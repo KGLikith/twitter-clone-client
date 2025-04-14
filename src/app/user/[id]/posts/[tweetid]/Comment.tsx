@@ -9,13 +9,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Comment, Tweet, User } from "@/gql/graphql";
-import { AiOutlineRetweet } from "react-icons/ai";
-import { CiMenuKebab, CiHeart, CiBookmark } from "react-icons/ci";
-import {  FaUser, FaRegComment, FaHeart } from "react-icons/fa";
-import { GoUpload } from "react-icons/go";
+import { CiMenuKebab } from "react-icons/ci";
+import { FaUser } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { RiUserUnfollowFill, RiUserFollowFill } from "react-icons/ri";
-import { VscGraph } from "react-icons/vsc";
 import { FollowUser, UnFollowUser } from "@/actions/follow_unfollow";
 import { apolloClient } from "@/clients/api";
 import {
@@ -23,8 +20,11 @@ import {
   likeCommentMutation,
   unlikeCommentMutation,
 } from "@/graphql/mutation/tweet";
-import queryclient from "@/clients/queryClient";
 import { toast } from "@/hooks/use-toast";
+import PostMenu from "@/components/global/postMenu";
+import { formatTweetContent } from "@/components/global/postMenu/handleSelect";
+import { formatRelativeTime } from "@/components/global/functions";
+import { useQueryClient } from "@tanstack/react-query";
 
 const CommentFile = ({
   comment,
@@ -35,7 +35,14 @@ const CommentFile = ({
   user: User;
   tweet: Tweet;
 }) => {
+  const queryclient= useQueryClient()
+
   const [liked, setLiked] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false)
+
+  const handleAnimationEnd = () => {
+    setIsAnimating(false)
+  }
   useEffect(() => {
     if (comment?.likes?.findIndex((el) => el === user?.id) !== -1) {
       setLiked(true);
@@ -45,27 +52,27 @@ const CommentFile = ({
   }, [comment]);
 
   const handleUnfollowUser = useCallback(
-    async () => await UnFollowUser(comment.user, () => {}),
+    async () => await UnFollowUser(comment.user, () => { },queryclient),
     [comment.user]
   );
 
   const handleFollowUser = useCallback(
-    async () => await FollowUser(comment.user, () => {}),
+    async () => await FollowUser(comment.user.id, () => { },queryclient),
     [comment.user]
   );
 
   const handleDeleteComment = useCallback(async () => {
-    const {errors}=await apolloClient.mutate({
+    const { errors } = await apolloClient.mutate({
       mutation: deleteCommentMutation,
       variables: {
         commentId: comment.id,
       },
     });
-    if(errors && errors[0]) toast({ variant: "destructive", description: errors[0].message, duration: 1000 });
+    if (errors && errors[0]) toast({ variant: "destructive", description: errors[0].message, duration: 1000 });
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
     await queryclient.invalidateQueries({ queryKey: ["curre"] });
-  }, [comment,tweet.id]);
+  }, [comment, tweet.id]);
 
   const handleLike = useCallback(async () => {
     const { data, errors } = await apolloClient.mutate({
@@ -79,7 +86,7 @@ const CommentFile = ({
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
     queryclient.invalidateQueries({ queryKey: ["tweets"] });
-  }, [comment,tweet.id]);
+  }, [comment, tweet.id, liked]);
 
   const handledislike = useCallback(async () => {
     const { data, errors } = await apolloClient.mutate({
@@ -93,7 +100,7 @@ const CommentFile = ({
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
     queryclient.invalidateQueries({ queryKey: ["tweets"] });
-  }, [comment,tweet.id]);
+  }, [comment, tweet.id, liked]);
 
   return (
     <>
@@ -115,133 +122,101 @@ const CommentFile = ({
           <div className="col-span-11 ">
             <div className="flex flex-col gap-2">
 
-            <div className="flex justify-between items-start">
-              <Link href={`/user/${comment.user.id}`}>
-                <h5 className="font-bold hover:underline w-fit">
-                  {comment.user.firstName} {comment.user.lastName}
-                </h5>
-              </Link>
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="p-1 rounded-full hover:bg-gray-900 hover:text-[#1d9bf0]">
-                      <CiMenuKebab />
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-36 bg-black "
-                    style={{
-                      boxShadow:
-                        "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px",
-                    }}
-                  >
-                    <DropdownMenuGroup>
-                      <Link href={`/user/${comment.user.id}`}>
-                        <DropdownMenuItem className="flex justify-between items-center px-4 hover:bg-gray-900">
-                          <FaUser className="mr-2 h-4 w-4" />
-                          <span>Profile</span>
-                        </DropdownMenuItem>
-                      </Link>
-                      {user?.id === comment.user.id ? (
-                        <DropdownMenuItem
-                          className="flex justify-between items-center px-4 hover:bg-gray-900"
-                          onClick={handleDeleteComment}
-                        >
-                          <MdDelete className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      ) : (
-                        <>
-                          {user?.following?.findIndex(
-                            (el) => el?.id === comment.user.id
-                          ) !== -1 ? (
-                            <DropdownMenuItem
-                              className="flex justify-between items-center px-4 hover:bg-gray-900"
-                              onClick={handleUnfollowUser}
-                            >
-                              <RiUserUnfollowFill className="mr-2 h-4 w-4" />
-                              <span>Unfollow</span>
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem
-                              className="flex justify-between items-center px-4 hover:bg-gray-900"
-                              onClick={handleFollowUser}
-                            >
-                              <RiUserFollowFill className="mr-2 h-4 w-4" />
-                              <span>Follow</span>
-                            </DropdownMenuItem>
-                          )}
-                        </>
-                      )}
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-            <p className="text-base">{comment.content}</p>
-            <div className="flex justify-between text-xl">
-              <div className="rounded-full  p-2 flex justify-center items-center">
-                <FaRegComment
-                  size={20}
-                  className="text-[#959494] hover:text-[#1d9bf0] "
-                />
-              </div>
-              <div className=" rounded-full  p-2 flex justify-center items-center">
-                <AiOutlineRetweet
-                  size={20}
-                  className="text-[#959494] hover:text-[#00ba7c]"
-                />
-              </div>
-              <div className="rounded-full  p-2 gap-2 flex justify-center items-center transition-all hover:text-[#f91880] transform-all">
-                {liked ? (
-                  <>
-                    <div className="text-[#f91880]  flex gap-2  justify-center items-center transition-all">
-                      <FaHeart
-                        onClick={handledislike}
-                        size={20}
-                        // className="text-[#f91880]"
-                      />
-                      <p className=" text-center text-sm ">
-                        {comment?.likes?.length ?? 0}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex gap-2 justify-center items-center transition-all ">
-                      <CiHeart
-                        onClick={handleLike}
-                        size={20}
-                        className="text-[#959494] hover:text-[#f91880] "
-                      />
-                      <p className="text-[#959494]  text-center text-sm ">
-                        {comment?.likes?.length ?? 0}
-                      </p>
-                    </div>
-                  </>
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-2">
+                  <Link className="flex justify-center items-center gap-2" href={user ? `/user/${tweet.user.id}` : "/not_authorised"}>
+                    <h5 className="font-bold hover:underline w-fit">
+                      {comment.user.firstName} {tweet.user.lastName}
+                    </h5>
+                    <p className="text-sm text-gray-400">@{comment.user.userName}</p>
+                  </Link>
+                  <span className="text-gray-500">·</span>
+                  <div className="text-xs text-gray-500 hover:underline">{formatRelativeTime(comment.createdAt)}</div>
+                </div>
+                {user && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="p-1 rounded-full hover:bg-gray-900 hover:text-[#1d9bf0]">
+                        <CiMenuKebab />
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="w-36 bg-black "
+                      style={{
+                        boxShadow:
+                          "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px",
+                      }}
+                    >
+                      <DropdownMenuGroup>
+                        <Link href={`/user/${comment.user.id}`}>
+                          <DropdownMenuItem className="flex justify-between items-center px-4 hover:bg-gray-900">
+                            <FaUser className="mr-2 h-4 w-4" />
+                            <span>Profile</span>
+                          </DropdownMenuItem>
+                        </Link>
+                        {user?.id === comment.user.id ? (
+                          <DropdownMenuItem
+                            className="flex justify-between items-center px-4 hover:bg-gray-900"
+                            onClick={handleDeleteComment}
+                          >
+                            <MdDelete className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        ) : (
+                          <>
+                            {user?.following?.findIndex(
+                              (el) => el?.id === comment.user.id
+                            ) !== -1 ? (
+                              <DropdownMenuItem
+                                className="flex justify-between items-center px-4 hover:bg-gray-900"
+                                onClick={handleUnfollowUser}
+                              >
+                                <RiUserUnfollowFill className="mr-2 h-4 w-4" />
+                                <span>Unfollow</span>
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                className="flex justify-between items-center px-4 hover:bg-gray-900"
+                                onClick={handleFollowUser}
+                              >
+                                <RiUserFollowFill className="mr-2 h-4 w-4" />
+                                <span>Follow</span>
+                              </DropdownMenuItem>
+                            )}
+                          </>
+                        )}
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
-              <div className="rounded-full  p-2 flex justify-center items-center">
-                <VscGraph
-                  size={20}
-                  className="text-[#959494] hover:text-[#1d9bf0]"
-                />
-              </div>
-              <div className="flex gap-2">
-                <div className="rounded-full  p-2 flex justify-center items-center">
-                  <CiBookmark
-                    size={20}
-                    className="text-[#959494] hover:text-[#1d9bf0] "
-                  />
+              <div className="break-words whitespace-pre-wrap text-base text-zinc-300 font-sans" dangerouslySetInnerHTML={{ __html: formatTweetContent(comment.content) }} />
+              {comment.mediaUrl && comment.mediaType === "image" && (
+                <div className="relative w-full">
+                  <div className="group relative w-fit">
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_CDN_URL}${comment.mediaUrl}` || "/placeholder.svg"}
+                      alt="tweet-media"
+                      width={300}
+                      height={300}
+                      className="rounded-lg"
+                      unoptimized
+                    />
+                  </div>
                 </div>
-                <div className="rounded-full  p-2 flex justify-center items-center">
-                  <GoUpload
-                    size={20}
-                    className="text-[#959494] hover:text-[#1d9bf0]"
-                  />
+              )}
+              {comment.mediaUrl && comment.mediaType === "video" && (
+                <div className="relative w-full">
+                  <div className="group relative w-fit">
+                    <video controls className="w-full max-w-md rounded-lg">
+                      <source src={`${process.env.NEXT_PUBLIC_CDN_URL}${comment.mediaUrl}`} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
                 </div>
-              </div>
-            </div>
+              )}
+              <PostMenu userId={user.id} comment={comment} isAnimating={isAnimating} liked={liked} handleLike={handleLike} handledislike={handledislike} handleAnimationEnd={handleAnimationEnd} />
+
             </div>
           </div>
         </div>
