@@ -25,8 +25,9 @@ import { DeleteTweetModal } from "@/components/global/deletetweetDialog"
 import PostMenu from "@/components/global/postMenu"
 import { formatTweetContent } from "@/components/global/postMenu/handleSelect"
 import { toast } from "@/hooks/use-toast"
-import { formatRelativeTime } from "@/components/global/functions"
 import { useQueryClient } from "@tanstack/react-query"
+import { formatRelativeTime } from "@/actions/helperFxns"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface FeedCardProps {
   tweet: Tweet
@@ -53,7 +54,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
     }
     setIsAnimating(true)
 
-    await like(user.id, tweet as Tweet, setLiked, liked, queryClient)
+    await like(user.id, user.name, tweet as Tweet, setLiked, liked, queryClient)
   }, [user, tweet, liked])
 
   const handledislike = useCallback(async () => {
@@ -87,9 +88,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
     }
   }
 
-  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => {}, queryClient), [tweet])
+  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => { }, queryClient), [tweet])
 
-  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user.id, () => {}, queryClient), [tweet])
+  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user.id, () => { }, queryClient), [tweet])
 
   const handleAnimationEnd = () => {
     setIsAnimating(false)
@@ -102,25 +103,27 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
           <div className="grid grid-cols-12 gap-2">
             <Link href={user ? `/user/${tweet?.user.id}` : "/not_authorised"}>
               <div className="col-span-1  ">
-                {tweet.user?.profileImageUrl && (
-                  <Image
-                    className="rounded-full"
-                    src={tweet.user.profileImageUrl || "/placeholder.svg"}
-                    alt="user-image"
-                    height={50}
-                    width={50}
+                <Avatar className="h-8 w-8 border-2 border-zinc-700 rounded-full overflow-hidden">
+                  <AvatarImage
+                    src={tweet.user?.profileImageUrl?.startsWith("/") ? process.env.NEXT_PUBLIC_CDN_URL + tweet.user.profileImageUrl : tweet.user?.profileImageUrl || "/user.png"}
+
+                    alt="Profile"
+                    className="object-cover"
                   />
-                )}
+                  <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xl flex items-center justify-center">
+                    {tweet.user?.userName?.slice(1)[0]}
+                  </AvatarFallback>
+                </Avatar>
               </div>
             </Link>
             <div className="col-span-11 space-y-2 ">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Link className="flex justify-center items-center gap-2" href={user ? `/user/${tweet.user.id}` : "/not_authorised"}>
-                      <h5 className="font-bold hover:underline w-fit">
-                        {tweet.user.firstName} {tweet.user.lastName}
-                      </h5>
-                      <p className="text-sm text-gray-400">@{tweet.user.userName}</p>
+                    <h5 className="font-bold hover:underline w-fit">
+                      {tweet.user.name}
+                    </h5>
+                    <p className="text-sm text-gray-400">@{tweet.user.userName}</p>
                   </Link>
                   <span className="text-gray-500">·</span>
                   <div className="text-xs text-gray-500 hover:underline">{formatRelativeTime(tweet.createdAt)}</div>
@@ -139,7 +142,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
                       }}
                     >
                       <DropdownMenuGroup>
-                        <Link href={`/user/${tweet.user.id}/posts/${tweet.id}`}>
+                        <Link href={`/posts/${tweet.id}`}>
                           <DropdownMenuItem className="flex justify-between items-center px-4 hover:bg-gray-900">
                             <FaArrowRight className="mr-2 h-3.5 w-3.5" />
                             <span>View Post</span>

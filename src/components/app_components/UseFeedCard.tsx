@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from "react";
-import FeedCard from "../normal_comp/FeedCard";
+import FeedCard from "../_components/FeedCard";
 import { useGetAllTweets } from "@/hooks/tweets";
 import { Tweet, User } from "@/gql/graphql";
 import Skeleton from "../global/Skeleton/Skeleton";

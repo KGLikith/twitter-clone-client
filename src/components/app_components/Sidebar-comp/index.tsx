@@ -6,7 +6,7 @@ import SidebarItem from "./sidebar-items"
 import { cn } from "@/lib/utils"
 import { useState, useEffect, useCallback } from "react"
 import { loggedOutmenuItems, LoggedInmenuItems } from "./constants"
-import Badge from "@/components/normal_comp/Badge"
+import Badge from "@/components/_components/Badge"
 import { useCurrentUser } from "@/hooks/user"
 import {
   Dialog,

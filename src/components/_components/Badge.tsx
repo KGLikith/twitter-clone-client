@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useQueryClient } from "@tanstack/react-query"
 
 const Badge = () => {
-  const queryclient= useQueryClient()
+  const queryclient = useQueryClient()
 
   const router = useRouter()
   const [user, setUser] = useState<User | undefined>()
@@ -93,21 +93,21 @@ const Badge = () => {
         <DropdownMenu>
           <DropdownMenuTrigger className="w-full focus-visible:outline-none">
             <div className="flex items-center hover:bg-gray-900 border-2 border-zinc-800 cursor-pointer transition-all w-full text-center rounded-full p-2 justify-center md:justify-start md:gap-2 md:px-3 md:py-3">
-              <Avatar className="h-9 w-9 border-2 border-zinc-200 ">
-                <AvatarImage src={user.profileImageUrl || ""} alt="Profile" />
+              <Avatar className="h-8 w-8 border-2 border-zinc-200 ">
+                <AvatarImage src={user?.profileImageUrl?.startsWith("/") ? process.env.NEXT_PUBLIC_CDN_URL + user.profileImageUrl : user?.profileImageUrl || "/user.png"}
+                />
                 <AvatarFallback className="bg-orange-500/20 text-orange-500">
-                  {user.firstName?.charAt(0) || "U"}
+                  {user.name?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
 
               <div className="hidden sm:flex justify-between w-full items-center">
                 <div className="text-left">
                   <h3 className="text-white text-sm font-medium">
-                    {user.firstName} {user.lastName}
+                    {user.name}
                   </h3>
                   <h3 className="text-gray-400 text-xs">
-                    @{user.firstName?.toLowerCase()}
-                    {user.lastName?.toLowerCase()}
+                    @{user.userName}
                   </h3>
                 </div>
                 <div>

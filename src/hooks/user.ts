@@ -1,6 +1,6 @@
 "use client";
 import { apolloClient } from "@/clients/api";
-import { getUserByIdQuery, getCurrentUserQuery } from "@/graphql/query/user";
+import { getUserByIdQuery, getCurrentUserQuery, getNotificationsQuery } from "@/graphql/query/user";
 import { useQuery } from "@tanstack/react-query";
 
 export const useCurrentUser = () => {
@@ -14,6 +14,7 @@ export const useCurrentUser = () => {
         return data;
       } catch (error) {
         console.error("Error fetching current user:", (error as Error).message);
+        return null;
       }
     },
   });
@@ -37,3 +38,21 @@ export const useCurrentUserById = (id: string) => {
   });
   return { ...query, user: query.data?.getUserById };
 };
+
+export const useGetNotifications = () => {
+  const query = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      try {
+        const { data } = await apolloClient.query({
+          query: getNotificationsQuery
+        });
+        return data;
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+      }
+    },
+  });
+  return { ...query, notifications: query.data?.getNotifications };
+}
+

@@ -14,25 +14,30 @@ export const getCurrentUserQuery = graphql(`
     getCurrentUser {
       id
       email
-      firstName
-      lastName
+      name
       userName
       createdAt
       profileImageUrl
       bio
+      notificationCount
       location
       website
-      recommendedUsers{
+      notificationPreference {
+        likes
+        comments
+        follows
+      }
+      recommendedUsers {
         id
         email
-        firstName
-        lastName
+        name
+        userName
         profileImageUrl
       }
-      followers{
+      followers {
         id
       }
-      following{
+      following {
         id
       }
     }
@@ -45,27 +50,24 @@ export const getUserByIdQuery = graphql(`
     getUserById(id: $id) {
       id
       email
-      firstName
-      lastName
+      name
       profileImageUrl
       userName
       bio
       location
       website
       createdAt
-      followers{
+      followers {
         id
         profileImageUrl
-        firstName
-        lastName
+        name
         userName
         bio
       }
-      following{
+      following {
         id
         profileImageUrl
-        firstName
-        lastName
+        name
         userName
         bio
       }
@@ -73,4 +75,42 @@ export const getUserByIdQuery = graphql(`
   }
 `);
 
+export const getSignedUrlForUserQuery = graphql(`
+  #graphql
+  query getSignedUrlForUser($mediaType: String!, $mediaName: String!) {
+    getSignedUrlForUser(mediaType: $mediaType, mediaName: $mediaName)
+  }
+`);
 
+export const getNotificationsQuery = graphql(`
+  #graphql
+  query getNotifications {
+    getNotifications {
+      id
+      tweetId
+      commentId
+      notifiedUserId
+      type
+      read
+      createdAt
+      updatedAt
+      user {
+        id
+        name
+        profileImageUrl
+        userName
+        followers {
+          id
+        }
+      }
+      tweet {
+        id
+        content
+      }
+      comment {
+        id
+        content
+      }
+    }
+  }
+`);

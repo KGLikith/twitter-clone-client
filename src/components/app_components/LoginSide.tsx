@@ -8,7 +8,7 @@ import { apolloClient } from "@/clients/api";
 import { User } from "@/gql/graphql";
 import Skel from "../global/Skeleton/Skeleton";
 import { ToastAction } from "@radix-ui/react-toast";
-import RecommendedUsers from "../normal_comp/RecommendedUsers";
+import RecommendedUsers from "../_components/RecommendedUsers";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -18,7 +18,7 @@ const Login = () => {
   const { toast } = useToast();
   const router = useRouter();
 
-  const queryclient= useQueryClient()
+  const queryclient = useQueryClient()
 
 
   const [loading, setLoading] = useState(true);
@@ -29,14 +29,12 @@ const Login = () => {
     if (currentUser !== undefined) {
       setUser(currentUser as User);
       setLoading(false);
-      // console.log(currentUser?.recommendedUsers)
     }
   }, [currentUser]);
 
   const handleLogin = useCallback(
     async (cred: CredentialResponse) => {
       const googleToken = cred.credential;
-      // console.log(googleToken);
 
       if (!googleToken) {
         return toast({
@@ -139,7 +137,7 @@ const Login = () => {
                   {user.recommendedUsers?.map((rec_user) => (
                     <div
                       key={rec_user?.id}
-                      className=" flex gap-2 py-1 md:px-3 items-center hover:bg-gray-900 cursor-pointer transition-all w-full rounded-full "
+                      className=" flex gap-2 py-1 md:px-3 items-center  cursor-pointer transition-all w-full rounded-full "
                     >
                       {rec_user?.profileImageUrl && (
                         <Link href={`/${rec_user?.id}`}>
@@ -156,12 +154,11 @@ const Login = () => {
                         <div>
                           <Link href={`/user/${rec_user?.id}`}>
                             <h3 className="text-white text-md hover:underline">
-                              {rec_user?.firstName} {rec_user?.lastName}
+                              {rec_user?.name}
                             </h3>
                           </Link>
                           <h3 className="text-gray-400 text-sm">
-                            @{rec_user?.firstName}
-                            {rec_user?.lastName}
+                            @{rec_user?.userName}
                           </h3>
                         </div>
                         <div>

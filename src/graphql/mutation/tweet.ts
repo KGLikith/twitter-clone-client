@@ -42,8 +42,16 @@ export const createCommentMutation= graphql(`
     mutation createComment($payload: CreateCommentData!){
         createComment(payload: $payload){
             id
+            user{
+                id
+                name
+            }
             tweet{
                 id
+                user{
+                    id
+                    name
+                }
             }
         }
     }

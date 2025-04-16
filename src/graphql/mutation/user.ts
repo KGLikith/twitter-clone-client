@@ -1,16 +1,46 @@
 import { graphql } from "@/gql";
 
-const followUserMutation = graphql(`
+export const followUserMutation = graphql(`
   #graphql
   mutation followUser($to: ID!) {
     followUser(to: $to)
   }
 `);
-const unfollowUserMutation = graphql(`
+export const unfollowUserMutation = graphql(`
   #graphql
   mutation unfollowUser($to: ID!) {
     unfollowUser(to: $to)
   }
 `);
 
-export {followUserMutation,unfollowUserMutation}
+export const createNotificationMutation = graphql(`
+  #graphql
+  mutation createNotification($payload: createNotificationData!) {
+    createNotification(payload: $payload)
+  }
+`);
+
+export const updateNotificatonMutation = graphql(`
+  #graphql
+  mutation updateNotification($id: ID!) {
+    updateNotification(id: $id)
+  }
+`);
+
+export const updateAllNotificationsMutation = graphql(`
+  #graphql
+  mutation updateAllNotifications {
+    updateAllNotifications
+  }
+`);
+
+export const updateUserMutation = graphql(`
+  #graphql
+  mutation updateUser($payload: updateUserData!) {
+    updateUser(payload: $payload) {
+      success
+      message
+      updated
+    }
+  }
+`);

@@ -18,8 +18,8 @@ export const getAllTweetsQuery = graphql(`
             }
             user{
                 id
-                firstName
-                lastName
+                userName
+                name
                 profileImageUrl
             }
         }
@@ -41,8 +41,8 @@ export const getUserTweetsQuery = graphql(`
             }
             user{
                 id
-                firstName
-                lastName
+                userName
+                name
                 profileImageUrl
             }
         }
@@ -83,15 +83,15 @@ export const getTweetByIdQuery = gql(`
                 createdAt
                 user{
                     id
-                    firstName
-                    lastName
+                    userName
+                    name
                     profileImageUrl
                 }
             }
             user{
                 id
-                firstName
-                lastName
+                userName
+                name
                 profileImageUrl
             }
         }

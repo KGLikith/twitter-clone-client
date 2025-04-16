@@ -30,7 +30,7 @@ import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { useCreateComment } from "@/hooks/tweets"
 import { Input } from "@/components/ui/input"
-import "@/components/normal_comp/FeedCard/heart-animation.css"
+import "@/components/_components/FeedCard/heart-animation.css"
 import { DeleteTweetModal } from "@/components/global/deletetweetDialog"
 import PostMenu from "@/components/global/postMenu"
 import { Textarea } from "@/components/ui/textarea"
@@ -42,8 +42,9 @@ import axios from "axios"
 import { toast } from "@/hooks/use-toast"
 import TweetMenu from "@/components/global/TweetMenu"
 import { handleEmojiSelect, handleGifSelect, searchGifs } from "@/components/global/postMenu/handleSelect"
-import { formatRelativeTime } from "@/components/global/functions"
 import { useQueryClient } from "@tanstack/react-query"
+import { formatRelativeTime } from "@/actions/helperFxns"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const FormSchema = z.object({
   content: z
@@ -69,7 +70,7 @@ const TweetPage = ({
 }) => {
   const router = useRouter()
 
-  const { mutateAsync } = useCreateComment()
+  const { mutateAsync, comment } = useCreateComment()
   const [isAnimating, setIsAnimating] = useState(false)
   const [isDeleting, setDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -122,13 +123,14 @@ const TweetPage = ({
     if (!user || posting) return
     try {
       setPosting(true)
-      const comment = await mutateAsync({ content: data.content, tweetId: tweet.id, mediaUrl: mediaUrl, mediaType: mediaType })
+      await mutateAsync({ content: data.content, tweetId: tweet.id, mediaUrl: mediaUrl, mediaType: mediaType })
       form.reset({
         content: "",
       })
       setMediaUrl(null)
       setMediaType(null)
       form.reset()
+
       const textarea = textareaRef.current;
       if (textarea) {
         textarea.style.height = "auto";
@@ -148,7 +150,7 @@ const TweetPage = ({
 
   const handleLike = useCallback(async () => {
     setIsAnimating(true)
-    await like(user.id, tweet as Tweet, setLiked, liked, queryclient)
+    await like(user.id, user.name, tweet as Tweet, setLiked, liked, queryclient)
   }, [user, tweet, liked])
 
   const handledislike = useCallback(async () => {
@@ -173,13 +175,12 @@ const TweetPage = ({
     }
   }
   const tweetUser = (tweet as Tweet)?.user
-  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => { },queryclient), [tweetUser])
+  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => { }, queryclient), [tweetUser])
 
-  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user.id, () => { },queryclient), [tweetUser])
+  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user.id, () => { }, queryclient), [tweetUser])
   const handleAnimationEnd = () => {
     setIsAnimating(false)
   }
-
 
   const handleImageChange = useCallback(
     (input: HTMLInputElement) => {
@@ -244,21 +245,26 @@ const TweetPage = ({
       <div className="border border-gray-800 p-4 cursor-pointer hover:bg-[#0a0606]  ">
         <div className="flex gap-2 items-center mb-2">
           <Link href={`/user/${tweet.user.id}`} className="flex items-center">
-            {tweet.user?.profileImageUrl && (
-              <Image
-                className="rounded-full"
-                src={tweet.user.profileImageUrl || "/placeholder.svg"}
-                alt="user-image"
-                height={35}
-                width={35}
+            <Avatar className="h-10 w-10 border-2 border-zinc-700 rounded-full overflow-hidden">
+              <AvatarImage
+                src={
+                  tweet.user?.profileImageUrl?.startsWith("/")
+                    ? process.env.NEXT_PUBLIC_CDN_URL + tweet.user.profileImageUrl
+                    : tweet.user?.profileImageUrl || "/user.png"
+                }
+                alt="Profile"
+                className="object-cover"
               />
-            )}
+              <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xl flex items-center justify-center">
+                {tweet.user.name.slice(1)[0]}
+              </AvatarFallback>
+            </Avatar>
           </Link>
           <div className="flex justify-between items-center w-full">
             <div className="flex items-center gap-2">
               <Link className="flex justify-center items-center gap-2" href={user ? `/user/${tweet.user.id}` : "/not_authorised"}>
                 <h5 className="font-bold hover:underline w-fit">
-                  {tweet.user.firstName} {tweet.user.lastName}
+                  {tweet.user.name}
                 </h5>
                 <p className="text-sm text-gray-400">@{tweet.user.userName}</p>
               </Link>
@@ -350,16 +356,21 @@ const TweetPage = ({
 
         <div className="border border-gray-800 mb-3"></div>
         <div className="flex justify-between gap-2 items-start">
-          <div className="w-14">
-            {user?.profileImageUrl && (
-              <Image
-                src={user.profileImageUrl || "/placeholder.svg"}
-                alt="profile-image"
-                width={40}
-                height={40}
-                className="rounded-full"
+          <div className="h-10 w-10 rounded-full overflow-hidden">
+          <Avatar className="h-10 w-10 border-2 border-zinc-700 rounded-full overflow-hidden">
+              <AvatarImage
+                src={
+                  user?.profileImageUrl?.startsWith("/")
+                    ? process.env.NEXT_PUBLIC_CDN_URL + user.profileImageUrl
+                    : user?.profileImageUrl || "/user.png"
+                }
+                alt="Profile"
+                className="object-cover"
               />
-            )}
+              <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xl flex items-center justify-center">
+                {user.name.slice(1)[0]}
+              </AvatarFallback>
+            </Avatar>
           </div>
 
           <div className="w-full ">

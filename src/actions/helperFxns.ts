@@ -1,3 +1,24 @@
+import { ApolloClient, NormalizedCacheObject, OperationVariables, TypedDocumentNode } from "@apollo/client";
+
+export async function runTypedQuery<TData, TVariables extends OperationVariables>(
+  client: ApolloClient<NormalizedCacheObject>,
+  query: TypedDocumentNode<TData, TVariables>,
+  variables?: TVariables
+): Promise<TData> {
+  const { data } = await client.query({ query, variables });
+  return data;
+}
+
+export async function runTypedMutation<TData, TVariables extends OperationVariables | undefined>(
+  client: ApolloClient<NormalizedCacheObject>,
+  mutation: TypedDocumentNode<TData, TVariables>,
+  variables?: TVariables
+): Promise<TData> {
+  const { data } = await client.mutate({ mutation, variables });
+  return data!;
+}
+
+
 export const formatRelativeTime = (dateValue: string | number) => {
   let date: Date;
 

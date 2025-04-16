@@ -24,7 +24,7 @@ export default function PostMenu({ comment, tweet, userId, liked, handleLike, ha
     const likedHoverColor = "text-pink-300"
     return (
         <div className="flex justify-between my-2 text-lg">
-            <Link href={userId ? (tweet ? `/user/${tweet?.user.id}/posts/${tweet?.id}` : "#") : "not_authorised"}>
+            <Link href={userId ? (tweet ? `/posts/${tweet?.id}` : "#") : "not_authorised"}>
                 <div className="rounded-full gap-2 p-2 flex justify-center items-center">
                     <FaRegComment size={16} className={`${iconColor} hover:text-orange-500`} />
                     <p className="text-center text-xs text-gray-500">{tweet?.comments?.length || 0}</p>

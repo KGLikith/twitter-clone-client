@@ -1,6 +1,6 @@
 "use client"
 import { FollowUser, UnFollowUser } from "@/actions/follow_unfollow"
-import FeedCard from "@/components/normal_comp/FeedCard"
+import FeedCard from "@/components/_components/FeedCard"
 import Skel from "@/components/global/Skeleton/Skeleton"
 import { Button } from "@/components/ui/button"
 import type { Tweet, User } from "@/gql/graphql"
@@ -17,6 +17,10 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import Link from "next/link"
 import { toast } from "@/hooks/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
+import Search from "@/components/icons/search"
+import MagnifyingNegative from "@/components/icons/magnifying-negative"
+import MultipleUser from "@/components/icons/multipleUser"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface UserProfilePageProps {
   id: string
@@ -24,7 +28,7 @@ interface UserProfilePageProps {
 
 const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   const router = useRouter()
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
   const { user: USER, isLoading } = useCurrentUser()
   const { user: currentUser, refetch } = useCurrentUserById(id)
   const [loading, setLoading] = useState(true)
@@ -41,23 +45,21 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
 
   const filteredFollowers = useMemo(() => {
     return user?.followers?.filter((follower) => {
-      const fullName = `${follower?.firstName} ${follower?.lastName}`.toLowerCase()
-      const username = (follower?.userName || `${follower?.firstName}${follower?.lastName}`).toLowerCase()
+      const fullName = `${follower?.name}`.toLowerCase()
+      const username = follower?.userName?.toLowerCase()
       const searchTerm = followersSearch.toLowerCase()
-      return fullName.includes(searchTerm) || username.includes(searchTerm)
+      return fullName.includes(searchTerm) || username?.includes(searchTerm)
     })
   }, [user?.followers, followersSearch])
 
   const filteredFollowing = useMemo(() => {
     return user?.following?.filter((following) => {
-      const fullName = `${following?.firstName} ${following?.lastName}`.toLowerCase()
-      const username = (following?.userName || `${following?.firstName}${following?.lastName}`).toLowerCase()
+      const fullName = `${following?.name}`.toLowerCase()
+      const username = following?.userName?.toLowerCase()
       const searchTerm = followingSearch.toLowerCase()
-      return fullName.includes(searchTerm) || username.includes(searchTerm)
+      return fullName.includes(searchTerm) || username?.includes(searchTerm)
     })
   }, [user?.following, followingSearch])
-
-  console.log(currentUser)
 
   const amIFollowing = useMemo(() => {
     const ind = USER?.following?.findIndex((el: { __typename?: "User"; id: string } | null) => {
@@ -80,13 +82,13 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
 
   useEffect(() => {
     if (userTweets) {
-      setTweets(userTweets.filter((tweet): tweet is Tweet => tweet !== null))
+      setTweets(userTweets.filter((tweet: any): tweet is Tweet => tweet !== null))
     }
   }, [userTweets])
 
   const handleFollowUser = useCallback(() => FollowUser(user?.id ?? "", setButtonLoading, queryClient), [user])
 
-  const handleUnfollowUser = useCallback(() => UnFollowUser(user, setButtonLoading,queryClient), [user])
+  const handleUnfollowUser = useCallback(() => UnFollowUser(user, setButtonLoading, queryClient), [user])
 
   const handleRemoveFollower = async (followerId: string) => {
     try {
@@ -128,16 +130,8 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
       const userToUnfollow = user?.following?.find((following) => following?.id === followingId)
 
       if (userToUnfollow) {
-        await UnFollowUser(userToUnfollow as User, () => {}, queryClient)
+        await UnFollowUser(userToUnfollow as User, () => { }, queryClient)
         refetch()
-        // if (user && user.following) {
-        //   const updatedFollowing = user.following.filter((following) => following?.id !== followingId)
-        //   console.log(updatedFollowing)
-        //   setUser({
-        //     ...user,
-        //     following: updatedFollowing,
-        //   } as User)
-        // }
       }
     } catch (error) {
       console.log(error)
@@ -171,37 +165,31 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
             <FaArrowLeftLong size={15} className="text-zinc-300" />
           </div>
           <div>
-            <h1 className="font-bold text-xl text-zinc-100">
-              {user?.firstName} {user?.lastName}
-            </h1>
+            <h1 className="font-bold text-xl text-zinc-100">{user?.name}</h1>
             <p className="text-sm text-zinc-500">
               {tweets?.length ?? 0} {tweets && tweets.length > 1 ? "posts" : "post"}
             </p>
           </div>
         </nav>
         <div className="p-4 border border-zinc-800 space-y-4 bg-zinc-950">
-          <div className="flex justify-between">
-            {user?.profileImageUrl && (
-              <Image
-                src={user.profileImageUrl || "/placeholder.svg"}
-                alt="Profile Image"
-                className="rounded-full border-2 border-zinc-700"
-                width={100}
-                height={100}
-                quality={75}
-                priority={true}
-                onError={(err) => {
-                  console.log(err)
-                }}
-              />
-            )}
-          </div>
+          <Avatar className="h-24 w-24 border-2 border-zinc-700 rounded-full overflow-hidden">
+            <AvatarImage
+              src={
+                user?.profileImageUrl?.startsWith("/")
+                  ? process.env.NEXT_PUBLIC_CDN_URL + user.profileImageUrl
+                  : user?.profileImageUrl || "/user.png"
+              }
+              alt="Profile"
+              className="object-cover"
+            />
+            <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xl flex items-center justify-center">
+              {user.name.slice(1)[0]}
+            </AvatarFallback>
+          </Avatar>
 
           <div>
-            <h1 className="text-xl font-bold text-zinc-100">
-              {user?.firstName} {user?.lastName}
-            </h1>
-            <p className="text-zinc-500">@{user?.userName || `${user?.firstName}${user?.lastName}`}</p>
+            <h1 className="text-xl font-bold text-zinc-100">{user?.name}</h1>
+            <p className="text-zinc-500">@{user?.userName}</p>
           </div>
 
           {user.bio && (
@@ -244,55 +232,55 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
             <div className="flex items-center gap-6 text-zinc-500">
               <Dialog open={showFollowing} onOpenChange={setShowFollowing}>
                 <DialogTrigger asChild>
-                  <button className="flex gap-1 hover:underline">
+                  <button className="flex flex-col items-center hover:text-orange-500 transition-colors">
                     <p className="font-bold text-white">{user.following?.length || 0}</p>
-                    Following
+                    <span className="text-sm">Following</span>
                   </button>
                 </DialogTrigger>
                 <DialogContent className="bg-zinc-900 border border-zinc-700 text-white max-w-md max-h-[80vh]">
                   <DialogHeader>
-                    <DialogTitle className="text-zinc-200">Following</DialogTitle>
+                    <DialogTitle className="text-xl font-bold text-zinc-100">Following</DialogTitle>
                   </DialogHeader>
-                  <div className="mb-4 mt-2">
+                  <div className="relative mb-4 mt-2">
                     <input
                       type="text"
                       placeholder="Search following..."
                       value={followingSearch}
                       onChange={(e) => setFollowingSearch(e.target.value)}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-full px-4 py-2 text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-orange-500 pl-10"
                     />
+                    <div className="absolute left-3 top-2.5 text-zinc-400">
+                      <Search />
+                    </div>
                   </div>
                   <ScrollArea className="h-[60vh] pr-4">
-                    <div className="space-y-4 mt-2">
+                    <div className="space-y-3 mt-2">
                       {filteredFollowing && filteredFollowing.length > 0 ? (
                         filteredFollowing.map((following) => (
                           <div
                             key={following?.id}
-                            className="flex items-center justify-between p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                            className="flex items-center justify-between p-3 hover:bg-zinc-800/70 rounded-xl transition-colors"
                           >
                             <Link
                               href={`/user/${following?.id}`}
                               onClick={() => setShowFollowing(false)}
-                              className="flex items-center gap-3"
+                              className="flex items-center gap-3 flex-1"
                             >
-                              {following?.profileImageUrl && (
-                                <Image
-                                  src={following.profileImageUrl || "/placeholder.svg"}
-                                  alt={`${following.firstName} ${following.lastName}`}
-                                  width={40}
-                                  height={40}
-                                  className="rounded-full"
+                              <Avatar className="h-12 w-12 border-2 border-zinc-700 rounded-full overflow-hidden">
+                                <AvatarImage
+                                  src={following?.profileImageUrl?.startsWith("/") ? process.env.NEXT_PUBLIC_CDN_URL + following.profileImageUrl : following?.profileImageUrl || "/user.png"}
+                                  alt="Profile"
+                                  className="object-cover"
                                 />
-                              )}
-                              <div>
-                                <p className="font-semibold text-zinc-100">
-                                  {following?.firstName} {following?.lastName}
-                                </p>
-                                <p className="text-sm text-zinc-400">
-                                  @{following?.userName || `${following?.firstName}${following?.lastName}`}
-                                </p>
+                                <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xl flex items-center justify-center">
+                                  {following?.userName?.slice(1)[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-zinc-100 truncate">{following?.name}</p>
+                                <p className="text-sm text-zinc-400 truncate">@{following?.userName}</p>
                                 {following?.bio && (
-                                  <p className="text-sm text-zinc-500 line-clamp-1">{following.bio}</p>
+                                  <p className="text-sm text-zinc-500 line-clamp-2 mt-1">{following.bio}</p>
                                 )}
                               </div>
                             </Link>
@@ -300,7 +288,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="ml-2 border-zinc-700 hover:bg-zinc-800 text-zinc-300"
+                                className="ml-2 border-zinc-700 hover:bg-zinc-800 text-zinc-300 rounded-full"
                                 onClick={() => handleUnfollowFromList(following?.id || "")}
                                 disabled={actionLoading === following?.id}
                               >
@@ -314,9 +302,22 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
                           </div>
                         ))
                       ) : (
-                        <p className="text-center text-zinc-400 py-4">
-                          {followingSearch ? "No results found" : "No following yet"}
-                        </p>
+                        <div className="text-center text-zinc-400 py-8 flex flex-col items-center">
+                          {followingSearch ? (
+                            <>
+                              <MagnifyingNegative />
+                              <p>No results found for "{followingSearch}"</p>
+                            </>
+                          ) : (
+                            <>
+                              <MultipleUser />
+                              <p className="font-medium">Not following anyone yet</p>
+                              <p className="text-sm text-zinc-500 mt-1">
+                                When this account follows people, they'll appear here.
+                              </p>
+                            </>
+                          )}
+                        </div>
                       )}
                     </div>
                   </ScrollArea>
@@ -325,63 +326,67 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
 
               <Dialog open={showFollowers} onOpenChange={setShowFollowers}>
                 <DialogTrigger asChild>
-                  <button className="flex gap-1 hover:underline">
+                  <button className="flex flex-col items-center hover:text-orange-500 transition-colors">
                     <p className="font-bold text-white">{user.followers?.length || 0}</p>
-                    {user.followers?.length && user.followers?.length > 1 ? "Followers" : "Follower"}
+                    <span className="text-sm">
+                      {user.followers?.length && user.followers?.length > 1 ? "Followers" : "Follower"}
+                    </span>
                   </button>
                 </DialogTrigger>
                 <DialogContent className="bg-zinc-900 border border-zinc-700 text-white max-w-md max-h-[80vh]">
                   <DialogHeader>
-                    <DialogTitle className="text-zinc-200">Followers</DialogTitle>
+                    <DialogTitle className="text-xl font-bold text-zinc-100">Followers</DialogTitle>
                   </DialogHeader>
-                  <div className="mb-4 mt-2">
+                  <div className="relative mb-4 mt-2">
                     <input
                       type="text"
                       placeholder="Search followers..."
                       value={followersSearch}
                       onChange={(e) => setFollowersSearch(e.target.value)}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-full px-4 py-2 text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-orange-500 pl-10"
                     />
+                    <div className="absolute left-3 top-2.5 text-zinc-400">
+                      <Search />
+
+                    </div>
                   </div>
                   <ScrollArea className="h-[60vh] pr-4">
-                    <div className="space-y-4 mt-2">
+                    <div className="space-y-3 mt-2">
                       {filteredFollowers && filteredFollowers.length > 0 ? (
                         filteredFollowers.map((follower) => (
                           <div
                             key={follower?.id}
-                            className="flex items-center justify-between p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                            className="flex items-center justify-between p-3 hover:bg-zinc-800/70 rounded-xl transition-colors"
                           >
                             <Link
                               href={`/user/${follower?.id}`}
                               onClick={() => setShowFollowers(false)}
-                              className="flex items-center gap-3"
+                              className="flex items-center gap-3 flex-1"
                             >
-                              {follower?.profileImageUrl && (
-                                <Image
-                                  src={follower.profileImageUrl || "/placeholder.svg"}
-                                  alt={`${follower.firstName} ${follower.lastName}`}
-                                  width={40}
-                                  height={40}
-                                  className="rounded-full"
+                              <Avatar className="h-12 w-12 border-2 border-zinc-700 rounded-full overflow-hidden">
+                                <AvatarImage
+                                  src={follower?.profileImageUrl?.startsWith("/") ? process.env.NEXT_PUBLIC_CDN_URL + follower.profileImageUrl : follower?.profileImageUrl || "/user.png"}
+
+                                  alt="Profile"
+                                  className="object-cover"
                                 />
-                              )}
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <p className="font-semibold text-zinc-100">
-                                    {follower?.firstName} {follower?.lastName}
-                                  </p>
-                                  <p className="text-sm text-zinc-400">
-                                    @{follower?.userName || `${follower?.firstName}${follower?.lastName}`}
-                                  </p>
-                                </div>
-                                {follower?.bio && <p className="text-sm text-zinc-500 line-clamp-1">{follower.bio}</p>}
+                                <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xl flex items-center justify-center">
+                                  {follower?.userName?.slice(1)[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-zinc-100 truncate">{follower?.name}</p>
+                                <p className="text-sm text-zinc-400 truncate">@{follower?.userName}</p>
+                                {follower?.bio && (
+                                  <p className="text-sm text-zinc-500 line-clamp-2 mt-1">{follower.bio}</p>
+                                )}
                               </div>
                             </Link>
                             {USER?.id === user.id && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="ml-2 border-zinc-700 hover:bg-zinc-800 text-zinc-300"
+                                className="ml-2 border-zinc-700 hover:bg-zinc-800 text-zinc-300 rounded-full"
                                 onClick={() => handleRemoveFollower(follower?.id || "")}
                                 disabled={actionLoading === follower?.id}
                               >
@@ -395,9 +400,22 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
                           </div>
                         ))
                       ) : (
-                        <p className="text-center text-zinc-400 py-4">
-                          {followersSearch ? "No results found" : "No followers yet"}
-                        </p>
+                        <div className="text-center text-zinc-400 py-8 flex flex-col items-center">
+                          {followersSearch ? (
+                            <>
+                              <MagnifyingNegative />
+                              <p>No results found for "{followersSearch}"</p>
+                            </>
+                          ) : (
+                            <>
+                              <MultipleUser />
+                              <p className="font-medium">No followers yet</p>
+                              <p className="text-sm text-zinc-500 mt-1">
+                                When people follow this account, they'll appear here.
+                              </p>
+                            </>
+                          )}
+                        </div>
                       )}
                     </div>
                   </ScrollArea>

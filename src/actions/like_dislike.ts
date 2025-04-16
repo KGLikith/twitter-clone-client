@@ -4,8 +4,10 @@ import {
   likeTweetMutation,
   unlikeTweetMutation,
 } from "@/graphql/mutation/tweet";
+import { createNotificationMutation } from "@/graphql/mutation/user";
 import { toast } from "@/hooks/use-toast";
 import { QueryClient } from "@tanstack/react-query";
+import { runTypedMutation } from "./helperFxns";
 
 export const dislike = async (
   userId: string,
@@ -22,7 +24,7 @@ export const dislike = async (
   }
 
   try {
-    if(!liked) return ;
+    if (!liked) return;
     setLiked(false);
     await apolloClient.mutate({
       mutation: unlikeTweetMutation,
@@ -30,7 +32,9 @@ export const dislike = async (
     });
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-    await queryclient.invalidateQueries({ queryKey: ["userTweets",tweet.user.id] });
+    await queryclient.invalidateQueries({
+      queryKey: ["userTweets", tweet.user.id],
+    });
     await queryclient.invalidateQueries({
       queryKey: ["tweet", tweet.id],
     });
@@ -44,11 +48,11 @@ export const dislike = async (
 
 export const like = async (
   userId: string,
+  userName: string,
   tweet: Tweet,
   setLiked: (liked: boolean) => void,
   liked: boolean,
   queryclient: QueryClient
-
 ) => {
   if (!userId) {
     return toast({
@@ -67,9 +71,19 @@ export const like = async (
     });
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-    await queryclient.invalidateQueries({ queryKey: ["userTweets",tweet.user.id] });
+    await queryclient.invalidateQueries({
+      queryKey: ["userTweets", tweet.user.id],
+    });
     await queryclient.invalidateQueries({
       queryKey: ["tweet", tweet.id],
+    });
+
+    runTypedMutation(apolloClient, createNotificationMutation, {
+      payload: {
+        userId: tweet.user.id,
+        tweetId: tweet.id,
+        type: "LIKE",
+      },
     });
   } catch (error) {
     toast({

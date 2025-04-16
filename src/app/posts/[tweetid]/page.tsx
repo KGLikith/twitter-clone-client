@@ -1,14 +1,11 @@
 "use client";
-import Skel from "@/components/global/Skeleton/Skeleton";
 import { Tweet, User } from "@/gql/graphql";
 import { useGetTweet } from "@/hooks/tweets";
 import { useCurrentUser } from "@/hooks/user";
 import { NextPage } from "next";
 import { useParams, useRouter } from "next/navigation";
 import {  useEffect, useState } from "react";
-import {
-  FaArrowLeftLong,
-} from "react-icons/fa6";
+import { FaArrowLeftLong } from "react-icons/fa6";
 import TweetPage from "./tweetPage";
 import PostSkel from "@/components/global/Skeleton/PostSkeleton";
 

@@ -5,12 +5,7 @@ import { useCurrentUser } from "@/hooks/user"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { HiOutlinePhotograph } from "react-icons/hi"
-import { FiSmile } from "react-icons/fi"
 import axios from "axios"
-import data from "@emoji-mart/data"
-import Picker from "@emoji-mart/react"
-
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
@@ -21,11 +16,9 @@ import { getSignedUrlforTweetQuery } from "@/graphql/query/tweet"
 import { toast } from "@/hooks/use-toast"
 import { deleteMediaMutation } from "@/graphql/mutation/tweet"
 import { useMutation } from "@apollo/client"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Input } from "@/components/ui/input"
-import { AiOutlineGif } from "react-icons/ai"
 import { handleEmojiSelect, handleGifSelect, searchGifs } from "../global/postMenu/handleSelect"
 import TweetMenu from "../global/TweetMenu"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 
 const FormSchema = z.object({
   content: z
@@ -57,8 +50,8 @@ const TweetModal = () => {
     const textarea = textareaRef.current
     if (textarea) {
       const handleInput = () => {
-        textarea.style.height = "auto" 
-        textarea.style.height = `${textarea.scrollHeight}px` 
+        textarea.style.height = "auto"
+        textarea.style.height = `${textarea.scrollHeight}px`
       }
 
       textarea.addEventListener("input", handleInput)
@@ -87,12 +80,12 @@ const TweetModal = () => {
   const contentValue = form.watch("content")
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    if(!user || posting) return
+    if (!user || posting) return
     setPosting(true)
     try {
 
       await mutateAsync({
-        content: data.content, 
+        content: data.content,
         mediaUrl,
         mediaType,
       })
@@ -173,17 +166,17 @@ const TweetModal = () => {
     <>
       <div className="border border-gray-800 p-2 md:p-4 cursor-pointer hover:bg-[#0a0606] transition-all min-h-fit">
         <div className="grid grid-cols-12 md:gap-2">
-          <div className="col-span-1 mt-5 md:mt-2">
-            {user?.profileImageUrl && (
-              <Image
-                className="rounded-full"
-                src={user.profileImageUrl || "/placeholder.svg"}
-                alt="user-image"
-                height={50}
-                width={50}
-              />
-            )}
-          </div>
+          <Avatar className="sm:h-12 sm:w-12 h-10 w-10 border-2 mt-1 col-span-1 border-zinc-700 rounded-full overflow-hidden">
+            <AvatarImage
+              src={user?.profileImageUrl?.startsWith("/") ? process.env.NEXT_PUBLIC_CDN_URL + user.profileImageUrl : user?.profileImageUrl || "/user.png"}
+
+              alt="Profile"
+              className="object-cover"
+            />
+            <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xl flex items-center justify-center">
+              {user?.userName?.slice(1)[0]}
+            </AvatarFallback>
+          </Avatar>
           <div className="col-span-11">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
@@ -262,7 +255,7 @@ const TweetModal = () => {
                 <div className="flex justify-between items-center">
                   <TweetMenu
                     handleGifSelect={(data) => {
-                      handleGifSelect(data, setMediaUploading, setShowGifPicker, setMediaUrl, setMediaType, mediaUrl,toast )
+                      handleGifSelect(data, setMediaUploading, setShowGifPicker, setMediaUrl, setMediaType, mediaUrl, toast)
                     }}
                     searchGifs={() => searchGifs(gifSearchTerm, setGifs)}
                     handleEmojiSelect={(emoji) => {

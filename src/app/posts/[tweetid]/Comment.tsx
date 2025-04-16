@@ -23,8 +23,10 @@ import {
 import { toast } from "@/hooks/use-toast";
 import PostMenu from "@/components/global/postMenu";
 import { formatTweetContent } from "@/components/global/postMenu/handleSelect";
-import { formatRelativeTime } from "@/components/global/functions";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatRelativeTime, runTypedMutation } from "@/actions/helperFxns";
+import { createNotificationMutation } from "@/graphql/mutation/user";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const CommentFile = ({
   comment,
@@ -35,7 +37,7 @@ const CommentFile = ({
   user: User;
   tweet: Tweet;
 }) => {
-  const queryclient= useQueryClient()
+  const queryclient = useQueryClient()
 
   const [liked, setLiked] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false)
@@ -52,12 +54,12 @@ const CommentFile = ({
   }, [comment]);
 
   const handleUnfollowUser = useCallback(
-    async () => await UnFollowUser(comment.user, () => { },queryclient),
+    async () => await UnFollowUser(comment.user, () => { }, queryclient),
     [comment.user]
   );
 
   const handleFollowUser = useCallback(
-    async () => await FollowUser(comment.user.id, () => { },queryclient),
+    async () => await FollowUser(comment.user.id, () => { }, queryclient),
     [comment.user]
   );
 
@@ -71,7 +73,7 @@ const CommentFile = ({
     if (errors && errors[0]) toast({ variant: "destructive", description: errors[0].message, duration: 1000 });
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
-    await queryclient.invalidateQueries({ queryKey: ["curre"] });
+    await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
   }, [comment, tweet.id]);
 
   const handleLike = useCallback(async () => {
@@ -86,6 +88,14 @@ const CommentFile = ({
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
     queryclient.invalidateQueries({ queryKey: ["tweets"] });
+    runTypedMutation(apolloClient, createNotificationMutation, {
+      payload: {
+        userId: comment.user.id,
+        type: "LIKE_COMMENT",
+        tweetId: tweet.id,
+        commentId: comment.id,
+      },
+    })
   }, [comment, tweet.id, liked]);
 
   const handledislike = useCallback(async () => {
@@ -108,15 +118,21 @@ const CommentFile = ({
         <div className="grid grid-cols-12 gap-2">
           <Link href={`/user/${comment.user.id}`}>
             <div className="col-span-1  ">
-              {comment.user?.profileImageUrl && (
-                <Image
-                  className="rounded-full"
-                  src={comment.user.profileImageUrl}
-                  alt="user-image"
-                  height={50}
-                  width={50}
+              <Avatar className="h-10 w-10 border-2 border-zinc-700 rounded-full overflow-hidden">
+                <AvatarImage
+                  src={
+                    comment.user?.profileImageUrl?.startsWith("/")
+                      ? process.env.NEXT_PUBLIC_CDN_URL + comment.user.profileImageUrl
+                      : comment.user?.profileImageUrl || "/user.png"
+                  }
+                  alt="Profile"
+                  className="object-cover"
                 />
-              )}
+                <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xl flex items-center justify-center">
+
+                  {user.name.slice(1)[0]}
+                </AvatarFallback>
+              </Avatar>
             </div>
           </Link>
           <div className="col-span-11 ">
@@ -126,7 +142,7 @@ const CommentFile = ({
                 <div className="flex items-center gap-2">
                   <Link className="flex justify-center items-center gap-2" href={user ? `/user/${tweet.user.id}` : "/not_authorised"}>
                     <h5 className="font-bold hover:underline w-fit">
-                      {comment.user.firstName} {tweet.user.lastName}
+                      {comment.user.name}
                     </h5>
                     <p className="text-sm text-gray-400">@{comment.user.userName}</p>
                   </Link>
