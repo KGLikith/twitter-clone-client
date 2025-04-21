@@ -14,13 +14,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
 import { MdDelete } from "react-icons/md"
 import { RiUserFollowFill, RiUserUnfollowFill } from "react-icons/ri"
 import { FollowUser, UnFollowUser } from "@/actions/follow_unfollow"
 import { dislike, like } from "@/actions/like_dislike"
 import { deletePost } from "@/actions/deletePost"
-import "./heart-animation.css"
 import { DeleteTweetModal } from "@/components/global/deletetweetDialog"
 import PostMenu from "@/components/global/postMenu"
 import { formatTweetContent } from "@/components/global/postMenu/handleSelect"
@@ -28,6 +26,7 @@ import { toast } from "@/hooks/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
 import { formatRelativeTime } from "@/actions/helperFxns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { bookmark, unBookmark } from "@/actions/bookmarks"
 
 interface FeedCardProps {
   tweet: Tweet
@@ -37,14 +36,18 @@ interface FeedCardProps {
 const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
   const queryClient = useQueryClient();
   const [liked, setLiked] = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
   const [isDeleting, setDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [isAnimating, setIsAnimating] = useState(false)
+  const [isLikeAnimating, setIsLikeAnimating] = useState(false)
+  const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false)
 
   useEffect(() => {
-    if (tweet) {
-      setLiked(tweet.likes.includes((user as User)?.id))
-    }
+    setLiked(tweet?.likes?.includes((user as User)?.id))
+  }, [tweet, user])
+
+  useEffect(() => {
+    setBookmarked(user?.bookmark?.bookmarks ? (user.bookmark.bookmarks?.findIndex((el) => el?.tweetId === tweet.id) !== -1) : false || false)
   }, [tweet, user])
 
   const handleLike = useCallback(async () => {
@@ -52,9 +55,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
       toast({ title: "Please login to like the post", variant: "destructive" })
       return
     }
-    setIsAnimating(true)
+    setIsLikeAnimating(true)
 
-    await like(user.id, user.name, tweet as Tweet, setLiked, liked, queryClient)
+    await like(user.id, tweet as Tweet, setLiked, liked, queryClient)
   }, [user, tweet, liked])
 
   const handledislike = useCallback(async () => {
@@ -62,8 +65,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
       toast({ title: "Please login/sign-up to like the post", variant: "destructive" })
       return
     }
-
-    setIsAnimating(true)
+    setIsLikeAnimating(true)
     await dislike(user.id, tweet as Tweet, setLiked, liked, queryClient)
   }, [user, tweet, liked])
 
@@ -72,7 +74,6 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
       toast({ title: "Please login/sign-up to like the post", variant: "destructive" })
       return
     }
-
     setShowDeleteDialog(true)
   }, [])
 
@@ -93,8 +94,27 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
   const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user.id, () => { }, queryClient), [tweet])
 
   const handleAnimationEnd = () => {
-    setIsAnimating(false)
+    setIsLikeAnimating(false)
+    setIsBookmarkAnimating(false)
   }
+
+  const handleBookmark = useCallback(async () => {
+    if (!user) {
+      toast({ title: "Please login/sign-up to like the post", variant: "destructive" })
+      return
+    }
+    setIsBookmarkAnimating(true)
+    await bookmark(tweet.id, undefined, user.id, setBookmarked, bookmarked, queryClient)
+  }, [user, tweet, bookmarked])
+
+  const handleUnBookmark = useCallback(async () => {
+    if (!user) {
+      toast({ title: "Please login/sign-up to like the post", variant: "destructive" })
+      return
+    }
+    setIsBookmarkAnimating(true)
+    await unBookmark(tweet.id, undefined, user.id, setBookmarked, bookmarked, queryClient)
+  }, [user, tweet, bookmarked])
 
   return (
     <>
@@ -123,7 +143,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
                     <h5 className="font-bold hover:underline w-fit">
                       {tweet.user.name}
                     </h5>
-                    <p className="text-sm text-gray-400">@{tweet.user.userName}</p>
+                    <p className="text-sm text-gray-500">@{tweet.user.userName}</p>
                   </Link>
                   <span className="text-gray-500">·</span>
                   <div className="text-xs text-gray-500 hover:underline">{formatRelativeTime(tweet.createdAt)}</div>
@@ -188,7 +208,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
+
               </div>
+
               <div
                 className="break-words whitespace-pre-wrap text-base text-zinc-300 font-sans"
                 dangerouslySetInnerHTML={{ __html: formatTweetContent(tweet.content) }}
@@ -219,9 +241,13 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
               )}
               <PostMenu
                 tweet={tweet}
-                isAnimating={isAnimating}
-                userId={user?.id}
+                isLikeAnimating={isLikeAnimating}
+                isBookmarkAnimating={isBookmarkAnimating}
+                bookmarked={bookmarked}
                 liked={liked}
+                userId={user?.id}
+                handleBookmark={handleBookmark}
+                handleUnBookmark={handleUnBookmark}
                 handleLike={handleLike}
                 handledislike={handledislike}
                 handleAnimationEnd={handleAnimationEnd}

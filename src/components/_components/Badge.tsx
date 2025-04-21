@@ -76,9 +76,10 @@ const Badge = () => {
           })
         }
       } catch (error) {
+        console.log("Error verifying token", error)
         toast({
           variant: "destructive",
-          title: (error as Error).message,
+          title: "Sorry teh server is down",
           action: <ToastAction altText="Try again">Try again</ToastAction>,
           duration: 2000,
         })

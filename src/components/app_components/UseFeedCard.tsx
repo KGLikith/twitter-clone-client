@@ -31,7 +31,7 @@ const UseFeedCard = () => {
   if (!isLoading && currentTweets && currentTweets.length === 0) {
     return (
       <div className="text-center text-gray-400 py-10 h-full w-full flex items-center justify-center p-2">
-        🐦 No posts to show just yet. Follow others or share something to get started!
+        🐦 No posts to show just yet. Share something to get started!
       </div>
     );
   }

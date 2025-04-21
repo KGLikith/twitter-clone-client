@@ -44,3 +44,17 @@ export const updateUserMutation = graphql(`
     }
   }
 `);
+
+export const createBookmarkMutation = graphql(`
+  #graphql
+  mutation createBookmark($tweetId: ID, $commentId: ID) {
+    createBookmark(tweetId: $tweetId, commentId: $commentId) 
+  }
+`);
+
+export const removeBookmarkMutation = graphql(`
+  #graphql
+  mutation removeBookmark($tweetId: ID, $commentId: ID) {
+    removeBookmark(tweetId: $tweetId, commentId: $commentId) 
+  }
+`);

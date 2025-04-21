@@ -1,10 +1,9 @@
-// import { gql } from "@apollo/client";
 import { graphql } from "../../gql";
 
 export const verifyUserGoogleTokenQuery = graphql(`
   #graphql
   query verifyUserGoogleToken($token: String!) {
-    verifyGoogleToken(token: $token)
+    verifyGoogleToken(token: $token) 
   }
 `);
 
@@ -39,6 +38,15 @@ export const getCurrentUserQuery = graphql(`
       }
       following {
         id
+      }
+      bookmark {
+        id
+        bookmarks {
+          id
+          type
+          tweetId
+          commentId
+        }
       }
     }
   }
@@ -110,6 +118,58 @@ export const getNotificationsQuery = graphql(`
       comment {
         id
         content
+      }
+    }
+  }
+`);
+
+export const getUserBookmarksQuery = graphql(`
+  #graphql
+  query getUserBookmarks {
+    getUserBookmarks {
+      id
+      userId
+      bookmarks {
+        id
+        type
+        createdAt
+        tweet {
+          id
+          content
+          createdAt
+          mediaUrl
+          mediaType
+          likes
+          commentsLength
+          user {
+            id
+            name
+            profileImageUrl
+            userName
+          }
+        }
+        comment {
+          id
+          content
+          createdAt
+          mediaUrl
+          mediaType
+          likes
+          user {
+            id
+            name
+            profileImageUrl
+            userName
+          }
+          tweet {
+            id
+            user {
+              id
+              name
+              userName
+            }
+          }
+        }
       }
     }
   }

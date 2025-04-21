@@ -6,6 +6,7 @@ import {
 } from "@/graphql/mutation/tweet";
 import {
   getAllTweetsQuery,
+  getCommentsByTweetIdQuery,
   getTweetByIdQuery,
   getUserTweetsQuery,
 } from "@/graphql/query/tweet";
@@ -22,7 +23,7 @@ export const useGetAllTweets = (userId: string) => {
         const { data } = await apolloClient.query({
           query: getAllTweetsQuery,
         });
-        return data;
+        return data || [];
       } catch (error) {
         console.log("Error fetching tweets", error);
       }
@@ -84,9 +85,9 @@ export const useCreateTweet = () => {
   return { ...mutation, createTweet: mutation.data?.createTweet };
 };
 
-export const useGetTweet = (tweetid: string, currentUserId: string) => {
+export const useGetTweet = (tweetid: string) => {
   const query = useQuery({
-    queryKey: ["tweet", tweetid, currentUserId],
+    queryKey: ["tweet", tweetid],
     queryFn: async () => {
       try {
         const { data } = await apolloClient.query({
@@ -102,6 +103,25 @@ export const useGetTweet = (tweetid: string, currentUserId: string) => {
   return { ...query, tweet: query.data?.getTweet };
 };
 
+export const useGetCommentsByTweetId = (tweetId: string) => {
+  const query = useQuery({
+    queryKey: ["comments", tweetId],
+    queryFn: async () => {
+      try {
+        const { data } = await apolloClient.query({
+          query: getCommentsByTweetIdQuery,
+          variables: { tweetId: tweetId },
+        });
+        return data;
+      } catch (error) {
+        console.log("Error fetching comments", error);
+      }
+    },
+  });
+  return { ...query, comments: query.data?.getCommentsByTweetId };
+};
+
+
 export const useCreateComment = () => {
   const queryclient = useQueryClient();
 
@@ -115,11 +135,10 @@ export const useCreateComment = () => {
     },
     onSuccess: async (data) => {
       await apolloClient.resetStore();
-      await queryclient.invalidateQueries({ queryKey: ["tweets"] });
       await queryclient.invalidateQueries({
-        queryKey: ["tweet", data?.createComment?.tweet.id],
+        queryKey: ["tweets"],
       });
-      console.log(data?.createComment)
+      await queryclient.invalidateQueries({ queryKey: ["comments", data?.createComment?.tweet.id] });
       if(!data?.createComment) return;
       runTypedMutation(apolloClient, createNotificationMutation, {
         payload: {
@@ -137,7 +156,7 @@ export const useCreateComment = () => {
     onError: (error) => {
       toast({
         title: "Error creating comment",
-        description: error.message,
+        description: "Please try again later. Sorry for the inconvenience.",
         variant: "destructive",
         duration: 2000,
       });

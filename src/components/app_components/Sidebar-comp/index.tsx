@@ -17,7 +17,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import Skel from "@/components/global/Skeleton/Skeleton"
 import SideabrSkel from "@/components/global/Skeleton/SidebarSkel"
 
 const Sidebar = () => {
@@ -113,12 +112,6 @@ const Sidebar = () => {
         {
           user ? (
             <div className="w-full">
-              {/* <button
-                type="submit"
-                className="w-full sm:inline-block font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 rounded-full py-3 px-6 transition duration-200"
-              >
-                Post
-              </button> */}
             </div>
           ) : (
             !isMobile && <div className="w-full text-center text-sm hidden sm:flex sm:text-base text-zinc-800 bg-zinc-200 border border-gray-200 rounded-xl p-4 mt-4">

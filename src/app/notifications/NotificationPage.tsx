@@ -72,10 +72,10 @@ export default function NotificationPage({ notifications, onClearNotifications }
           <NotificationItem key={notification.id} notification={notification} />
         ))}
         {notifications.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full w-full gap-4 p-6">
-            <Bell size={40} className="text-zinc-400 dark:text-zinc-500" />
-            <h1 className="text-zinc-600 dark:text-zinc-500 font-semibold text-lg">No notifications yet</h1>
-            <p className="text-zinc-500 dark:text-zinc-600 text-center max-w-xs">
+          <div className="flex flex-col items-center justify-center h-full w-full gap-2 p-6">
+            <Bell size={40} className="text-gray-400" />
+            <h1 className="text-white font-semibold text-lg">No notifications yet</h1>
+            <p className="text-gray-400 text-center max-w-xs">
               When someone interacts with your posts or follows you, you'll see it here.
             </p>
           </div>

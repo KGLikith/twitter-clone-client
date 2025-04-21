@@ -89,7 +89,7 @@ export const LoggedInmenuItems = [
   },
   {
     title: "More",
-    href: `/more`,
+    href: `/bookmarks`,
     icon: <MoreHorizontal className="h-5 w-5 text-gray-700 group-hover:text-orange-300  group-hover:stroke-orange-400" />,
     activeColor: "bg-orange-500/10",
     hoverColor: "bg-orange-500/5",

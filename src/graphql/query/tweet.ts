@@ -1,7 +1,5 @@
 import { graphql } from "@/gql";
-import { gql } from "@apollo/client";
 // import { gql } from "@apollo/client";
-
 
 export const getAllTweetsQuery = graphql(`
     #graphql
@@ -13,9 +11,7 @@ export const getAllTweetsQuery = graphql(`
             mediaType
             likes
             createdAt
-            comments{
-                id
-            }
+            commentsLength
             user{
                 id
                 userName
@@ -36,9 +32,7 @@ export const getUserTweetsQuery = graphql(`
             mediaType
             likes
             createdAt
-            comments{
-                id
-            }
+            commentsLength
             user{
                 id
                 userName
@@ -63,31 +57,36 @@ export const getSignedUrlforCommentQuery= graphql(`
     }
 `)
 
-export const getTweetByIdQuery = gql(`
+export const getTweetByIdQuery = graphql(`
     #graphql
     query getTweetById($tweetid: ID!){
         getTweet(id: $tweetid){
             id
-            content 
+            content
             mediaUrl
             mediaType
             likes
             createdAt
-            createdAt
-            comments{
-                id 
-                content
-                likes
-                mediaUrl
-                mediaType
-                createdAt
-                user{
-                    id
-                    userName
-                    name
-                    profileImageUrl
-                }
+            user{
+                id
+                userName
+                name
+                profileImageUrl
             }
+        }
+    }
+`)
+
+export const getCommentsByTweetIdQuery = graphql(`
+    #graphql
+    query getCommentsByTweetId($tweetId: ID!){
+        getCommentsByTweetId(tweetId: $tweetId){
+            id
+            content
+            mediaUrl
+            mediaType
+            likes
+            createdAt
             user{
                 id
                 userName

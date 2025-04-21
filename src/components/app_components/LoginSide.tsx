@@ -8,7 +8,7 @@ import { apolloClient } from "@/clients/api";
 import { User } from "@/gql/graphql";
 import Skel from "../global/Skeleton/Skeleton";
 import { ToastAction } from "@radix-ui/react-toast";
-import RecommendedUsers from "../_components/RecommendedUsers";
+import RecommendedUsers from "@/components/_components/RecommendedUsers";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

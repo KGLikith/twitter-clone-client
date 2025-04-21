@@ -156,12 +156,15 @@ export function NotificationItem({
 
   const renderUserAvatars = () => {
     if (!notification.user || notification.user.length === 0) return null
-
+    console.log(notification.user)
     if (["LIKE", "LIKE_COMMENT", "COMMENT", "FOLLOW"].includes(notification.type)) {
       const displayUsers = notification.user.slice(0, 5)
+      console.log(displayUsers)
       return (
         <div className="flex -space-x-3 mb-3">
-          {displayUsers.map((user, index) => (
+          {displayUsers.map((user, index) => {
+            console.log(user,index)
+            return (
             <Avatar
               key={user?.id || index}
               className="h-8 w-8 border-2 border-white dark:border-black hover:scale-110 transition-transform cursor-pointer"
@@ -172,7 +175,7 @@ export function NotificationItem({
                 {user?.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-          ))}
+          )})}
           {notification.user.length > 5 && (
             <div className="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-xs font-medium border-2 border-white dark:border-black">
               +{notification.user.length - 5}

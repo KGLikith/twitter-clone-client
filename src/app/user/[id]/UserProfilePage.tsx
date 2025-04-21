@@ -1,4 +1,5 @@
 "use client"
+import type React from "react"
 import { FollowUser, UnFollowUser } from "@/actions/follow_unfollow"
 import FeedCard from "@/components/_components/FeedCard"
 import Skel from "@/components/global/Skeleton/Skeleton"
@@ -6,8 +7,6 @@ import { Button } from "@/components/ui/button"
 import type { Tweet, User } from "@/gql/graphql"
 import { useCurrentUser, useCurrentUserById } from "@/hooks/user"
 import { Loader2, Globe, LinkIcon, Calendar } from "lucide-react"
-import Image from "next/image"
-import type React from "react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { FaArrowLeftLong } from "react-icons/fa6"
 import { useRouter } from "next/navigation"
@@ -31,15 +30,14 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
   const queryClient = useQueryClient()
   const { user: USER, isLoading } = useCurrentUser()
   const { user: currentUser, refetch } = useCurrentUserById(id)
-  const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<User | undefined>()
-  const [buttonLoading, setButtonLoading] = useState(false)
   const { userTweets } = useGetUserTweets(id)
+  const [user, setUser] = useState<User | undefined>()
   const [tweets, setTweets] = useState<Tweet[]>([])
+  const [loading, setLoading] = useState(true)
+  const [buttonLoading, setButtonLoading] = useState(false)
   const [showFollowers, setShowFollowers] = useState(false)
   const [showFollowing, setShowFollowing] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-
   const [followersSearch, setFollowersSearch] = useState("")
   const [followingSearch, setFollowingSearch] = useState("")
 
@@ -86,20 +84,17 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ id }) => {
     }
   }, [userTweets])
 
-  const handleFollowUser = useCallback(() => FollowUser(user?.id ?? "", setButtonLoading, queryClient), [user])
+  const handleFollowUser = useCallback(async() => await FollowUser(user?.id ?? "", setButtonLoading, queryClient), [user])
 
-  const handleUnfollowUser = useCallback(() => UnFollowUser(user, setButtonLoading, queryClient), [user])
+  const handleUnfollowUser = useCallback(async() => await UnFollowUser(user, setButtonLoading, queryClient), [user])
 
   const handleRemoveFollower = async (followerId: string) => {
     try {
       setActionLoading(followerId)
-      // Implement your remove follower action here
-      // This would typically be an API call to remove the follower
+      
+      // WIP: remove follower from the list of followers in the user object
 
-      // For demonstration, let's assume we have a function called removeFollower
-      // await removeFollower(followerId);
 
-      // Update the UI by filtering out the removed follower
       if (user && user.followers) {
         const updatedFollowers = user.followers.filter((follower) => follower?.id !== followerId)
         setUser({

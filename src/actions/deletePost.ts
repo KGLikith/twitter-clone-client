@@ -26,6 +26,9 @@ export const deletePost = async (tweet: Tweet, queryclient: QueryClient) => {
   await queryclient.invalidateQueries({
     queryKey: ["tweet", tweet.id],
   });
+  await queryclient.invalidateQueries({
+    queryKey: ["bookmarks"],
+  });
   return toast({
     description: "Tweet Deleted Successfully",
     duration: 2000,

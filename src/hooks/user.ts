@@ -1,6 +1,6 @@
 "use client";
 import { apolloClient } from "@/clients/api";
-import { getUserByIdQuery, getCurrentUserQuery, getNotificationsQuery } from "@/graphql/query/user";
+import { getUserByIdQuery, getCurrentUserQuery, getNotificationsQuery, getUserBookmarksQuery } from "@/graphql/query/user";
 import { useQuery } from "@tanstack/react-query";
 
 export const useCurrentUser = () => {
@@ -56,3 +56,20 @@ export const useGetNotifications = () => {
   return { ...query, notifications: query.data?.getNotifications };
 }
 
+export const useGetBookmarks = () => {
+  const query = useQuery({
+    queryKey: ["bookmarks"],
+    queryFn: async () => {
+      try {
+        const { data } = await apolloClient.query({
+          query: getUserBookmarksQuery,
+        });
+        return data;
+      } catch (error) {
+        console.error("Error fetching user bookmarks:", error);
+        return null;
+      }
+    },
+  })
+  return { ...query, bookmarks: query.data?.getUserBookmarks };
+}
