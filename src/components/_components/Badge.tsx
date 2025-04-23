@@ -117,8 +117,8 @@ const Badge = () => {
               </div>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem className="flex items-center cursor-pointer" onClick={handleLogout}>
+          <DropdownMenuContent align="center" className="w-48">
+            <DropdownMenuItem className="flex w-full items-center cursor-pointer" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4 text-orange-500" />
               <span>Log out</span>
             </DropdownMenuItem>

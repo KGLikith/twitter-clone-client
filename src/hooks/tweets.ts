@@ -7,15 +7,17 @@ import {
 import {
   getAllTweetsQuery,
   getCommentsByTweetIdQuery,
+  getPaginatedTweetsQuery,
+  getPaginatedUserTweetsQuery,
   getTweetByIdQuery,
   getUserTweetsQuery,
 } from "@/graphql/query/tweet";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "./use-toast";
 import { runTypedMutation } from "@/actions/helperFxns";
 import { createNotificationMutation } from "@/graphql/mutation/user";
 
-export const useGetAllTweets = (userId: string) => {
+export const useGetAllTweets = () => {
   const query = useQuery({
     queryKey: ["tweets"],
     queryFn: async () => {
@@ -31,6 +33,42 @@ export const useGetAllTweets = (userId: string) => {
   });
   return { ...query, tweets: query.data?.getAllTweets };
 };
+
+export const usePaginatedTweets = () => {
+  return useInfiniteQuery({
+    queryKey: ["tweets"],
+    queryFn: async ({ pageParam = null }:{
+      pageParam?: string | null
+    }) => {
+      const { data } = await apolloClient.query({
+        query: getPaginatedTweetsQuery,
+        variables: { cursor: pageParam, limit: 10 },
+        fetchPolicy: "network-only",
+      });
+      return data.getPaginatedTweets;
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined
+  });
+};
+
+export const useUserPaginatedTweets = (userId: string)=>{
+  return useInfiniteQuery({
+    queryKey: ["userTweets", userId],
+    queryFn: async({pageParam = null}:{
+      pageParam?: string | null
+    })=>{
+        const { data } =await apolloClient.query({
+          query: getPaginatedUserTweetsQuery,
+          variables: {userId, cursor: pageParam,limit: 10},
+          fetchPolicy: "network-only"
+        });
+        return data.getPaginatedUserTweets
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage)=> lastPage.nextCursor ?? undefined
+  })
+}
 
 export const useGetUserTweets = (userId: string) => {
   const query = useQuery({
