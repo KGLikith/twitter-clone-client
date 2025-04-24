@@ -2,7 +2,7 @@
 
 import PostSkel from "@/components/global/Skeleton/PostSkeleton"
 import type { Bookmark, BookmarkEntry, Comment, User } from "@/gql/graphql"
-import { useCurrentUser, useGetBookmarks } from "@/hooks/user"
+import { useCurrentUser, usePaginatedBookmarks } from "@/hooks/user"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { ArrowLeft, BookmarkIcon } from "lucide-react"
@@ -13,15 +13,28 @@ import Skel from "@/components/global/Skeleton/Skeleton"
 
 export default function Bookmarks() {
   const { user, isLoading: userLoading } = useCurrentUser()
-  const { bookmarks, isLoading, refetch } = useGetBookmarks()
-  const [bmarks, setBmarks] = useState<Bookmark | undefined>()
+  const { data, isFetchingNextPage, fetchNextPage, hasNextPage, isLoading } = usePaginatedBookmarks();
   const router = useRouter();
 
+  const bookmarks = data?.pages.flatMap((page) => page.bookmarks) ?? []
+
   useEffect(() => {
-    if (bookmarks) {
-      setBmarks(bookmarks as Bookmark)
-    }
-  }, [bookmarks])
+    const scrollContainer = document.getElementById("scrollable-middle");
+
+    const onScroll = () => {
+      if (
+        scrollContainer &&
+        scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 300 &&
+        hasNextPage
+      ) {
+        fetchNextPage();
+      }
+    };
+
+    scrollContainer?.addEventListener("scroll", onScroll);
+
+    return () => scrollContainer?.removeEventListener("scroll", onScroll);
+  }, [hasNextPage, fetchNextPage]);
 
   if (isLoading || userLoading) {
     return (
@@ -64,7 +77,7 @@ export default function Bookmarks() {
 
       </nav>
 
-      {bmarks?.bookmarks?.length === 0 ? (
+      {bookmarks?.length === 0 ? (
         <div className="h-screen flex flex-col items-center justify-center py-16 px-4 text-center">
           <BookmarkIcon className="h-12 w-12 text-gray-400 mb-4" />
           <h2 className="text-xl font-semibold mb-2 text-white">You haven't added any Bookmarks yet</h2>
@@ -72,28 +85,23 @@ export default function Bookmarks() {
         </div>
       ) : (
         <div className="">
-          {bmarks?.bookmarks?.filter((bookmark): bookmark is BookmarkEntry => bookmark !== null).map((bookmark) => (
+          {bookmarks?.filter((bookmark): bookmark is BookmarkEntry => bookmark !== null).map((bookmark) => (
             <div key={bookmark.id}>
               {bookmark?.type === "TWEET" && bookmark.tweet && <FeedCard tweet={bookmark.tweet} user={user as User} />}
               {bookmark?.type === "COMMENT" && bookmark.comment && bookmark.comment.tweet && (
-                <BookmarkedComment comment={bookmark.comment} user={user as User} />
+                <CommentFile isBookmark={true} comment={bookmark.comment} user={user as User} tweet={bookmark.comment.tweet} />
               )}
             </div>
           ))}
         </div>
       )}
-    </div>
-  )
-}
-
-function BookmarkedComment({ comment, user }: { comment: Comment, user: User }) {
-  if (!comment.tweet) {
-    return null
-  }
-
-  return (
-    <div className="">
-      <CommentFile isBookmark={true} comment={comment} user={user} tweet={comment.tweet} />
+      {(hasNextPage || isFetchingNextPage) && (
+        <>
+          <Skel />
+          <Skel />
+        </>
+      )
+      }
     </div>
   )
 }

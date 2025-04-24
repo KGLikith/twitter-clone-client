@@ -1,48 +1,6 @@
 import { graphql } from "@/gql";
 // import { gql } from "@apollo/client";
 
-export const getAllTweetsQuery = graphql(`
-  #graphql
-  query getAllTweets {
-    getAllTweets {
-      id
-      content
-      mediaUrl
-      mediaType
-      likes
-      createdAt
-      commentsLength
-      user {
-        id
-        userName
-        name
-        profileImageUrl
-      }
-    }
-  }
-`);
-
-export const getUserTweetsQuery = graphql(`
-  #graphql
-  query getUserTweets($userId: ID!) {
-    getUserTweets(userId: $userId) {
-      id
-      content
-      mediaUrl
-      mediaType
-      likes
-      createdAt
-      commentsLength
-      user {
-        id
-        userName
-        name
-        profileImageUrl
-      }
-    }
-  }
-`);
-
 export const getPaginatedTweetsQuery = graphql(`
   #graphql
   query GetPaginatedTweets($cursor: String, $limit: Int) {
@@ -125,22 +83,25 @@ export const getTweetByIdQuery = graphql(`
   }
 `);
 
-export const getCommentsByTweetIdQuery = graphql(`
+export const getPaginatedCommentsByTweetIdQuery = graphql(`
   #graphql
-  query getCommentsByTweetId($tweetId: ID!) {
-    getCommentsByTweetId(tweetId: $tweetId) {
-      id
-      content
-      mediaUrl
-      mediaType
-      likes
-      createdAt
-      user {
+  query getPaginatedCommentsByTweetId($tweetId: ID!, $cursor: String, $limit: Int) {
+    getPaginatedCommentsByTweetId(tweetId: $tweetId, cursor: $cursor, limit: $limit) {
+      comments {
         id
-        userName
-        name
-        profileImageUrl
+        content
+        mediaUrl
+        mediaType
+        likes
+        createdAt
+        user {
+          id
+          userName
+          name
+          profileImageUrl
+        }
       }
+      nextCursor
     }
   }
 `);

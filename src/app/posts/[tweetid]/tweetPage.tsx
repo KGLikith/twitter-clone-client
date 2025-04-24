@@ -28,12 +28,15 @@ import CommentPage from "@/components/_components/Comment/Comment_card"
 import CommentInput from "@/components/_components/Comment/Comment_Input"
 import { toast } from "@/hooks/use-toast"
 import { bookmark, unBookmark } from "@/actions/bookmarks"
+import Skel from "@/components/global/Skeleton/Skeleton"
 
 const TweetPage = ({
+  isFetchingNextPage,
   tweet,
   user,
   comments
 }: {
+  isFetchingNextPage: boolean
   user: User
   tweet: Tweet
   comments: Comment[]
@@ -50,9 +53,8 @@ const TweetPage = ({
 
   useEffect(() => {
     setLiked(tweet.likes.includes(user.id))
-    setBookmarked( user?.bookmark?.bookmarks ? (user.bookmark.bookmarks?.findIndex((el) => el?.tweetId === tweet.id) !== -1) :false || false)
+    setBookmarked(user?.bookmark?.bookmarks ? (user.bookmark.bookmarks?.findIndex((el) => el?.tweetId === tweet.id) !== -1) : false || false)
   }, [tweet, user])
-
 
   const handleLike = useCallback(async () => {
     setIsLikeAnimating(true)
@@ -233,7 +235,7 @@ const TweetPage = ({
           liked={liked}
           handleLike={handleLike}
           handledislike={handledislike}
-          handleAnimationEnd={handleAnimationEnd} 
+          handleAnimationEnd={handleAnimationEnd}
         />
 
         <div className="border border-gray-800 mb-3"></div>
@@ -247,6 +249,18 @@ const TweetPage = ({
         .map((comment: Comment) => (
           <CommentPage key={comment.id} comment={comment} user={user} tweet={tweet} />
         ))}
+      {
+        isFetchingNextPage && (
+          <>
+            <Skel />
+            <Skel />
+            <Skel />
+            <Skel />
+          </>
+        )
+      }
+
+
     </>
   )
 }

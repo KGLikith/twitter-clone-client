@@ -1,7 +1,7 @@
 "use client";
 import { apolloClient } from "@/clients/api";
 import { getUserByIdQuery, getCurrentUserQuery, getNotificationsQuery, getUserBookmarksQuery } from "@/graphql/query/user";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 export const useCurrentUser = () => {
   const query = useQuery({
@@ -56,20 +56,20 @@ export const useGetNotifications = () => {
   return { ...query, notifications: query.data?.getNotifications };
 }
 
-export const useGetBookmarks = () => {
-  const query = useQuery({
+export const usePaginatedBookmarks = () => {
+  return useInfiniteQuery({
     queryKey: ["bookmarks"],
-    queryFn: async () => {
-      try {
+    queryFn: async ({pageParam=null }:{
+      pageParam?: string | null
+    }) => {
         const { data } = await apolloClient.query({
           query: getUserBookmarksQuery,
+          variables: { cursor: pageParam, limit: 10 },
+          fetchPolicy: "network-only"
         });
-        return data;
-      } catch (error) {
-        console.error("Error fetching user bookmarks:", error);
-        return null;
-      }
+        return data.getUserBookmarks;
     },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined
   })
-  return { ...query, bookmarks: query.data?.getUserBookmarks };
 }

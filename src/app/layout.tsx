@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import ClientProvider from "@/components/ClientProvider";
 import ProviderApollo from "@/components/ApolloProvider";
 import TwitterLayout from "@/components/Layout/TwitterLayout";
+import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,19 +26,22 @@ export default function RootLayout({
       <body className={inter.className}  >
         <GoogleOAuthProvider clientId={process.env.GOOGLE_ID || ""}>
           <ProviderApollo>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <ClientProvider>
-                <TwitterLayout>
-                  {children}
-                </TwitterLayout>
+            <SessionProvider>
+
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="dark"
+                enableSystem
+                disableTransitionOnChange
+              >
+                <ClientProvider>
+                  <TwitterLayout>
+                    {children}
+                  </TwitterLayout>
                   <Toaster />
-              </ClientProvider>
-            </ThemeProvider>
+                </ClientProvider>
+              </ThemeProvider>
+            </SessionProvider>
           </ProviderApollo>
         </GoogleOAuthProvider>
       </body>

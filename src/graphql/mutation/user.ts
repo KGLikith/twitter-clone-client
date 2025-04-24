@@ -1,5 +1,15 @@
 import { graphql } from "@/gql";
 
+export const createUserMutation = graphql(`
+  #graphql
+  mutation createUser($email: String!, $password: String!, $name: String!, $userName: String!) {
+    createUser(email: $email, password: $password, name: $name, userName: $userName) {
+      success
+      message
+    }
+  }
+`);
+
 export const followUserMutation = graphql(`
   #graphql
   mutation followUser($to: ID!) {

@@ -102,6 +102,7 @@ export default function CommentInput({ user, tweetId }: Props) {
                 textarea.style.height = "auto";
             }
         } catch (err) {
+            console.log("error",err)
             toast({
                 variant: "destructive",
                 title: "Failed to reply...",

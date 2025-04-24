@@ -3,7 +3,18 @@ import { graphql } from "../../gql";
 export const verifyUserGoogleTokenQuery = graphql(`
   #graphql
   query verifyUserGoogleToken($token: String!) {
-    verifyGoogleToken(token: $token) 
+    verifyGoogleToken(token: $token)
+  }
+`);
+
+export const verifyUserCredentialQuery = graphql(`
+  #graphql
+  query verifyUserCredential($email: String!, $password: String!) {
+    verifyUserCredential(email: $email, password: $password){
+      id 
+      email
+      token
+    }
   }
 `);
 
@@ -125,10 +136,8 @@ export const getNotificationsQuery = graphql(`
 
 export const getUserBookmarksQuery = graphql(`
   #graphql
-  query getUserBookmarks {
-    getUserBookmarks {
-      id
-      userId
+  query getUserBookmarks($cursor: String, $limit: Int) {
+    getUserBookmarks(cursor: $cursor, limit: $limit) {
       bookmarks {
         id
         type
@@ -171,6 +180,7 @@ export const getUserBookmarksQuery = graphql(`
           }
         }
       }
+      nextCursor
     }
   }
 `);

@@ -5,34 +5,15 @@ import {
   createTweetMutation,
 } from "@/graphql/mutation/tweet";
 import {
-  getAllTweetsQuery,
-  getCommentsByTweetIdQuery,
+  getPaginatedCommentsByTweetIdQuery,
   getPaginatedTweetsQuery,
   getPaginatedUserTweetsQuery,
   getTweetByIdQuery,
-  getUserTweetsQuery,
 } from "@/graphql/query/tweet";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "./use-toast";
 import { runTypedMutation } from "@/actions/helperFxns";
 import { createNotificationMutation } from "@/graphql/mutation/user";
-
-export const useGetAllTweets = () => {
-  const query = useQuery({
-    queryKey: ["tweets"],
-    queryFn: async () => {
-      try {
-        const { data } = await apolloClient.query({
-          query: getAllTweetsQuery,
-        });
-        return data || [];
-      } catch (error) {
-        console.log("Error fetching tweets", error);
-      }
-    },
-  });
-  return { ...query, tweets: query.data?.getAllTweets };
-};
 
 export const usePaginatedTweets = () => {
   return useInfiniteQuery({
@@ -70,23 +51,40 @@ export const useUserPaginatedTweets = (userId: string)=>{
   })
 }
 
-export const useGetUserTweets = (userId: string) => {
+export const useGetTweet = (tweetid: string) => {
   const query = useQuery({
-    queryKey: ["userTweets", userId],
+    queryKey: ["tweet", tweetid],
     queryFn: async () => {
       try {
         const { data } = await apolloClient.query({
-          query: getUserTweetsQuery,
-          variables: { userId },
+          query: getTweetByIdQuery,
+          variables: { tweetid },
         });
         return data;
       } catch (error) {
-        console.error("Error fetching user tweets:", error);
+        console.log("Error fetching tweet", error);
       }
     },
   });
-  return { ...query, userTweets: query.data?.getUserTweets };
+  return { ...query, tweet: query.data?.getTweet };
 };
+
+
+export const usePaginatedCommentsByTweetId = (tweetId: string) => {
+  return useInfiniteQuery({
+    queryKey: ["comments", tweetId],
+    queryFn: async ({ pageParam = null }: { pageParam?: string | null }) => {
+      const { data } = await apolloClient.query({
+        query: getPaginatedCommentsByTweetIdQuery,
+        variables: { tweetId, cursor: pageParam, limit: 10 },
+        fetchPolicy: "network-only",
+      });
+      return data.getPaginatedCommentsByTweetId;
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  })
+}
 
 export const useCreateTweet = () => {
   const queryclient = useQueryClient();
@@ -122,43 +120,6 @@ export const useCreateTweet = () => {
   });
   return { ...mutation, createTweet: mutation.data?.createTweet };
 };
-
-export const useGetTweet = (tweetid: string) => {
-  const query = useQuery({
-    queryKey: ["tweet", tweetid],
-    queryFn: async () => {
-      try {
-        const { data } = await apolloClient.query({
-          query: getTweetByIdQuery,
-          variables: { tweetid },
-        });
-        return data;
-      } catch (error) {
-        console.log("Error fetching tweet", error);
-      }
-    },
-  });
-  return { ...query, tweet: query.data?.getTweet };
-};
-
-export const useGetCommentsByTweetId = (tweetId: string) => {
-  const query = useQuery({
-    queryKey: ["comments", tweetId],
-    queryFn: async () => {
-      try {
-        const { data } = await apolloClient.query({
-          query: getCommentsByTweetIdQuery,
-          variables: { tweetId: tweetId },
-        });
-        return data;
-      } catch (error) {
-        console.log("Error fetching comments", error);
-      }
-    },
-  });
-  return { ...query, comments: query.data?.getCommentsByTweetId };
-};
-
 
 export const useCreateComment = () => {
   const queryclient = useQueryClient();

@@ -1,6 +1,6 @@
 "use client";
 import { Comment, Tweet, User } from "@/gql/graphql";
-import { useGetCommentsByTweetId, useGetTweet } from "@/hooks/tweets";
+import { useGetTweet, usePaginatedCommentsByTweetId } from "@/hooks/tweets";
 import { useCurrentUser } from "@/hooks/user";
 import { NextPage } from "next";
 import { useParams, useRouter } from "next/navigation";
@@ -15,11 +15,36 @@ const Page: NextPage = ({ }) => {
   const { tweetid } = useParams();
   const router = useRouter();
   const { tweet: currentTweet } = useGetTweet(tweetid as string || "");
-  const { comments: fetchedComments } = useGetCommentsByTweetId(tweetid as string || "");
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: loadingComments,
+  } = usePaginatedCommentsByTweetId(tweetid as string || "");
   const [loading, setLoading] = useState(true);
   const [tweet, setTweet] = useState<Tweet | undefined>();
   const [user, setUser] = useState<User | undefined>();
-  const [comments, setComments ] = useState<Comment[]>([]);
+
+  const fetchedComments = data?.pages.flatMap((page) => page.comments) ?? [];
+
+  useEffect(() => {
+    const scrollContainer = document.getElementById("scrollable-middle");
+
+    const onScroll = () => {
+      if (
+        scrollContainer &&
+        scrollContainer.scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 300 &&
+        hasNextPage
+      ) {
+        fetchNextPage();
+      }
+    };
+
+    scrollContainer?.addEventListener("scroll", onScroll);
+
+    return () => scrollContainer?.removeEventListener("scroll", onScroll);
+  }, [hasNextPage, fetchNextPage]);
 
   useEffect(() => {
     if (USER == undefined && !isLoading) {
@@ -31,44 +56,38 @@ const Page: NextPage = ({ }) => {
     }
     if (USER !== undefined) {
       setUser(USER as User);
-  }
+    }
   }, [currentTweet, USER, router, loading]);
 
-  useEffect(()=>{
-    if (fetchedComments !== undefined) {
-      setComments(fetchedComments as Comment[]);
-    }
-  },[fetchedComments])
+  if (loading ) {
+    return <PostSkel />;
+  }
+  if (!user) return null
 
-if (loading) {
-  return <PostSkel />;
-}
-if (!user) return null
+  if (!tweet)
+    return (
+      <h1 className="text-center h-full flex justify-center items-center">
+        Tweet Not Found
+      </h1>
+    );
 
-if (!tweet)
   return (
-    <h1 className="text-center h-full flex justify-center items-center">
-      Tweet Not Found
-    </h1>
+    <div>
+      <nav className="border flex items-center gap-8 px-3 py-2">
+        <div
+          className="hover:border hover:bg-gray-900 hover:border-none rounded-full p-3 transition-all"
+          onClick={() => {
+            router.push("/");
+          }}
+        >
+          <FaArrowLeftLong size={15} />
+        </div>
+        <div>
+          <h1 className="font-bold text-xl">Post</h1>
+        </div>
+      </nav>
+      <TweetPage isFetchingNextPage={isFetchingNextPage || loadingComments} comments={fetchedComments as Comment[]} tweet={tweet as Tweet} user={user as User} />
+    </div>
   );
-
-return (
-  <div>
-    <nav className="border flex items-center gap-8 px-3 py-2">
-      <div
-        className="hover:border hover:bg-gray-900 hover:border-none rounded-full p-3 transition-all"
-        onClick={() => {
-          router.push("/");
-        }}
-      >
-        <FaArrowLeftLong size={15} />
-      </div>
-      <div>
-        <h1 className="font-bold text-xl">Post</h1>
-      </div>
-    </nav>
-    <TweetPage comments={comments as Comment[]} tweet={tweet as Tweet} user={user as User} />
-  </div>
-);
 };
 export default Page;
