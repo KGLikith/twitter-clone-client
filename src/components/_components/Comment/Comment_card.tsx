@@ -20,7 +20,6 @@ import {
   likeCommentMutation,
   unlikeCommentMutation,
 } from "@/graphql/mutation/tweet";
-import { toast } from "@/hooks/use-toast";
 import PostMenu from "@/components/global/postMenu";
 import { formatTweetContent } from "@/components/global/postMenu/handleSelect";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,6 +27,7 @@ import { formatRelativeTime, runTypedMutation } from "@/actions/helperFxns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { bookmark, unBookmark } from "@/actions/bookmarks";
 import { dislikeComment, likeComment } from "@/actions/like_dislike";
+import { toast } from "sonner";
 
 const CommentFile = ({
   comment,
@@ -66,13 +66,13 @@ const CommentFile = ({
   );
 
   const handleDeleteComment = useCallback(async () => {
-    const { errors } = await apolloClient.mutate({
+    const { errors, data } = await apolloClient.mutate({
       mutation: deleteCommentMutation,
       variables: {
         commentId: comment.id,
       },
     });
-    if (errors && errors[0]) toast({ variant: "destructive", description: errors[0].message, duration: 1000 });
+    if (errors && errors[0] || !data?.deleteComment) toast("Error deleting the comment",{ description:"Please try again later." , duration: 1000 });
     await apolloClient.resetStore();
     await queryclient.invalidateQueries({ queryKey: ["tweet", tweet.id] });
     await queryclient.invalidateQueries({ queryKey: ["currentUser"] });

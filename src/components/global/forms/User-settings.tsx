@@ -19,9 +19,9 @@ import { Camera, Upload } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { apolloClient } from "@/clients/api"
 import { getSignedUrlForUserQuery } from "@/graphql/query/user"
-import { toast } from "@/hooks/use-toast"
 import axios from "axios"
 import ProfileImageUpload from "@/components/_components/imageUpload"
+import { toast } from "sonner"
 
 interface UserSettingsFormProps {
     user: User | undefined
@@ -107,9 +107,8 @@ export default function UserSettingsForm({ user, onSave }: UserSettingsFormProps
             return url.pathname
         } catch (error) {
             console.error("Image upload failed:", error)
-            toast({
-                variant: "destructive",
-                title: "Image upload failed",
+            toast.error("Image upload failed",{
+                duration:1000,
                 description: "There was a problem uploading your profile image",
             })
             return null
@@ -133,9 +132,8 @@ export default function UserSettingsForm({ user, onSave }: UserSettingsFormProps
             })
         } catch (error) {
             console.error("Error saving profile:", error)
-            toast({
-                variant: "destructive",
-                title: "Failed to update profile",
+            toast.error("Failed to update profile",{
+                duration: 1000,
                 description: "There was a problem updating your profile",
             })
         } finally {

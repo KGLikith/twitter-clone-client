@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import SideabrSkel from "@/components/global/Skeleton/SidebarSkel"
+import { useSession } from "next-auth/react"
 
 const Sidebar = () => {
   const { user: currentUser, isLoading } = useCurrentUser();
@@ -27,6 +28,7 @@ const Sidebar = () => {
   const [menuItems, setMenu] = useState(loggedOutmenuItems)
   const [dialog, setDialog] = useState(false)
   const router = useRouter();
+  const { data: session } = useSession()
 
   useEffect(() => {
     if (currentUser !== undefined) {
@@ -35,21 +37,20 @@ const Sidebar = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    if (user) {
+    if (user || session?.user) {
       setDialog(false)
-    }
-    else if (!isLoading && !user) {
+    }else if (!isLoading && !user) {
       setDialog(true)
     }
-  }, [user])
+  }, [user, session, isLoading])
 
   useEffect(() => {
-    if (user) {
+    if (user || session?.user) {
       setMenu(LoggedInmenuItems)
     } else {
       setMenu(loggedOutmenuItems)
     }
-  }, [user, , setUser])
+  }, [user])
 
   useEffect(() => {
     const checkIfMobile = () => {

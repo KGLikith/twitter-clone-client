@@ -3,10 +3,10 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Inter } from "next/font/google";
-import { Toaster } from "@/components/ui/toaster";
 import ClientProvider from "@/components/ClientProvider";
 import ProviderApollo from "@/components/ApolloProvider";
-import TwitterLayout from "@/components/Layout/TwitterLayout";
+import { Toaster } from "@/components/ui/sonner";
+import { TokenSyncer } from "./tokenSycer";
 import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -25,9 +25,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}  >
         <GoogleOAuthProvider clientId={process.env.GOOGLE_ID || ""}>
-          <ProviderApollo>
-            <SessionProvider>
-
+          <SessionProvider>
+            <ProviderApollo>
               <ThemeProvider
                 attribute="class"
                 defaultTheme="dark"
@@ -35,14 +34,12 @@ export default function RootLayout({
                 disableTransitionOnChange
               >
                 <ClientProvider>
-                  <TwitterLayout>
-                    {children}
-                  </TwitterLayout>
+                  {children}
                   <Toaster />
                 </ClientProvider>
               </ThemeProvider>
-            </SessionProvider>
-          </ProviderApollo>
+            </ProviderApollo>
+          </SessionProvider>
         </GoogleOAuthProvider>
       </body>
     </html>

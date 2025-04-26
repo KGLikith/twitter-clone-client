@@ -6,7 +6,7 @@ import { FaHeart, FaRegComment } from "react-icons/fa6"
 import { CiBookmark, CiHeart } from "react-icons/ci"
 import { GoUpload } from "react-icons/go"
 import { FaBookmark } from "react-icons/fa"
-import { toast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 type Props = {
   tweet?: Tweet
@@ -61,14 +61,13 @@ export default function PostMenu({
       }
     } else if (navigator.clipboard) {
       navigator.clipboard.writeText(postUrl)
-      toast({
-        title: "Link copied to clipboard",
+      toast.info("Link copied to clipboard",{
+        duration: 2000,
         description: "You can now share it with others",
       })
     } else {
-      toast({
-        variant: "destructive",
-        title: "Sorry, your browser does not support sharing",
+      toast.error("Sorry, your browser does not support sharing",{
+        duration: 2000,
       })
     }
   }

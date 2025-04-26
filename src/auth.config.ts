@@ -1,5 +1,10 @@
 import type { DefaultSession, NextAuthConfig } from "next-auth";
 import { encode as defaultEncode } from "next-auth/jwt";
+import { createServerApolloClient } from "./clients/serverAppoloClient";
+import {
+  verifyUserCredentialQuery,
+  verifyUserGoogleTokenQuery,
+} from "./graphql/query/user";
 
 declare module "next-auth" {
   interface Session {
@@ -20,14 +25,16 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     backendToken?: string;
-    user?:{
+    user?: {
       id: string;
       email: string;
-    }
+    };
   }
 }
 
 export const authConfig = {
+  secret: process.env.NEXT_AUTH_SECRET,
+
   pages: {
     signIn: "/auth/sign-in",
     signOut: "/",
@@ -35,11 +42,33 @@ export const authConfig = {
     newUser: "/auth/sign-up",
   },
   callbacks: {
-    signIn({ user, account, profile, email, credentials }) {
-      if (user) {
-        return true;
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        const client = createServerApolloClient();
+
+        const { data } = await client.query({
+          query: verifyUserGoogleTokenQuery,
+          variables: {
+            token: account.id_token as string,
+          },
+        });
+
+        if(!data.verifyGoogleToken){
+          return false;
+        }
+
+        if (data.verifyGoogleToken) {
+          const {email, id, token} = data.verifyGoogleToken;
+          
+          user.email = email;
+          user.token = token;
+          user.id = id
+          return true;
+        }
+        await client.resetStore();
+        return false;
       }
-      return false;
+      return true;
     },
     redirect({ url, baseUrl }) {
       if (url.startsWith(baseUrl)) return url;
@@ -52,9 +81,8 @@ export const authConfig = {
         token.user = {
           id: user.id,
           email: user.email,
-        }
+        };
       }
-
       return token;
     },
     authorized({ auth }) {
@@ -64,14 +92,17 @@ export const authConfig = {
       if (token?.backendToken) {
         session.backendToken = token.backendToken;
       }
-      if(token.user){
+      if (token.user) {
         session.user = {
           ...session.user,
-          ...token.user
-        }
+          ...token.user,
+        };
       }
       return session;
     },
+  },
+  session: {
+    strategy: "jwt",
   },
 
   providers: [],

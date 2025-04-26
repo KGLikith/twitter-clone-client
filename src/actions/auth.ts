@@ -1,42 +1,19 @@
-'use server'
+"use client";
 
-import { signIn } from "@/auth";
+import { apolloClient } from "@/clients/api";
+import { QueryClient } from "@tanstack/react-query";
+import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 
-export const checkUser = async (email: string, password: string) => {
-  
-};
-
-
-export const addUser = async (
-  email: string,
-  password: string,
-  name: string
-) => {
-  
-};
-
-export async function signInUser(email: string, password: string) {
+export const handleGoogleSignIn = async (queryclient: QueryClient) => {
   try {
-    // const result = await checkUser(email, password);
-    // if (!result.success) {
-    //   return {
-    //     success: false,
-    //     message: result.message,
-    //   };
-    // }
-    await signIn("credentials", {
-      redirect: false,
-      email: email,
-      password: password,
+    await signIn("google", { callbackUrl: "/" });
+    await apolloClient.resetStore();
+    await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+  } catch (err) {
+    toast.error("Google Sign In Failed", {
+      duration: 2000,
     });
-    return {
-      success: true,
-    };
-  } catch (error: any) {
-    console.log(error);
-    return {
-      success: false,
-      message: error.message,
-    };
+    console.error("Google Sign In Error", err);
   }
-}
+};

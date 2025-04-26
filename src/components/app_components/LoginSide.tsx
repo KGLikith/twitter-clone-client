@@ -1,21 +1,20 @@
 "use client";
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import React, { useCallback, useEffect, useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { verifyUserGoogleTokenQuery } from "@/graphql/query/user";
 import { useCurrentUser } from "@/hooks/user";
 import { apolloClient } from "@/clients/api";
 import { User } from "@/gql/graphql";
 import Skel from "../global/Skeleton/Skeleton";
-import { ToastAction } from "@radix-ui/react-toast";
 import RecommendedUsers from "@/components/_components/RecommendedUsers";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 
 const Login = () => {
-  const { toast } = useToast();
   const router = useRouter();
 
   const queryclient = useQueryClient()
@@ -37,9 +36,7 @@ const Login = () => {
       const googleToken = cred.credential;
 
       if (!googleToken) {
-        return toast({
-          variant: "destructive",
-          title: "Google Token Not Found",
+        return toast.error("Google Token Not Found",{
           duration: 2000,
         });
       }
@@ -53,35 +50,29 @@ const Login = () => {
 
         const { verifyGoogleToken } = data;
         if (verifyGoogleToken) {
-          window.localStorage.setItem("__twitter_token", verifyGoogleToken);
+          window.localStorage.setItem("__twitter_token", verifyGoogleToken.token);
 
           await apolloClient.resetStore();
           await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
 
-          toast({
-            variant: "default",
-            title: "Verified Successfully",
+          toast.success("Verified Successfully",{
             duration: 1000,
           });
           router.push("/");
         } else {
-          toast({
-            variant: "destructive",
-            title: "Verification Failed",
+          toast.error("Verification Failed",{
             duration: 1000,
           });
         }
       } catch (error) {
         // console.error("Error during login:", error);
-        toast({
-          variant: "destructive",
-          title: (error as Error).message,
-          action: <ToastAction altText="Try again">Try again</ToastAction>,
+        toast.error("Error verifying token",{
           duration: 2000,
+          description: "Please try again",
         });
       }
     },
-    [toast, router]
+    [ router]
   );
 
   if (loading) {
@@ -103,11 +94,8 @@ const Login = () => {
           <div className=" rounded-full overflow-hidden p-2 shadow-lg flex justify-center">
             <GoogleLogin
               onError={() => {
-                toast({
-                  title: "Login Failed",
-                  action: (
-                    <ToastAction altText="Try again">Try again</ToastAction>
-                  ),
+                toast.error("Login Failed",{
+                  description: "Please try again",
                   duration: 2000,
                 });
                 return;

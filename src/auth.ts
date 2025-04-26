@@ -2,15 +2,23 @@ import NextAuth, { DefaultSession, type User } from "next-auth";
 import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
 import { authConfig } from "./auth.config";
-import { signInSchema } from "./schema/auth";
 import { createServerApolloClient } from "./clients/serverAppoloClient";
 import { verifyUserCredentialQuery } from "./graphql/query/user";
+import { UserLoginSchema } from "./schema/auth";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   trustHost: true,
   providers: [
-    Google,
+    Google({
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
@@ -18,14 +26,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       authorize: async (credentials) => {
         try {
-          const isValid = signInSchema.safeParse(credentials);
+          const isValid = UserLoginSchema.safeParse(credentials);
           if (!isValid.success) {
             return null;
           }
           const { email, password } = isValid.data
-          
           const client =  createServerApolloClient();
-
           const {data} =await client.query({
             query:verifyUserCredentialQuery,
             variables:{
@@ -33,9 +39,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               password,
             } 
           })
-
           const user = data.verifyUserCredential;
-
           if (user) {
             return {
                 id: user.id,

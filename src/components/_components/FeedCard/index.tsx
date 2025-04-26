@@ -22,11 +22,11 @@ import { deletePost } from "@/actions/deletePost"
 import { DeleteTweetModal } from "@/components/global/deletetweetDialog"
 import PostMenu from "@/components/global/postMenu"
 import { formatTweetContent } from "@/components/global/postMenu/handleSelect"
-import { toast } from "@/hooks/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
 import { formatRelativeTime } from "@/actions/helperFxns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { bookmark, unBookmark } from "@/actions/bookmarks"
+import { toast } from "sonner"
 
 interface FeedCardProps {
   tweet: Tweet
@@ -52,7 +52,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
 
   const handleLike = useCallback(async () => {
     if (!user) {
-      toast({ title: "Please login to like the post", variant: "destructive" })
+      toast.error("Please login to like the post", {
+        duration: 2000,
+      })
       return
     }
     setIsLikeAnimating(true)
@@ -62,7 +64,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
 
   const handledislike = useCallback(async () => {
     if (!user) {
-      toast({ title: "Please login/sign-up to like the post", variant: "destructive" })
+      toast.error("Please login to like the post", {
+        duration: 2000,
+      })
       return
     }
     setIsLikeAnimating(true)
@@ -71,7 +75,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
 
   const handleDeletePost = useCallback(async () => {
     if (!user) {
-      toast({ title: "Please login/sign-up to like the post", variant: "destructive" })
+      toast.error("Please login to like the post", {
+        duration: 2000,
+      })
       return
     }
     setShowDeleteDialog(true)
@@ -100,7 +106,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
 
   const handleBookmark = useCallback(async () => {
     if (!user) {
-      toast({ title: "Please login/sign-up to like the post", variant: "destructive" })
+      toast.error("Please login to like the post", {
+        duration: 2000,
+      })
       return
     }
     setIsBookmarkAnimating(true)
@@ -109,7 +117,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
 
   const handleUnBookmark = useCallback(async () => {
     if (!user) {
-      toast({ title: "Please login/sign-up to like the post", variant: "destructive" })
+      toast.error("Please login to like the post", {
+        duration: 2000,
+      })
       return
     }
     setIsBookmarkAnimating(true)

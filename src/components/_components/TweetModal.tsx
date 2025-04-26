@@ -13,12 +13,13 @@ import { useCreateTweet } from "@/hooks/tweets"
 import type { User } from "@/gql/graphql"
 import { apolloClient } from "@/clients/api"
 import { getSignedUrlforTweetQuery } from "@/graphql/query/tweet"
-import { toast } from "@/hooks/use-toast"
 import { deleteMediaMutation } from "@/graphql/mutation/tweet"
 import { useMutation } from "@apollo/client"
 import { handleEmojiSelect, handleGifSelect, searchGifs } from "../global/postMenu/handleSelect"
 import TweetMenu from "../global/TweetMenu"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import { toast } from "sonner"
+import { useSession } from "next-auth/react"
 
 const FormSchema = z.object({
   content: z
@@ -83,7 +84,6 @@ const TweetModal = () => {
     if (!user || posting) return
     setPosting(true)
     try {
-
       await mutateAsync({
         content: data.content,
         mediaUrl,
@@ -94,10 +94,10 @@ const TweetModal = () => {
       setMediaType(null)
       form.reset({ content: "" })
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to post tweet",
+      console.log(error)
+      toast.error("Failed to post tweet",{
         description: "Please try again later",
+        duration:1000
       })
     } finally {
       setPosting(false)
@@ -115,6 +115,7 @@ const TweetModal = () => {
         setMediaUploading(true)
 
         try {
+          console.log(file.type)
           const { data } = await apolloClient.query({
             query: getSignedUrlforTweetQuery,
             variables: {
@@ -136,7 +137,8 @@ const TweetModal = () => {
             setMediaType(file.type.startsWith("image") ? "image" : "video")
           }
         } catch (error) {
-          toast({ variant: "destructive", title: "Upload failed" })
+          console.error("Error uploading media:", error)
+          toast.error("Upload failed" ,{ duration:2000, description:"Please try again later"})
         } finally {
           setMediaUploading(false)
         }
@@ -144,8 +146,6 @@ const TweetModal = () => {
     },
     [user],
   )
-
-  console.log(user)
 
   const handleSelectImage = useCallback(() => {
     if (posting || !user) return
@@ -290,168 +290,3 @@ const TweetModal = () => {
 }
 
 export default TweetModal
-
-
-// <div className="flex items-center text-xl text-orange-400">
-
-// <div
-//   onClick={handleSelectImage}
-//   className="hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer"
-// >
-//   <HiOutlinePhotograph />
-// </div>
-
-// <Popover open={showGifPicker} onOpenChange={setShowGifPicker}>
-//   <PopoverTrigger asChild>
-//     <div className="hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer">
-//       <AiOutlineGif />
-//     </div>
-//   </PopoverTrigger>
-//   <PopoverContent className="w-[300px]">
-//     <Input
-//       placeholder="Search GIFs"
-//       className="mb-2"
-//       value={gifSearchTerm}
-//       onChange={(e) => setGifSearchTerm(e.target.value)}
-//       onKeyDown={(e) => e.key === "Enter" && searchGifs(gifSearchTerm, setGifs)}
-//     />
-//     <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
-//       {gifs.map((gif) => (
-//         <img
-//           key={gif.id}
-//           src={gif.images.fixed_height_small.url}
-//           alt="gif"
-//           className="cursor-pointer rounded-md"
-//           onClick={() => handleGifSelect(gif, setMediaUploading, setShowGifPicker, setMediaUrl, setMediaType, toast)}
-//         />
-//       ))}
-//     </div>
-//     {
-//       !gifSearchTerm && (
-//         <div className="text-center py-4 text-gray-400">
-//           Search for GIFs. Press Enter after typing.
-//         </div>
-//       )
-//     }
-//     {gifs.length === 0 && gifSearchTerm && (
-//       <div className="text-center py-4 text-gray-400">
-//         No GIFs found. Try a different search term.
-//       </div>
-//     )}
-//   </PopoverContent>
-// </Popover>
-
-
-// {/* <div
-//   onClick={() => setShowPollCreator(!showPollCreator)}
-//   className={`hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer ${showPollCreator ? "bg-gray-900" : ""}`}
-// >
-//   <HiOutlineChartBar />
-// </div> */}
-
-// <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-//   <PopoverTrigger asChild>
-//     <div className="hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer">
-//       <FiSmile />
-//     </div>
-//   </PopoverTrigger>
-//   <PopoverContent className="w-full p-0 border-gray-700">
-//     <Picker data={data} onEmojiSelect={(emoji: any) => {
-//       handleEmojiSelect(textareaRef, emoji, form, setShowEmojiPicker)
-//     }} theme="dark" />
-//   </PopoverContent>
-// </Popover>
-
-// {/* <div
-//   onClick={() => setShowScheduler(!showScheduler)}
-//   className={`hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer ${showScheduler ? "bg-gray-900" : ""}`}
-// >
-//   <FiCalendar />
-// </div> */}
-
-// {/* <div
-//   onClick={() => setShowLocationPicker(!showLocationPicker)}
-//   className={`hover:bg-gray-900 rounded-full p-2 transition-all cursor-pointer ${showLocationPicker ? "bg-gray-900" : ""}`}
-// >
-//   <FiMapPin />
-// </div> */}
-// </div>
-
-
-
-{/* {showPollCreator && (
-                  <div className="border border-gray-700 rounded-lg p-3 space-y-3">
-                    <h3 className="font-medium text-orange-400">Create a poll</h3>
-                    {pollOptions.map((option, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input
-                          value={option}
-                          onChange={(e) => updatePollOption(index, e.target.value)}
-                          placeholder={`Option ${index + 1}`}
-                          className="bg-transparent border-gray-700"
-                        />
-                        {pollOptions.length > 2 && (
-                          <button
-                            type="button"
-                            onClick={() => removePollOption(index)}
-                            className="text-gray-400 hover:text-red-500"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    {pollOptions.length < 4 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={addPollOption}
-                        className="w-full border-gray-700 text-orange-400 hover:bg-gray-900"
-                      >
-                        Add option
-                      </Button>
-                    )}
-                    <div>
-                      <Label className="text-sm text-gray-400">Poll duration</Label>
-                      <select
-                        value={pollDuration}
-                        onChange={(e) => setPollDuration(e.target.value)}
-                        className="w-full mt-1 bg-transparent border border-gray-700 rounded-md p-2"
-                      >
-                        <option value="1 day">1 day</option>
-                        <option value="3 days">3 days</option>
-                        <option value="1 week">1 week</option>
-                        <option value="1 month">1 month</option>
-                      </select>
-                    </div>
-                  </div>
-                )} */}
-
-{/* {showLocationPicker && (
-                  <div className="border border-gray-700 rounded-lg p-3">
-                    <h3 className="font-medium text-orange-400 mb-2">Add location</h3>
-                    <Input
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="Enter your location"
-                      className="bg-transparent border-gray-700"
-                    />
-                  </div>
-                )} */}
-
-{/* {showScheduler && (
-                  <div className="border border-gray-700 rounded-lg p-3">
-                    <h3 className="font-medium text-orange-400 mb-2">Schedule post</h3>
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      className="rounded-md border border-gray-700"
-                    />
-                    {date && (
-                      <div className="mt-2 text-sm text-gray-400">
-                        Your tweet will be posted on {date.toLocaleDateString()} at {date.toLocaleTimeString()}
-                      </div>
-                    )}
-                  </div>
-                )} */}

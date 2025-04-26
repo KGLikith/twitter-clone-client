@@ -3,7 +3,11 @@ import { graphql } from "../../gql";
 export const verifyUserGoogleTokenQuery = graphql(`
   #graphql
   query verifyUserGoogleToken($token: String!) {
-    verifyGoogleToken(token: $token)
+    verifyGoogleToken(token: $token){
+      token
+      id
+      email
+    }
   }
 `);
 
@@ -14,6 +18,16 @@ export const verifyUserCredentialQuery = graphql(`
       id 
       email
       token
+    }
+  }
+`);
+
+export const UserLoginErrorsQuery = graphql(`
+  #graphql
+  query UserLoginErrors($email: String!, $password: String!) {
+    checkLoginCredentials(email: $email, password: $password) {
+      success
+      message
     }
   }
 `);

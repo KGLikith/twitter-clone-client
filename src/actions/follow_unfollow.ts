@@ -5,9 +5,9 @@ import {
   followUserMutation,
   unfollowUserMutation,
 } from "@/graphql/mutation/user";
-import { toast } from "@/hooks/use-toast";
 import { QueryClient } from "@tanstack/react-query";
 import { runTypedMutation } from "./helperFxns";
+import { toast } from "sonner";
 
 export const FollowUser = async (
   userId: string,
@@ -15,37 +15,34 @@ export const FollowUser = async (
   queryclient: QueryClient
 ) => {
   if (!userId) return;
-  try {
-    setButtonLoading(true);
-    await apolloClient.mutate({
-      mutation: followUserMutation,
-      variables: { to: userId },
-    });
-    await apolloClient.resetStore();
-    await queryclient.invalidateQueries({
-      queryKey: ["currentUserById", userId],
-    });
-    await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
-    runTypedMutation(apolloClient, createNotificationMutation, {
-      payload: {
-        userId: userId,
-        type: "FOLLOW",
-      },
-    });
-    toast({
-      title: "Followed Successfully",
-      duration: 1000,
-    });
-    setButtonLoading(false);
-  } catch (e) {
-    toast({
-      title: "Error Following",
-      description: (e as Error).message,
-      variant: "destructive",
+  setButtonLoading(true);
+  const { data } = await apolloClient.mutate({
+    mutation: followUserMutation,
+    variables: { to: userId },
+  });
+  if (!data?.followUser) {
+    toast.error("Sorry for the inconvenience. Please try again", {
       duration: 2000,
+      description: "Could not follow user",
     });
     setButtonLoading(false);
+    return;
   }
+  await apolloClient.resetStore();
+  await queryclient.invalidateQueries({
+    queryKey: ["currentUserById", userId],
+  });
+  await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+  runTypedMutation(apolloClient, createNotificationMutation, {
+    payload: {
+      userId: userId,
+      type: "FOLLOW",
+    },
+  });
+  toast.success("Followed successfully successfully", {
+    duration: 1000,
+  });
+  setButtonLoading(false);
 };
 
 export const UnFollowUser = async (
@@ -55,10 +52,19 @@ export const UnFollowUser = async (
 ) => {
   setButtonLoading(true);
   if (!user?.id) return;
-  await apolloClient.mutate({
+  const { data } = await apolloClient.mutate({
     mutation: unfollowUserMutation,
     variables: { to: user?.id },
   });
+
+  if (!data?.unfollowUser) {
+    toast.error("Sorry for the inconvenience. Please try again", {
+      duration: 2000,
+      description: "Could not unfollow user",
+    });
+    setButtonLoading(false);
+    return;
+  }
 
   await apolloClient.resetStore();
   await queryclient.invalidateQueries({
@@ -66,8 +72,7 @@ export const UnFollowUser = async (
   });
   await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
 
-  toast({
-    title: "Unfollowed successfully",
+  toast.success("Unfollowed successfully", {
     duration: 1000,
   });
   setButtonLoading(false);

@@ -3,8 +3,6 @@ import { useCallback, useEffect, useState } from "react"
 import type { User } from "@/gql/graphql"
 import { useCurrentUser } from "@/hooks/user"
 import type { CredentialResponse } from "@react-oauth/google"
-import { ToastAction } from "@/components/ui/toast"
-import { toast } from "@/hooks/use-toast"
 import { apolloClient } from "@/clients/api"
 import { verifyUserGoogleTokenQuery } from "@/graphql/query/user"
 import { useRouter } from "next/navigation"
@@ -12,6 +10,8 @@ import { LogIn, LogOut, MoreHorizontal } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useQueryClient } from "@tanstack/react-query"
+import { signOut } from "next-auth/react"
+import { toast } from "sonner"
 
 const Badge = () => {
   const queryclient = useQueryClient()
@@ -26,13 +26,12 @@ const Badge = () => {
   }, [currentUser])
 
   const handleLogout = useCallback(async () => {
-    router.push("/")
-    window.localStorage.removeItem("__twitter_token")
+    localStorage.removeItem("__twitter_token")
+    await signOut();
     await apolloClient.resetStore()
-    queryclient.invalidateQueries()
-
-    toast({
-      title: "Logged out successfully",
+    await queryclient.invalidateQueries()
+    
+    toast.success("Logged out successfully",{
       duration: 2000,
     })
   }, [router])
@@ -42,10 +41,8 @@ const Badge = () => {
       const googleToken = cred.credential
 
       if (!googleToken) {
-        return toast({
-          variant: "destructive",
-          title: "Google Token Not Found",
-          duration: 2000,
+        return toast.error("Google Token Not Found",{
+          duration: 2000
         })
       }
 
@@ -57,30 +54,25 @@ const Badge = () => {
 
         const { verifyGoogleToken } = data
         if (verifyGoogleToken) {
-          window.localStorage.setItem("__twitter_token", verifyGoogleToken)
+          window.localStorage.setItem("__twitter_token", verifyGoogleToken.token)
 
           await apolloClient.resetStore()
           await queryclient.invalidateQueries({ queryKey: ["currentUser"] })
 
-          toast({
-            variant: "default",
-            title: "Verified Successfully",
+          toast.info("Verified Successfully",{
             duration: 1000,
           })
           router.push("/")
         } else {
-          toast({
-            variant: "destructive",
-            title: "Verification Failed",
+          toast.error("Verification Failed",{
+            description: "Please try again",            
             duration: 1000,
           })
         }
       } catch (error) {
         console.log("Error verifying token", error)
-        toast({
-          variant: "destructive",
-          title: "Sorry teh server is down",
-          action: <ToastAction altText="Try again">Try again</ToastAction>,
+        toast.error("Error verifying token",{
+          description: "Please try again",
           duration: 2000,
         })
       }

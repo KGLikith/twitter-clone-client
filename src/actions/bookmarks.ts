@@ -3,8 +3,8 @@ import {
   createBookmarkMutation,
   removeBookmarkMutation,
 } from "@/graphql/mutation/user";
-import { toast } from "@/hooks/use-toast";
 import { QueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const bookmark = async (
   tweetId: string | undefined,
@@ -35,17 +35,15 @@ export const bookmark = async (
       });
     } else {
       setBookmarked(false);
-      toast({
-        title: "Sorry for the inconvenience. Please try again",
-        variant: "destructive",
+      toast.error('Sorry for the inconvenience. Please try again', {
         duration: 2000,
+        description: "Could not bookmark tweet",
       });
     }
   } catch (error) {
-    toast({
-      title: "Error bookmarking tweet. Please try again",
-      variant: "destructive",
+    toast.error('Sorry for the inconvenience. Please try again', {
       duration: 2000,
+      description: "Could not bookmark tweet",
     });
     console.error("Error bookmarking tweet:", error);
     throw error;
@@ -78,17 +76,15 @@ export const unBookmark = async (
       await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
     } else {
       setBookmarked(true);
-      toast({
-        title: "Sorry for the inconvenience. Please try again",
-        variant: "destructive",
+      toast.error('Sorry for the inconvenience. Please try again', {
         duration: 2000,
+        description: "Could not remove bookmark",
       });
     }
   } catch (error) {
-    toast({
-      title: "Could not remove bookmark. Please try again",
-      variant: "destructive",
+    toast.error('Sorry for the inconvenience. Please try again', {
       duration: 2000,
+      description: "Could not remove bookmark",
     });
   }
 };

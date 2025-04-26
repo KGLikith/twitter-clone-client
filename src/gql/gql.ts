@@ -22,7 +22,7 @@ const documents = {
     "\n    #graphql\n    mutation likeComment($commentId: ID!){\n        likeComment(commentId: $commentId)\n    }\n": types.LikeCommentDocument,
     "\n    #graphql\n    mutation unlikeComment($commentId: ID!){\n        unlikeComment(commentId: $commentId)\n    }\n": types.UnlikeCommentDocument,
     "\n    #graphql\n    mutation deleteMedia($mediaUrl: String!){\n        deleteMedia(mediaUrl: $mediaUrl)\n    }\n": types.DeleteMediaDocument,
-    "\n  #graphql\n  mutation createUser($email: String!, $password: String!, $name: String!, $userName: String!) {\n    createUser(email: $email, password: $password, name: $name, userName: $userName) {\n      success\n      message\n    }\n  }\n": types.CreateUserDocument,
+    "\n  #graphql\n  mutation createUser($email: String!, $password: String!, $name: String!) {\n    createUser(email: $email, password: $password, name: $name) {\n      success\n      message\n    }\n  }\n": types.CreateUserDocument,
     "\n  #graphql\n  mutation followUser($to: ID!) {\n    followUser(to: $to)\n  }\n": types.FollowUserDocument,
     "\n  #graphql\n  mutation unfollowUser($to: ID!) {\n    unfollowUser(to: $to)\n  }\n": types.UnfollowUserDocument,
     "\n  #graphql\n  mutation createNotification($payload: createNotificationData!) {\n    createNotification(payload: $payload)\n  }\n": types.CreateNotificationDocument,
@@ -37,8 +37,9 @@ const documents = {
     "\n  #graphql\n  query getSignedUrlforComment($mediaType: String!, $mediaName: String!) {\n    getSignedURLForComment(mediaType: $mediaType, mediaName: $mediaName)\n  }\n": types.GetSignedUrlforCommentDocument,
     "\n  #graphql\n  query getTweetById($tweetid: ID!) {\n    getTweet(id: $tweetid) {\n      id\n      content\n      mediaUrl\n      mediaType\n      likes\n      createdAt\n      user {\n        id\n        userName\n        name\n        profileImageUrl\n      }\n    }\n  }\n": types.GetTweetByIdDocument,
     "\n  #graphql\n  query getPaginatedCommentsByTweetId($tweetId: ID!, $cursor: String, $limit: Int) {\n    getPaginatedCommentsByTweetId(tweetId: $tweetId, cursor: $cursor, limit: $limit) {\n      comments {\n        id\n        content\n        mediaUrl\n        mediaType\n        likes\n        createdAt\n        user {\n          id\n          userName\n          name\n          profileImageUrl\n        }\n      }\n      nextCursor\n    }\n  }\n": types.GetPaginatedCommentsByTweetIdDocument,
-    "\n  #graphql\n  query verifyUserGoogleToken($token: String!) {\n    verifyGoogleToken(token: $token)\n  }\n": types.VerifyUserGoogleTokenDocument,
+    "\n  #graphql\n  query verifyUserGoogleToken($token: String!) {\n    verifyGoogleToken(token: $token){\n      token\n      id\n      email\n    }\n  }\n": types.VerifyUserGoogleTokenDocument,
     "\n  #graphql\n  query verifyUserCredential($email: String!, $password: String!) {\n    verifyUserCredential(email: $email, password: $password){\n      id \n      email\n      token\n    }\n  }\n": types.VerifyUserCredentialDocument,
+    "\n  #graphql\n  query UserLoginErrors($email: String!, $password: String!) {\n    checkLoginCredentials(email: $email, password: $password) {\n      success\n      message\n    }\n  }\n": types.UserLoginErrorsDocument,
     "\n  #graphql\n  query getCurrentUser {\n    getCurrentUser {\n      id\n      email\n      name\n      userName\n      createdAt\n      profileImageUrl\n      bio\n      notificationCount\n      location\n      website\n      notificationPreference {\n        likes\n        comments\n        follows\n      }\n      recommendedUsers {\n        id\n        email\n        name\n        userName\n        profileImageUrl\n      }\n      followers {\n        id\n      }\n      following {\n        id\n      }\n      bookmark {\n        id\n        bookmarks {\n          id\n          type\n          tweetId\n          commentId\n        }\n      }\n    }\n  }\n": types.GetCurrentUserDocument,
     "\n  #graphql\n  query getUserById($id: ID!) {\n    getUserById(id: $id) {\n      id\n      email\n      name\n      profileImageUrl\n      userName\n      bio\n      location\n      website\n      createdAt\n      followers {\n        id\n        profileImageUrl\n        name\n        userName\n        bio\n      }\n      following {\n        id\n        profileImageUrl\n        name\n        userName\n        bio\n      }\n    }\n  }\n": types.GetUserByIdDocument,
     "\n  #graphql\n  query getSignedUrlForUser($mediaType: String!, $mediaName: String!) {\n    getSignedUrlForUser(mediaType: $mediaType, mediaName: $mediaName)\n  }\n": types.GetSignedUrlForUserDocument,
@@ -99,7 +100,7 @@ export function graphql(source: "\n    #graphql\n    mutation deleteMedia($media
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  #graphql\n  mutation createUser($email: String!, $password: String!, $name: String!, $userName: String!) {\n    createUser(email: $email, password: $password, name: $name, userName: $userName) {\n      success\n      message\n    }\n  }\n"): (typeof documents)["\n  #graphql\n  mutation createUser($email: String!, $password: String!, $name: String!, $userName: String!) {\n    createUser(email: $email, password: $password, name: $name, userName: $userName) {\n      success\n      message\n    }\n  }\n"];
+export function graphql(source: "\n  #graphql\n  mutation createUser($email: String!, $password: String!, $name: String!) {\n    createUser(email: $email, password: $password, name: $name) {\n      success\n      message\n    }\n  }\n"): (typeof documents)["\n  #graphql\n  mutation createUser($email: String!, $password: String!, $name: String!) {\n    createUser(email: $email, password: $password, name: $name) {\n      success\n      message\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -159,11 +160,15 @@ export function graphql(source: "\n  #graphql\n  query getPaginatedCommentsByTwe
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  #graphql\n  query verifyUserGoogleToken($token: String!) {\n    verifyGoogleToken(token: $token)\n  }\n"): (typeof documents)["\n  #graphql\n  query verifyUserGoogleToken($token: String!) {\n    verifyGoogleToken(token: $token)\n  }\n"];
+export function graphql(source: "\n  #graphql\n  query verifyUserGoogleToken($token: String!) {\n    verifyGoogleToken(token: $token){\n      token\n      id\n      email\n    }\n  }\n"): (typeof documents)["\n  #graphql\n  query verifyUserGoogleToken($token: String!) {\n    verifyGoogleToken(token: $token){\n      token\n      id\n      email\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  #graphql\n  query verifyUserCredential($email: String!, $password: String!) {\n    verifyUserCredential(email: $email, password: $password){\n      id \n      email\n      token\n    }\n  }\n"): (typeof documents)["\n  #graphql\n  query verifyUserCredential($email: String!, $password: String!) {\n    verifyUserCredential(email: $email, password: $password){\n      id \n      email\n      token\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  #graphql\n  query UserLoginErrors($email: String!, $password: String!) {\n    checkLoginCredentials(email: $email, password: $password) {\n      success\n      message\n    }\n  }\n"): (typeof documents)["\n  #graphql\n  query UserLoginErrors($email: String!, $password: String!) {\n    checkLoginCredentials(email: $email, password: $password) {\n      success\n      message\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

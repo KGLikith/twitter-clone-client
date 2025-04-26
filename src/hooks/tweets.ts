@@ -11,9 +11,9 @@ import {
   getTweetByIdQuery,
 } from "@/graphql/query/tweet";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "./use-toast";
 import { runTypedMutation } from "@/actions/helperFxns";
 import { createNotificationMutation } from "@/graphql/mutation/user";
+import { toast } from "sonner";
 
 export const usePaginatedTweets = () => {
   return useInfiniteQuery({
@@ -96,24 +96,16 @@ export const useCreateTweet = () => {
       });
       return data;
     },
-    onMutate: () => {
-      toast({
-        title: "Creating Tweet",
-        duration: 1000,
-      });
-    },
     onSuccess: async () => {
       await apolloClient.resetStore();
       await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-      toast({
-        title: "Tweeted Successfully",
+      toast.success("Posted Successfully",{
         duration: 2000,
       });
     },
     onError: (error) => {
-      toast({
-        title: "Error creating tweet",
-        description: error.message,
+      toast.error("Error creating tweet",{
+        description: "Please try again",
         duration: 2000,
       });
     },
@@ -147,16 +139,13 @@ export const useCreateComment = () => {
           commentId: data.createComment.id,
         },
       });
-      toast({
-        title: "Commented Successfully",
+      toast.success( "Commented Successfully",{
         duration: 2000,
       });
     },
     onError: (error) => {
-      toast({
-        title: "Error creating comment",
+      toast.error("Error creating comment",{
         description: "Please try again later. Sorry for the inconvenience.",
-        variant: "destructive",
         duration: 2000,
       });
     },

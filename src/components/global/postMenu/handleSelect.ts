@@ -99,7 +99,7 @@ export const handleGifSelect = async (
 
     setShowGifPicker(false);
   } catch (error) {
-    toast({ variant: "destructive", title: "Failed to add GIF" });
+    toast.error("Failed to add GIF",{  duration:1000  });
   } finally {
     setMediaUploading(false);
   }

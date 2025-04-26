@@ -13,7 +13,7 @@ export const useCurrentUser = () => {
         });
         return data;
       } catch (error) {
-        console.error("Error fetching current user:", (error as Error).message);
+        console.log("Error fetching current user:", (error as Error).message);
         return null;
       }
     },
@@ -50,6 +50,7 @@ export const useGetNotifications = () => {
         return data;
       } catch (error) {
         console.error("Error fetching current user:", error);
+        return null;
       }
     },
   });

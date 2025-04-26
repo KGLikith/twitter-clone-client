@@ -59,46 +59,6 @@ export function SubscriptionCard({ userId, plan, subscription, email, name }: Pr
         setShowPayPalButtons(true)
     }
 
-    // const savePayment = async (paymentId: string) => {
-    //     try {
-    //         const { error } = await savePaymentToDb(userId, paymentId)
-
-    //         if (error) {
-    //             console.log(error)
-    //             toast.error("An error occurred while saving the payment.")
-    //             return { error }
-    //         }
-    //     } catch (error) {
-    //         console.error(error)
-    //         toast.error("An error occurred while saving the payment.")
-    //         return { error }
-    //     }
-    // }
-
-    // const saveOrderToDatabase = async (subscriptionData: {
-    //     transaction: {
-    //         orderId: string
-    //         amount: number
-    //     }
-    //     expiryDate: Date
-    //     startDate: Date
-    //     plan: "MONTHLY" | "YEARLY"
-    // }) => {
-    //     try {
-    //         const { error } = await saveOrder(userId, subscriptionData)
-
-    //         if (error) {
-    //             console.log(error)
-    //             toast.error("An error occurred while saving the subscription.")
-    //             return { error }
-    //         }
-    //     } catch (error) {
-    //         console.error(error)
-    //         toast.error("An error occurred while saving the subscription.")
-    //         return { error }
-    //     }
-    // }
-
     if (plan) {
         const selectedPlan = plans.find((p) => p.name === plan)
         if (selectedPlan) {

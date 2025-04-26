@@ -73,6 +73,22 @@ body {
   }
 }
 
+.dotPattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 2px, transparent 1px);
+  background-size: 30px 30px;
+  background-position: 0 0;
+  animation: wavePattern 6s linear infinite;
+}
+
+@keyframes wavePattern {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 60px 60px;
+  }
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

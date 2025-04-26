@@ -2,8 +2,8 @@ import { graphql } from "@/gql";
 
 export const createUserMutation = graphql(`
   #graphql
-  mutation createUser($email: String!, $password: String!, $name: String!, $userName: String!) {
-    createUser(email: $email, password: $password, name: $name, userName: $userName) {
+  mutation createUser($email: String!, $password: String!, $name: String!) {
+    createUser(email: $email, password: $password, name: $name) {
       success
       message
     }

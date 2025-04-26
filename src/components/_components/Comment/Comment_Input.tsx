@@ -6,19 +6,18 @@ import { Button } from "@/components/ui/button"
 import TweetMenu from "@/components/global/TweetMenu"
 import { handleEmojiSelect, handleGifSelect, searchGifs } from "@/components/global/postMenu/handleSelect"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tweet, User } from '@/gql/graphql'
+import {  User } from '@/gql/graphql'
 import { useCreateComment } from '@/hooks/tweets'
 import { getSignedUrlforCommentQuery } from '@/graphql/query/tweet'
 import { apolloClient } from '@/clients/api'
-import { toast } from '@/hooks/use-toast'
 import { useMutation } from '@apollo/client'
 import { deleteMediaMutation } from '@/graphql/mutation/tweet'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Image from 'next/image'
-import { Stringifier } from 'postcss'
 import axios from 'axios'
+import { toast } from 'sonner'
 
 
 const FormSchema = z.object({
@@ -103,10 +102,9 @@ export default function CommentInput({ user, tweetId }: Props) {
             }
         } catch (err) {
             console.log("error",err)
-            toast({
-                variant: "destructive",
-                title: "Failed to reply...",
+            toast.error("Failed to reply...",{
                 description: "Please try again later",
+                duration: 2000
             })
         } finally {
             setPosting(false)
@@ -147,7 +145,7 @@ export default function CommentInput({ user, tweetId }: Props) {
                         setMediaType(file.type.startsWith("image") ? "image" : "video")
                     }
                 } catch (error) {
-                    toast({ variant: "destructive", title: "Upload failed" })
+                    toast.error("Upload failed",{ duration: 2000, description: "Please try again later" })
                 } finally {
                     setMediaUploading(false)
                 }

@@ -7,9 +7,9 @@ import {
   unlikeTweetMutation,
 } from "@/graphql/mutation/tweet";
 import { createNotificationMutation } from "@/graphql/mutation/user";
-import { toast } from "@/hooks/use-toast";
 import { QueryClient } from "@tanstack/react-query";
 import { runTypedMutation } from "./helperFxns";
+import { toast } from "sonner";
 
 export const dislike = async (
   userId: string,
@@ -19,40 +19,38 @@ export const dislike = async (
   queryclient: QueryClient
 ) => {
   if (!userId) {
-    return toast({
-      variant: "destructive",
-      description: "Please login to like the tweet",
+    toast.error("Sorry for the inconvenience. Please try again later", {
+      duration: 1000,
+      description: "Error removing the like",
     });
+    return;
   }
 
-  try {
-    if (!liked) return;
-    setLiked(false);
-    const { data, errors } = await apolloClient.mutate({
-      mutation: unlikeTweetMutation,
-      variables: { tweetId: tweet.id },
+  if (!liked) return;
+  setLiked(false);
+  const { data, errors } = await apolloClient.mutate({
+    mutation: unlikeTweetMutation,
+    variables: { tweetId: tweet.id },
+  });
+  if (!data?.UnlikeTweet || errors) {
+    setLiked(true);
+    toast.error("Sorry for the inconvenience. Please try again later", {
+      duration: 1000,
+      description: "Error removing the like",
     });
-    if (!data?.UnlikeTweet || errors) {
-      setLiked(true);
-      return;
-    }
-    await apolloClient.resetStore();
-    await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-    await queryclient.invalidateQueries({
-      queryKey: ["userTweets", tweet.user.id],
-    });
-    await queryclient.invalidateQueries({
-      queryKey: ["tweet", tweet.id],
-    });
-    await queryclient.invalidateQueries({
-      queryKey: ["bookmarks"],
-    });
-  } catch (error) {
-    toast({
-      variant: "destructive",
-      description: "There was an error. Please try again",
-    });
+    return;
   }
+  await apolloClient.resetStore();
+  await queryclient.invalidateQueries({ queryKey: ["tweets"] });
+  await queryclient.invalidateQueries({
+    queryKey: ["userTweets", tweet.user.id],
+  });
+  await queryclient.invalidateQueries({
+    queryKey: ["tweet", tweet.id],
+  });
+  await queryclient.invalidateQueries({
+    queryKey: ["bookmarks"],
+  });
 };
 
 export const like = async (
@@ -63,50 +61,45 @@ export const like = async (
   queryclient: QueryClient
 ) => {
   if (!userId) {
-    return toast({
-      variant: "destructive",
-      description: "Please login to like the tweet",
+    toast.error("Please login to like the tweet", {
       duration: 1000,
     });
+    return;
   }
-  try {
-    if (liked) return;
+  if (liked) return;
 
-    setLiked(true);
-    const { data, errors } = await apolloClient.mutate({
-      mutation: likeTweetMutation,
-      variables: { tweetId: tweet.id },
-    });
-    if (!data?.LikeTweet || errors) {
-      setLiked(false);
-      return;
-    }
-    await apolloClient.resetStore();
-    await queryclient.invalidateQueries({ queryKey: ["tweets"] });
-    await queryclient.invalidateQueries({
-      queryKey: ["userTweets", tweet.user.id],
-    });
-    await queryclient.invalidateQueries({
-      queryKey: ["bookmarks"],
-    });
-    await queryclient.invalidateQueries({
-      queryKey: ["tweet", tweet.id],
-    });
-
-    runTypedMutation(apolloClient, createNotificationMutation, {
-      payload: {
-        userId: tweet.user.id,
-        tweetId: tweet.id,
-        type: "LIKE",
-      },
-    });
-  } catch (error) {
-    toast({
-      variant: "destructive",
-      description: "There was an error. Please try again",
+  setLiked(true);
+  const { data, errors } = await apolloClient.mutate({
+    mutation: likeTweetMutation,
+    variables: { tweetId: tweet.id },
+  });
+  if (!data?.LikeTweet || errors) {
+    setLiked(false);
+    toast.error("Sorry for the inconvenience. Please try again later", {
       duration: 1000,
+      description: "Error liking the tweet",
     });
+    return;
   }
+  await apolloClient.resetStore();
+  await queryclient.invalidateQueries({ queryKey: ["tweets"] });
+  await queryclient.invalidateQueries({
+    queryKey: ["userTweets", tweet.user.id],
+  });
+  await queryclient.invalidateQueries({
+    queryKey: ["bookmarks"],
+  });
+  await queryclient.invalidateQueries({
+    queryKey: ["tweet", tweet.id],
+  });
+
+  runTypedMutation(apolloClient, createNotificationMutation, {
+    payload: {
+      userId: tweet.user.id,
+      tweetId: tweet.id,
+      type: "LIKE",
+    },
+  });
 };
 
 export const likeComment = async (
@@ -117,40 +110,42 @@ export const likeComment = async (
   liked: boolean,
   queryclient: QueryClient
 ) => {
-  try {
-    if (liked) return;
-    setLiked(true);
-    const { errors } = await apolloClient.mutate({
-      mutation: likeCommentMutation,
-      variables: {
-        commentId: commentId,
-      },
-    });
-    if (errors) {
-      setLiked(false);
-      return;
-    }
-    await apolloClient.resetStore();
-    await queryclient.invalidateQueries({ queryKey: ["comments", tweetId] });
-    queryclient.invalidateQueries({ queryKey: ["tweets"] });
-    await queryclient.invalidateQueries({
-      queryKey: ["bookmarks"],
-    });
-    runTypedMutation(apolloClient, createNotificationMutation, {
-      payload: {
-        userId: userId,
-        type: "LIKE_COMMENT",
-        tweetId: tweetId,
-        commentId: commentId,
-      },
-    });
-  } catch (err) {
-    toast({
-      variant: "destructive",
-      description: "There was an error. Please try again",
+  if (!userId) {
+    toast.error("Please login to like the comment", {
       duration: 1000,
     });
+    return;
   }
+  if (liked) return;
+  setLiked(true);
+  const { errors,data } = await apolloClient.mutate({
+    mutation: likeCommentMutation,
+    variables: {
+      commentId: commentId,
+    },
+  });
+  if (errors || !data?.likeComment) {
+    setLiked(false);
+    toast.error("Sorry for the inconvenience. Please try again", {
+      duration: 1000,
+      description: "Error liking the comment",
+    });
+    return;
+  }
+  await apolloClient.resetStore();
+  await queryclient.invalidateQueries({ queryKey: ["comments", tweetId] });
+  queryclient.invalidateQueries({ queryKey: ["tweets"] });
+  await queryclient.invalidateQueries({
+    queryKey: ["bookmarks"],
+  });
+  runTypedMutation(apolloClient, createNotificationMutation, {
+    payload: {
+      userId: userId,
+      type: "LIKE_COMMENT",
+      tweetId: tweetId,
+      commentId: commentId,
+    },
+  });
 };
 
 export const dislikeComment = async (
@@ -160,17 +155,20 @@ export const dislikeComment = async (
   liked: boolean,
   queryclient: QueryClient
 ) => {
-  try {
     if (!liked) return;
     setLiked(false);
-    const { errors } = await apolloClient.mutate({
+    const { errors , data } = await apolloClient.mutate({
       mutation: unlikeCommentMutation,
       variables: {
         commentId: commentId,
       },
     });
-    if (errors) {
+    if (errors ||!data?.unlikeComment ) {
       setLiked(true);
+      toast.error("Sorry for the inconvenience. Please try again", {
+        duration: 1000,
+        description: "Error removing the like on the comment",
+      });
       return;
     }
     await apolloClient.resetStore();
@@ -179,11 +177,4 @@ export const dislikeComment = async (
     await queryclient.invalidateQueries({
       queryKey: ["bookmarks"],
     });
-  } catch (err) {
-    toast({
-      variant: "destructive",
-      description: "There was an error. Please try again",
-      duration: 1000,
-    });
-  }
 };
