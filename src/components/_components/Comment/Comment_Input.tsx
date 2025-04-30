@@ -176,11 +176,7 @@ export default function CommentInput({ user, tweetId }: Props) {
             <div className="h-10 w-10 rounded-full overflow-hidden">
                 <Avatar className="h-10 w-10 border-2 border-zinc-700 rounded-full overflow-hidden">
                     <AvatarImage
-                        src={
-                            user?.profileImageUrl?.startsWith("/")
-                                ? process.env.NEXT_PUBLIC_CDN_URL + user.profileImageUrl
-                                : user?.profileImageUrl || "/user.png"
-                        }
+                        src={user.profileImageUrl ?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${user.profileImageUrl}` : "/user.png"}
                         alt="Profile"
                         className="object-cover"
                     />

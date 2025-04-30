@@ -8,17 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
-import { FollowUser } from "@/actions/follow_unfollow"
 import { Comment, Notification, Tweet, User } from "@/gql/graphql";
-import { useRouter } from "next/navigation";
 import React from "react";
 
-
-const handleNavigate = (e: React.MouseEvent, path: string) => {
-  
-  e.stopPropagation()
-  useRouter().push(path)
-}
 
 
 export const calculateDestination = (notification: Notification) => {
@@ -121,9 +113,9 @@ export const renderCommentPreview = (comment: Comment ,userLength: number, tweet
   )
 }
 
-export const renderFollowUserCard = (user: User, notifiedUserId: string, loadingButton:boolean,onButtonClick: (e: React.MouseEvent<HTMLButtonElement>)=> void ) => {
+export const renderFollowUserCard = (user: User, notifiedUserId: string, loadingButton:boolean,onButtonClick: (e: React.MouseEvent<HTMLButtonElement>)=> void ,handleNavigate:(e: React.MouseEvent, path: string)=> void) => {
   if (!user) return null
-  if (user.followers?.findIndex((follower) => follower?.id === notifiedUserId) !== -1) return null
+  if (user.followers?.findIndex((follower) => follower === notifiedUserId) !== -1) return null
 
   return (
     <div className="mt-2 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 bg-zinc-50 dark:bg-zinc-900 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800/70">
@@ -133,8 +125,7 @@ export const renderFollowUserCard = (user: User, notifiedUserId: string, loading
           onClick={(e) => handleNavigate(e, `/user/${user.id}`)}
         >
           <Avatar className="h-10 w-10 border border-zinc-200 dark:border-zinc-700">
-            <AvatarImage src={user?.profileImageUrl?.startsWith("/") ? process.env.NEXT_PUBLIC_CDN_URL + user.profileImageUrl : user?.profileImageUrl || "/user.png"} alt={user?.name} />
-
+            <AvatarImage src={user.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${user.profileImageUrl}` : "/user.png"} alt={user?.name} />
             <AvatarFallback className="bg-zinc-200 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200">
               {user.name.substring(0, 2).toUpperCase()}
             </AvatarFallback>
@@ -157,7 +148,7 @@ export const renderFollowUserCard = (user: User, notifiedUserId: string, loading
 }
 
 
-export const getNotificationMessage = (notification: Notification) => {
+export const getNotificationMessage = (notification: Notification,handleNavigate:(e: React.MouseEvent, path: string)=> void) => {
   if (!notification.user || notification.user.length === 0) return ""
 
   const userCount = notification.user.length
@@ -251,9 +242,7 @@ export const getNotificationMessage = (notification: Notification) => {
   }
 }
 
-export const renderUserAvatars = (user: User[],type: string) => {
-  // notification.user
-
+export const renderUserAvatars = (user: User[],type: string,handleNavigate:(e: React.MouseEvent, path: string)=> void) => {
   if (!user || user.length === 0) return null
 
   if (["LIKE", "LIKE_COMMENT", "COMMENT", "FOLLOW"].includes(type)) {
@@ -262,14 +251,13 @@ export const renderUserAvatars = (user: User[],type: string) => {
     return (
       <div className="flex -space-x-3 mb-3">
         {displayUsers.map((user, index) => {
-          console.log(user, index)
           return (
             <Avatar
               key={user?.id || index}
               className="h-8 w-8 border-2 border-white dark:border-black hover:scale-110 transition-transform cursor-pointer"
               onClick={(e) => user?.id && handleNavigate(e, `/user/${user.id}`)}
             >
-              <AvatarImage src={user?.profileImageUrl?.startsWith("/") ? process.env.NEXT_PUBLIC_CDN_URL + user.profileImageUrl : user?.profileImageUrl || "/user.png"} alt={user?.name} />
+              <AvatarImage src={user.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${user.profileImageUrl}` : "/user.png"} alt={user?.name} />
               <AvatarFallback className="bg-zinc-200 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200">
                 {user?.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>

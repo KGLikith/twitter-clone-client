@@ -38,6 +38,10 @@ export function NotificationItem({
     }
   }
 
+  const handleNavigate = async (e: React.MouseEvent, path: string) => {
+    e.stopPropagation()
+    router.push(path) 
+  }
 
   return (
     <div
@@ -49,9 +53,9 @@ export function NotificationItem({
 
         <div className="flex-1">
           {(notification.type === "LIKE" || notification.type === "LIKE_COMMENT" || notification.type === "COMMENT") &&
-            renderUserAvatars(notification.user as User[], notification.type)}
+            renderUserAvatars(notification.user as User[], notification.type, handleNavigate )}
 
-          <div className="font-medium mb-2">{getNotificationMessage(notification)}</div>
+          <div className="font-medium mb-2">{getNotificationMessage(notification, handleNavigate)}</div>
 
           {notification.type === "FOLLOW" &&
             notification.user &&
@@ -59,16 +63,15 @@ export function NotificationItem({
             notification.user[0] &&
             renderFollowUserCard(notification.user[0], notification.notifiedUserId, loadingButton, async(e) => {
               e.stopPropagation()
-              console.log("hello")
               if (notification.user && notification.user[0]) {
-                await FollowUser(notification.user[0].id, setLoadingButton, queryclient)
+                await FollowUser(notification.notifiedUserId,notification.user[0].id, setLoadingButton, queryclient)
               }
               await apolloClient.mutate({
                 mutation: updateNotificatonMutation,
                 variables: { id: notification.id }
               })
               await queryclient.invalidateQueries({ queryKey: ["notifications"] })
-            })
+            }, handleNavigate)
           }
 
           {notification.type === "LIKE" && notification.tweet && renderTweetPreview(notification.tweet.content)}

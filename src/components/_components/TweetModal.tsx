@@ -115,7 +115,6 @@ const TweetModal = () => {
         setMediaUploading(true)
 
         try {
-          console.log(file.type)
           const { data } = await apolloClient.query({
             query: getSignedUrlforTweetQuery,
             variables: {
@@ -164,14 +163,13 @@ const TweetModal = () => {
     setMediaType(null)
   }
 
-
   return (
     <>
       <div className="border border-gray-800 p-2 md:p-4 cursor-pointer hover:bg-[#0a0606] transition-all min-h-fit">
         <div className="grid grid-cols-12 md:gap-2">
           <Avatar className="sm:h-12 sm:w-12 h-10 w-10 border-2 mt-1 col-span-1 border-zinc-700 rounded-full overflow-hidden">
             <AvatarImage
-              src={(user?.profileImageUrl?.startsWith("/") ? process.env.NEXT_PUBLIC_CDN_URL + user.profileImageUrl : user?.profileImageUrl) || "/user.png"}
+              src={user?.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${user?.profileImageUrl}` : "/user.png"}
               alt="Profile"
               className="object-cover"
             />

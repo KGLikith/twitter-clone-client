@@ -63,7 +63,7 @@ const UseFeedCard = () => {
           <Skeleton />
         </>
       )}
-      {!hasNextPage && !isFetchingNextPage && allTweets.length > 0 && (
+      {!hasNextPage && !isFetchingNextPage && allTweets.length > 5 && (
         <div className="text-center text-gray-500 py-6">
           You’ve reached the end of the feed!
         </div>

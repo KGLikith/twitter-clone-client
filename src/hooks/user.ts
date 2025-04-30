@@ -1,6 +1,14 @@
 "use client";
 import { apolloClient } from "@/clients/api";
-import { getUserByIdQuery, getCurrentUserQuery, getNotificationsQuery, getUserBookmarksQuery } from "@/graphql/query/user";
+import {
+  getUserByIdQuery,
+  getCurrentUserQuery,
+  getNotificationsQuery,
+  getUserBookmarksQuery,
+  getUserFollowersQuery,
+  getUserFollowingQuery,
+  getRecommendedUsersQuery,
+} from "@/graphql/query/user";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 export const useCurrentUser = () => {
@@ -45,7 +53,7 @@ export const useGetNotifications = () => {
     queryFn: async () => {
       try {
         const { data } = await apolloClient.query({
-          query: getNotificationsQuery
+          query: getNotificationsQuery,
         });
         return data;
       } catch (error) {
@@ -55,22 +63,68 @@ export const useGetNotifications = () => {
     },
   });
   return { ...query, notifications: query.data?.getNotifications };
-}
+};
 
 export const usePaginatedBookmarks = () => {
   return useInfiniteQuery({
     queryKey: ["bookmarks"],
-    queryFn: async ({pageParam=null }:{
-      pageParam?: string | null
-    }) => {
-        const { data } = await apolloClient.query({
-          query: getUserBookmarksQuery,
-          variables: { cursor: pageParam, limit: 10 },
-          fetchPolicy: "network-only"
-        });
-        return data.getUserBookmarks;
+    queryFn: async ({ pageParam = null }: { pageParam?: string | null }) => {
+      const { data } = await apolloClient.query({
+        query: getUserBookmarksQuery,
+        variables: { cursor: pageParam, limit: 10 },
+        fetchPolicy: "network-only",
+      });
+      return data.getUserBookmarks;
     },
     initialPageParam: null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined
-  })
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
+};
+
+export const useGetFollowers = (id: string) => {
+  return useInfiniteQuery({
+    queryKey: ["followers", id],
+    queryFn: async ({ pageParam = null }: { pageParam?: string | null }) => {
+      const { data } = await apolloClient.query({
+        query: getUserFollowersQuery,
+        variables: { id, cursor: pageParam, limit: 10 },
+        fetchPolicy: "network-only",
+      });
+      return data.getUserFollowers
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
+};
+
+export const useGetFollowing = (id: string) => {
+  return useInfiniteQuery({
+    queryKey: ["following", id],
+    queryFn: async ({ pageParam = null }: { pageParam?: string | null }) => {
+      const { data } = await apolloClient.query({
+        query: getUserFollowingQuery,
+        variables: { id, cursor: pageParam, limit: 10 },
+        fetchPolicy: "network-only",
+      });
+      return data.getUserFollowing;
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
+};
+
+export const useGetRecommendedUsers = () => {
+  return useInfiniteQuery({
+    queryKey: ["recommendedUsers"],
+    queryFn: async ({ pageParam = null }: { pageParam?: string | null }) => {
+      const { data } = await apolloClient.query({
+        query: getRecommendedUsersQuery,
+        variables: { cursor: pageParam, limit: 10 },
+        fetchPolicy: "network-only",
+      });
+      return data.getRecommendedUsers;
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  });
 }

@@ -87,7 +87,7 @@ const Badge = () => {
           <DropdownMenuTrigger className="w-full focus-visible:outline-none">
             <div className="flex items-center hover:bg-gray-900 border-2 border-zinc-800 cursor-pointer transition-all w-full text-center rounded-full p-2 justify-center md:justify-start md:gap-2 md:px-3 md:py-3">
               <Avatar className="h-8 w-8 border-2 border-zinc-200 ">
-                <AvatarImage src={user?.profileImageUrl?.startsWith("/") ? process.env.NEXT_PUBLIC_CDN_URL + user.profileImageUrl : user?.profileImageUrl || "/user.png"}
+                <AvatarImage src={user.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${user.profileImageUrl}` : "/user.png"}
                 />
                 <AvatarFallback className="bg-orange-500/20 text-orange-500">
                   {user.name?.charAt(0)}

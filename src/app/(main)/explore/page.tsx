@@ -13,7 +13,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { debounce } from "@/utils/debounce"
 
-// Mock data - replace with actual API calls
 const TRENDING_TOPICS = [
   { id: 1, name: "#JavaScript", count: "125K", category: "Technology" },
   { id: 2, name: "#ReactJS", count: "89K", category: "Programming" },
@@ -70,15 +69,10 @@ const MOCK_USERS = [
   },
 ]
 
-// Mock recent searches
 const RECENT_SEARCHES = ["javascript tutorial", "#WebDevelopment", "react hooks"]
 
 const CATEGORIES = [
   { id: "for-you", name: "For You" },
-  { id: "trending", name: "Trending" },
-  { id: "news", name: "News" },
-  { id: "sports", name: "Sports" },
-  { id: "entertainment", name: "Entertainment" },
 ]
 
 export default function ExplorePage() {
@@ -129,7 +123,6 @@ export default function ExplorePage() {
   useEffect(() => {
     updateSearchPreview(searchQuery)
 
-    // Cleanup function
     return () => {
       updateSearchPreview.cancel()
     }
@@ -206,10 +199,8 @@ export default function ExplorePage() {
               )}
             </form>
 
-            {/* Search Dropdown */}
             {showSearchDropdown && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-gray-800 rounded-lg shadow-lg overflow-hidden max-h-[80vh] overflow-y-auto z-20">
-                {/* Recent searches */}
                 {searchQuery === "" && RECENT_SEARCHES.length > 0 && (
                   <div className="p-2">
                     <h3 className="text-sm text-gray-500 px-3 py-1">Recent</h3>
@@ -229,10 +220,8 @@ export default function ExplorePage() {
                   </div>
                 )}
 
-                {/* Search suggestions */}
                 {searchQuery && (
                   <>
-                    {/* Top search terms */}
                     <div className="border-b border-gray-800">
                       {[searchQuery, `#${searchQuery.toUpperCase()}`, searchQuery.toLowerCase()].map((term, index) => (
                         <button
@@ -249,7 +238,6 @@ export default function ExplorePage() {
                       ))}
                     </div>
 
-                    {/* User results */}
                     {filteredUsers.length > 0 && (
                       <div className="border-b border-gray-800">
                         {filteredUsers.slice(0, 5).map((user) => (
@@ -257,7 +245,7 @@ export default function ExplorePage() {
                             <div className="flex items-center justify-between px-3 py-3 hover:bg-gray-900">
                               <div className="flex items-center">
                                 <Avatar className="h-10 w-10 mr-3">
-                                  <AvatarImage src={user.profileImageUrl || "/placeholder.svg"} alt={user.name} />
+                                  <AvatarImage src={user.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${user.profileImageUrl}` : "/user.png"} alt={user.name} />
                                   <AvatarFallback className="bg-gray-800">{user.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div>

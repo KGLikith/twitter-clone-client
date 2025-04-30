@@ -95,9 +95,9 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
     }
   }
 
-  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => { }, queryClient), [tweet])
+  const handleUnfollowUser = useCallback(async () => await UnFollowUser(user.id,(tweet as Tweet).user.id, () => { }, queryClient), [tweet])
 
-  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user.id, () => { }, queryClient), [tweet])
+  const handleFollowUser = useCallback(async () => await FollowUser(user.id,(tweet as Tweet).user.id, () => { }, queryClient), [tweet])
 
   const handleAnimationEnd = () => {
     setIsLikeAnimating(false)
@@ -135,14 +135,10 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
               <div className="col-span-1  ">
                 <Avatar className="h-8 w-8 border-2 border-zinc-700 rounded-full overflow-hidden">
                   <AvatarImage
-                    src={tweet.user?.profileImageUrl?.startsWith("/") ? process.env.NEXT_PUBLIC_CDN_URL + tweet.user.profileImageUrl : tweet.user?.profileImageUrl || "/user.png"}
-
+                    src={tweet.user.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${tweet.user.profileImageUrl}` : "/user.png"}
                     alt="Profile"
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-zinc-800 text-zinc-400 text-xl flex items-center justify-center">
-                    {tweet.user?.userName?.slice(1)[0]}
-                  </AvatarFallback>
                 </Avatar>
               </div>
             </Link>
@@ -195,7 +191,7 @@ const FeedCard: React.FC<FeedCardProps> = ({ tweet, user }) => {
                           </DropdownMenuItem>
                         ) : (
                           <>
-                            {user?.following?.findIndex((el) => el?.id === tweet.user.id) !== -1 ? (
+                            {user?.following?.findIndex((el) => el === tweet.user.id) !== -1 ? (
                               <DropdownMenuItem
                                 className="flex justify-between items-center px-4 hover:bg-gray-900"
                                 onClick={handleUnfollowUser}

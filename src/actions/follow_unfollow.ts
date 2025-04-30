@@ -10,6 +10,7 @@ import { runTypedMutation } from "./helperFxns";
 import { toast } from "sonner";
 
 export const FollowUser = async (
+  currentUserId: string,
   userId: string,
   setButtonLoading: (loading: boolean) => void,
   queryclient: QueryClient
@@ -29,34 +30,32 @@ export const FollowUser = async (
     return;
   }
   await apolloClient.resetStore();
-  await queryclient.invalidateQueries({
-    queryKey: ["currentUserById", userId],
-  });
   await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+  await queryclient.invalidateQueries({ queryKey: ["followers", userId] });
+  await queryclient.invalidateQueries({ queryKey: ["following", currentUserId] });
+  await queryclient.invalidateQueries({ queryKey: ["recommendedUsers"] });
+
   runTypedMutation(apolloClient, createNotificationMutation, {
     payload: {
       userId: userId,
       type: "FOLLOW",
     },
   });
-  toast.success("Followed successfully successfully", {
-    duration: 1000,
-  });
   setButtonLoading(false);
 };
 
 export const UnFollowUser = async (
-  user: User | undefined,
+  from: string,
+  to: string,
   setButtonLoading: (loading: boolean) => void,
   queryclient: QueryClient
 ) => {
   setButtonLoading(true);
-  if (!user?.id) return;
+  if (!to || !from) return;
   const { data } = await apolloClient.mutate({
     mutation: unfollowUserMutation,
-    variables: { to: user?.id },
+    variables: { from: from,to: to },
   });
-
   if (!data?.unfollowUser) {
     toast.error("Sorry for the inconvenience. Please try again", {
       duration: 2000,
@@ -67,13 +66,10 @@ export const UnFollowUser = async (
   }
 
   await apolloClient.resetStore();
-  await queryclient.invalidateQueries({
-    queryKey: ["currentUserById", user.id],
-  });
-  await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
 
-  toast.success("Unfollowed successfully", {
-    duration: 1000,
-  });
+  await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+  await queryclient.invalidateQueries({ queryKey: ["followers", to] });
+  await queryclient.invalidateQueries({ queryKey: ["following", from] });
+  await queryclient.invalidateQueries({ queryKey: ["recommendedUsers"] });
   setButtonLoading(false);
 };

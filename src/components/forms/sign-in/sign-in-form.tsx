@@ -10,7 +10,6 @@ import { signIn } from 'next-auth/react'
 import { apolloClient } from '@/clients/api'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 
 function SignInDetailForm() {
     const {
@@ -21,7 +20,6 @@ function SignInDetailForm() {
 
     const handleGoogleSignIn = async () => {
         try {
-            //WIP: Not properly implemented yet
             await signIn("google", { callbackUrl: "/" })
             await apolloClient.resetStore();
             await queryclient.invalidateQueries({ queryKey: ["currentUser"] });

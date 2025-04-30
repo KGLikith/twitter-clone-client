@@ -90,12 +90,10 @@ export default function UserSettingsForm({ user, onSave }: UserSettingsFormProps
                 },
             })
             const { getSignedUrlForUser } = data
-            console.log(getSignedUrlForUser)
             if (!getSignedUrlForUser) {
                 throw new Error("Failed to get signed URL")
             }
 
-            // Upload the image to the signed URL
             await axios.put(getSignedUrlForUser, profileImage, {
                 headers: {
                     "Content-Type": profileImage.type,

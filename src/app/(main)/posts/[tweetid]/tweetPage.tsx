@@ -29,6 +29,7 @@ import CommentInput from "@/components/_components/Comment/Comment_Input"
 import { bookmark, unBookmark } from "@/actions/bookmarks"
 import Skel from "@/components/global/Skeleton/Skeleton"
 import { toast } from "sonner"
+import { formatTweetContent } from "@/components/global/postMenu/handleSelect"
 
 const TweetPage = ({
   isFetchingNextPage,
@@ -85,9 +86,9 @@ const TweetPage = ({
     }
   }
   const tweetUser = (tweet as Tweet)?.user
-  const handleUnfollowUser = useCallback(async () => await UnFollowUser((tweet as Tweet).user, () => { }, queryclient), [tweetUser])
+  const handleUnfollowUser = useCallback(async () => await UnFollowUser(user.id,(tweet as Tweet).user.id, () => { }, queryclient), [tweetUser])
 
-  const handleFollowUser = useCallback(async () => await FollowUser((tweet as Tweet).user.id, () => { }, queryclient), [tweetUser])
+  const handleFollowUser = useCallback(async () => await FollowUser(user.id,(tweet as Tweet).user.id, () => { }, queryclient), [tweetUser])
   const handleAnimationEnd = () => {
     setIsLikeAnimating(false)
     setIsBookmarkAnimating(false)
@@ -118,11 +119,7 @@ const TweetPage = ({
           <Link href={`/user/${tweet.user.id}`} className="flex items-center">
             <Avatar className="h-10 w-10 border-2 border-zinc-700 rounded-full overflow-hidden">
               <AvatarImage
-                src={
-                  tweet.user?.profileImageUrl?.startsWith("/")
-                    ? process.env.NEXT_PUBLIC_CDN_URL + tweet.user.profileImageUrl
-                    : tweet.user?.profileImageUrl || "/user.png"
-                }
+                src={tweet.user.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${tweet.user.profileImageUrl}` : "/user.png"}
                 alt="Profile"
                 className="object-cover"
               />
@@ -171,7 +168,7 @@ const TweetPage = ({
                     </DropdownMenuItem>
                   ) : (
                     <>
-                      {user?.following?.findIndex((el) => el?.id === tweet.user.id) !== -1 ? (
+                      {user?.following?.findIndex((el) => el === tweet.user.id) !== -1 ? (
                         <DropdownMenuItem
                           className="flex justify-between items-center px-4 hover:bg-gray-900"
                           onClick={handleUnfollowUser}
@@ -195,8 +192,11 @@ const TweetPage = ({
             </DropdownMenu>
           </div>
         </div>
-        <div className="flex flex-col gap-2 mb-3">
-          <p className="text-md mx-3 mt-4 mb-2">{tweet.content}</p>
+        <div className="flex flex-col gap-2 mb-3 mt-3">
+          <div
+            className="break-words whitespace-pre-wrap text-base text-zinc-300 font-sans"
+            dangerouslySetInnerHTML={{ __html: formatTweetContent(tweet.content) }}
+          />
           {tweet.mediaUrl && tweet.mediaType === "image" && (
             <div className="relative w-full">
               <div className="group relative w-fit">

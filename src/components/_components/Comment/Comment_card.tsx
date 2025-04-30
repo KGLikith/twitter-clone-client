@@ -56,12 +56,12 @@ const CommentFile = ({
   }, [comment, user]);
 
   const handleUnfollowUser = useCallback(
-    async () => await UnFollowUser(comment.user, () => { }, queryclient),
+    async () => await UnFollowUser(user.id,comment.user.id, () => { }, queryclient),
     [comment.user]
   );
 
   const handleFollowUser = useCallback(
-    async () => await FollowUser(comment.user.id, () => { }, queryclient),
+    async () => await FollowUser(user.id,comment.user.id, () => { }, queryclient),
     [comment.user]
   );
 
@@ -98,11 +98,7 @@ const CommentFile = ({
             <div className="col-span-1  ">
               <Avatar className="h-8 w-8 border-2 border-zinc-700 rounded-full overflow-hidden">
                 <AvatarImage
-                  src={
-                    comment.user?.profileImageUrl?.startsWith("/")
-                      ? process.env.NEXT_PUBLIC_CDN_URL + comment.user.profileImageUrl
-                      : comment.user?.profileImageUrl || "/user.png"
-                  }
+                  src={comment.user.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${comment.user.profileImageUrl}` : "/user.png"}
                   alt="Profile"
                   className="object-cover"
                 />
@@ -158,7 +154,7 @@ const CommentFile = ({
                           ) : (
                             <>
                               {user?.following?.findIndex(
-                                (el) => el?.id === comment.user.id
+                                (el) => el === comment.user.id
                               ) !== -1 ? (
                                 <DropdownMenuItem
                                   className="flex justify-between items-center px-4 hover:bg-gray-900"

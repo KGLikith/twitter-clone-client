@@ -148,7 +148,7 @@ const Sidebar = () => {
               type="button"
               variant="destructive"
               onClick={() => router.push('/auth/sign-up')}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-orange-600 hover:bg-orange-700"
             >
               Sign Up
             </Button>

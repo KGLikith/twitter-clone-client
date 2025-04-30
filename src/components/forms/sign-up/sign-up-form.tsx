@@ -44,7 +44,7 @@ function SignUpForm() {
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={()=> handleGoogleSignIn(queryclient)}
+                    onClick={() => handleGoogleSignIn(queryclient)}
                     className="w-full flex items-center justify-center gap-2 border border-gray-300 bg-white hover:text-gray-900 text-black hover:bg-gray-100"
                 >
                     <FcGoogle className="h-5 w-5" />

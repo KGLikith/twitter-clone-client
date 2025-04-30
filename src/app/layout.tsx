@@ -24,7 +24,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}  >
-        <GoogleOAuthProvider clientId={process.env.GOOGLE_ID || ""}>
           <SessionProvider>
             <ProviderApollo>
               <ThemeProvider
@@ -40,7 +39,6 @@ export default function RootLayout({
               </ThemeProvider>
             </ProviderApollo>
           </SessionProvider>
-        </GoogleOAuthProvider>
       </body>
     </html>
   );

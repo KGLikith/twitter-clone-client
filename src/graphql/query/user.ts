@@ -51,19 +51,8 @@ export const getCurrentUserQuery = graphql(`
         comments
         follows
       }
-      recommendedUsers {
-        id
-        email
-        name
-        userName
-        profileImageUrl
-      }
-      followers {
-        id
-      }
-      following {
-        id
-      }
+      followers 
+      following 
       bookmark {
         id
         bookmarks {
@@ -90,20 +79,8 @@ export const getUserByIdQuery = graphql(`
       location
       website
       createdAt
-      followers {
-        id
-        profileImageUrl
-        name
-        userName
-        bio
-      }
-      following {
-        id
-        profileImageUrl
-        name
-        userName
-        bio
-      }
+      followers
+      following
     }
   }
 `);
@@ -132,9 +109,8 @@ export const getNotificationsQuery = graphql(`
         name
         profileImageUrl
         userName
-        followers {
-          id
-        }
+        followers
+        following
       }
       tweet {
         id
@@ -193,6 +169,62 @@ export const getUserBookmarksQuery = graphql(`
             }
           }
         }
+      }
+      nextCursor
+    }
+  }
+`);
+
+
+export const getRecommendedUsersQuery = graphql(`
+  #graphql
+  query getRecommendedUsers($cursor: String, $limit: Int) {
+    getRecommendedUsers(cursor: $cursor, limit: $limit) {
+      users {
+        id
+        name
+        userName
+        bio
+        profileImageUrl
+        followers
+        following
+      }
+      nextCursor
+    }
+  }
+`);
+
+export const getUserFollowersQuery = graphql(`
+  #graphql
+  query getUserFollowers($id: ID!, $cursor: String, $limit: Int) {
+    getUserFollowers(id: $id, cursor: $cursor, limit: $limit) {
+      users {
+        id
+        name
+        userName
+        bio
+        profileImageUrl
+        followers
+        following
+      }
+      nextCursor
+    }
+  }
+`);
+
+
+export const getUserFollowingQuery = graphql(`
+  #graphql
+  query getUserFollowing($id: ID!, $cursor: String, $limit: Int) {
+    getUserFollowing(id: $id, cursor: $cursor, limit: $limit) {
+      users {
+        id
+        name
+        userName
+        bio
+        profileImageUrl
+        followers
+        following
       }
       nextCursor
     }
