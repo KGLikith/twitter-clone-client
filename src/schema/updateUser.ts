@@ -9,7 +9,9 @@ export const formSchema = z.object({
   }),
   email: z.string().email(),
   location: z.string().optional(),
-  bio: z.string().optional(),
+  bio: z.string().max(20, {
+    message: "Bio must be at most 20 characters.",
+  }).optional(),
   website: z.string().url().optional().or(z.literal("")),
   notificationPreference: z.object({
     likes: z.boolean(),

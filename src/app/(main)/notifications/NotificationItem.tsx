@@ -35,6 +35,7 @@ export function NotificationItem({
       })
       await apolloClient.resetStore();
       await queryclient.invalidateQueries({ queryKey: ["notifications"] })
+      await queryclient.invalidateQueries({ queryKey: ["currentUser"] })
     }
   }
 
@@ -52,7 +53,7 @@ export function NotificationItem({
         <div className="flex-shrink-0 text-zinc-800 dark:text-zinc-200">{getNotificationIcon(notification.type)}</div>
 
         <div className="flex-1">
-          {(notification.type === "LIKE" || notification.type === "LIKE_COMMENT" || notification.type === "COMMENT") &&
+          {(notification.type === "LIKE" || notification.type === "LIKE_COMMENT" || notification.type === "COMMENT" || ((notification.user ?? []).length > 1 && notification.type === "FOLLOW")) &&
             renderUserAvatars(notification.user as User[], notification.type, handleNavigate )}
 
           <div className="font-medium mb-2">{getNotificationMessage(notification, handleNavigate)}</div>

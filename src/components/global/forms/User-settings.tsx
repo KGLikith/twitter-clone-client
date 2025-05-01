@@ -15,8 +15,6 @@ import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { formSchema } from "@/schema/updateUser"
-import { Camera, Upload } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { apolloClient } from "@/clients/api"
 import { getSignedUrlForUserQuery } from "@/graphql/query/user"
 import axios from "axios"
@@ -253,6 +251,7 @@ export default function UserSettingsForm({ user, onSave }: UserSettingsFormProps
                                             <FormControl>
                                                 <Textarea
                                                     {...field}
+                                                    rows={1}
                                                     className="bg-zinc-950 border-zinc-700 text-zinc-50 min-h-[100px]  focus:ring-orange-600/20"
                                                     placeholder="Tell us about yourself"
                                                 />

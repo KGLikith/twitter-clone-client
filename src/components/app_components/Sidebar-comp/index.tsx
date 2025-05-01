@@ -19,16 +19,29 @@ import {
 import { Button } from "@/components/ui/button"
 import SideabrSkel from "@/components/global/Skeleton/SidebarSkel"
 import { useSession } from "next-auth/react"
+import { apolloClient } from "@/clients/api"
+import { useQueryClient } from "@tanstack/react-query"
+
+type MenuItemProps = {
+  title: string;
+  href: string;
+  icon: React.ReactNode;
+  activeColor: string;
+  hoverColor: string;
+  textColor: string;
+  notifications?: number; // ✅ add this
+};
 
 const Sidebar = () => {
   const { user: currentUser, isLoading } = useCurrentUser();
   const [user, setUser] = useState(currentUser);
   const pathName = usePathname()
   const [isMobile, setIsMobile] = useState(true)
-  const [menuItems, setMenu] = useState(loggedOutmenuItems)
+  const [menuItems, setMenu] = useState<MenuItemProps[]>(loggedOutmenuItems)
   const [dialog, setDialog] = useState(false)
   const router = useRouter();
   const { data: session } = useSession()
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     if (currentUser !== undefined) {
@@ -36,17 +49,38 @@ const Sidebar = () => {
     }
   }, [currentUser]);
 
+  const invalidateQueries = async () => {
+    try {
+      await apolloClient.resetStore();
+      await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    } catch (error) {
+      console.error("Failed to invalidate queries:", error);
+      return Promise.reject(error);
+    }
+  }
   useEffect(() => {
     if (user || session?.user) {
       setDialog(false)
-    }else if (!isLoading && !user) {
+    } else if (!isLoading && !user) {
       setDialog(true)
+    }
+    if ((session?.user && !user && !isLoading) || (user && !session?.user)) {
+      invalidateQueries();
     }
   }, [user, session, isLoading])
 
   useEffect(() => {
     if (user || session?.user) {
-      setMenu(LoggedInmenuItems)
+      const updatedMenu = LoggedInmenuItems.map((item) => {
+        if (item.title.toLowerCase() === "notifications") {
+          return {
+            ...item,
+            notifications: user?.notificationCount ?? 0,
+          };
+        }
+        return item;
+      });
+      setMenu(updatedMenu);
     } else {
       setMenu(loggedOutmenuItems)
     }
@@ -66,9 +100,9 @@ const Sidebar = () => {
   }, [])
 
   if (isLoading) return <>
-  <div className="w-full sm:min-w-[250px] h-full flex  justify-center">
-    <SideabrSkel />
-  </div>
+    <div className="w-full sm:min-w-[250px] h-full flex  justify-center">
+      <SideabrSkel />
+    </div>
   </>
 
   return (
@@ -85,7 +119,6 @@ const Sidebar = () => {
             isMobile ? "w-full" : " top-0 left-0 right-0",
           )}
         >
-          {/* Logo placeholder */}
           {!isMobile && <span className="text-white font-bold">AppName</span>}
         </div>
 
@@ -93,19 +126,23 @@ const Sidebar = () => {
 
         <nav className="w-full">
           <ul>
-            {menuItems.map((item) => (
-              <SidebarItem
-                href={user ? item.href == '/profile' ? `/user/${user.id}` : item.href : (item.href === "/" ? '/' : '/not_authorised')}
-                icon={item.icon}
-                selected={pathName === item.href}
-                title={item.title}
-                key={item.title}
-                activeColor={item.activeColor}
-                hoverColor={item.hoverColor}
-                textColor={item.textColor}
-                isMobile={isMobile}
-              />
-            ))}
+            {menuItems.map((item) => {
+              console.log("item", item)
+              return (
+                <SidebarItem
+                  href={user ? (item.href == '/profile' ? `/user/${user.id}` : item.href) : (item.href)}
+                  icon={item.icon}
+                  selected={pathName === item.href}
+                  title={item.title}
+                  key={item.title}
+                  notifications={item.notifications ?? 0}
+                  activeColor={item.activeColor}
+                  hoverColor={item.hoverColor}
+                  textColor={item.textColor}
+                  isMobile={isMobile}
+                />
+              )
+            })}
           </ul>
         </nav>
 

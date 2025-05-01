@@ -244,7 +244,6 @@ export const getNotificationMessage = (notification: Notification,handleNavigate
 
 export const renderUserAvatars = (user: User[],type: string,handleNavigate:(e: React.MouseEvent, path: string)=> void) => {
   if (!user || user.length === 0) return null
-
   if (["LIKE", "LIKE_COMMENT", "COMMENT", "FOLLOW"].includes(type)) {
     const displayUsers = user.slice(0, 5)
 
@@ -257,7 +256,7 @@ export const renderUserAvatars = (user: User[],type: string,handleNavigate:(e: R
               className="h-8 w-8 border-2 border-white dark:border-black hover:scale-110 transition-transform cursor-pointer"
               onClick={(e) => user?.id && handleNavigate(e, `/user/${user.id}`)}
             >
-              <AvatarImage src={user.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${user.profileImageUrl}` : "/user.png"} alt={user?.name} />
+              <AvatarImage className="object-cover" src={user.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${user.profileImageUrl}` : "/user.png"} alt={user?.name} />
               <AvatarFallback className="bg-zinc-200 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200">
                 {user?.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>

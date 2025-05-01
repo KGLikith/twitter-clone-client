@@ -8,11 +8,13 @@ import NotificationPage from "./NotificationPage"
 import { apolloClient } from "@/clients/api"
 import { updateAllNotificationsMutation } from "@/graphql/mutation/user"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 
 const Page = () => {
   const { user, isLoading } = useCurrentUser()
-  const { notifications, isLoading: notificationLoading,refetch } = useGetNotifications()
+  const { notifications, isLoading: notificationLoading, refetch } = useGetNotifications()
   const [notific, setNotific] = useState<Notification[]>([])
+  const queryclient = useQueryClient();
 
   useEffect(() => {
     if (notifications) {
@@ -26,6 +28,7 @@ const Page = () => {
         mutation: updateAllNotificationsMutation
       })
       await apolloClient.resetStore();
+      await queryclient.invalidateQueries({ queryKey: ["currentUser"] })
       refetch();
       toast.success("Notifications cleared successfully", {
         duration: 1000,

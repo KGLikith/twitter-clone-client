@@ -48,6 +48,7 @@ export const LoggedInmenuItems = [
     title: "Notifications",
     href: `/notifications`,
     icon: <Bell className="h-5 w-5 text-orange-400 group-hover:text-orange-300  group-hover:stroke-orange-400" />,
+    notifications: 0,
     activeColor: "bg-orange-500/10",
     hoverColor: "bg-orange-500/5",
     textColor: "text-gray-200 group-hover:text-orange-300",

@@ -8,7 +8,6 @@ const createApolloClient = () => {
   });
   const authLink = setContext(() => {
     const token = window.localStorage.getItem("__twitter_token");
-    console.log(" apollo client",token)
     return {
       headers: {
         authorization: token ? `Bearer ${token}` : "",

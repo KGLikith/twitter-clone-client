@@ -8,15 +8,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { FcGoogle } from "react-icons/fc";
 import Skel from "../global/Skeleton/Skeleton";
-import RecommendedUsers from "@/components/_components/RecommendedUsers";
-import { Button } from "@/components/ui/button"; // Assuming shadcn/ui Button
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Button } from "@/components/ui/button";
+import RecommendedUsers from "../_components/RecommenedUsers";
+import { signIn } from "next-auth/react";
+import { apolloClient } from "@/clients/api";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Login = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
   const { user: currentUser } = useCurrentUser();
   const { data } = useGetRecommendedUsers();
+  const queryclient = useQueryClient();
 
   const recommendedUsers = data?.pages.flatMap((page) => page.users) ?? [];
 
@@ -27,9 +30,18 @@ const Login = () => {
     }
   }, [currentUser]);
 
-  const handleGoogleSignIn = useCallback(async () => {
-    toast.info("Google Sign-In not wired yet", { duration: 2000 });
-  }, []);
+  const handleGoogleSignIn = async () => {
+    try {
+      await signIn("google", { callbackUrl: "/" })
+      await apolloClient.resetStore();
+      await queryclient.invalidateQueries({ queryKey: ["currentUser"] });
+    } catch (err) {
+      toast.error("Google Sign In Failed", {
+        duration: 2000,
+      });
+      console.log("Google Sign In Error", err)
+    }
+  }
 
   if (loading) {
     return (
@@ -56,7 +68,6 @@ const Login = () => {
             Continue with Google
           </Button>
 
-          {/* Divider text */}
           <p className="text-center text-xs text-gray-500">
             Don't want to use Google?{" "}
             <Link
@@ -67,7 +78,6 @@ const Login = () => {
             </Link>
           </p>
 
-          {/* Already have an account */}
           <p className="text-center text-xs text-gray-500">
             Already have an account?{" "}
             <Link

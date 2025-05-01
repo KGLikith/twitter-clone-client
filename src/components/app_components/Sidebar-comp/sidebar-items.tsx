@@ -85,16 +85,17 @@ const SidebarItem = ({
       {icon}
       {!isMobile && <span className={cn(textColor, isActive && "!text-orange-400 font-medium")}>{title}</span>}
       {!isMobile && isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500"></div>}
-      {notifications && notifications > 0 && (
+      {typeof notifications === "number" && notifications > 0 && (
         <div
           className={cn(
-            "flex items-center justify-center bg-orange-500 text-white rounded-full text-xs font-medium",
+            "flex items-center justify-center bg-orange-500 text-white rounded-full text-xs font-medium px-1",
             isMobile ? "absolute -top-1 -right-1 min-w-5 h-5" : "ml-auto min-w-5 h-5",
           )}
         >
-          {notifications}
+          {notifications > 9 ? "9+" : notifications}
         </div>
       )}
+
     </>
   )
 

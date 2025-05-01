@@ -1,21 +1,13 @@
 "use client";
 import { User } from "@/gql/graphql";
 
-import React, { useState } from "react";
-import { Button } from "../ui/button";
-import { FollowUser } from "@/actions/follow_unfollow";
-import { Loader2 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import React from "react";
 import Link from "next/link";
-import { Avatar, AvatarImage } from "../ui/avatar";
+import FollowButton from "./follow_button";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 const RecommendedUsers = ({  currentUser, recommendedUsers }: {  currentUser: User, recommendedUsers: User[] }) => {
-  const queryclient = useQueryClient();
-  const [LoadingButton, setLoadingButton] = useState(false);
-  const handleFollowUser = async (userId: string) => {
-    await FollowUser(currentUser.id, userId, setLoadingButton, queryclient);
-    queryclient.invalidateQueries({ queryKey: ["currentUserById", currentUser.id] });
-  }
+  
   return (
     <>
       {recommendedUsers && (
@@ -49,27 +41,7 @@ const RecommendedUsers = ({  currentUser, recommendedUsers }: {  currentUser: Us
                       @{rec_user?.userName}
                     </h3>
                   </div>
-                  <div>
-                    {LoadingButton ? (
-                      <Button
-                        disabled
-                        variant={"ghost"}
-                        className="rounded-full font-bold px-4 py-1 flex justify-center items-center"
-                      >
-                        <Loader2 className=" h-4 w-4 animate-spin text-center" />
-                      </Button>
-                    ) : (
-                      <div>
-                        <Button
-                          variant={"ghost"}
-                          className="rounded-full font-bold px-4"
-                          onClick={()=> handleFollowUser(rec_user.id) }
-                        >
-                          Follow
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  <FollowButton rec_userId={rec_user.id} currentUserId={currentUser.id} />
                 </div>
               </div>
             ))}
