@@ -19,7 +19,7 @@ const RecommendedUsers = ({  currentUser, recommendedUsers }: {  currentUser: Us
             {recommendedUsers.map((rec_user) => (
               <div
                 key={rec_user?.id}
-                className="flex gap-2 py-1 md:px-3 items-center cursor-pointer transition-all w-full rounded-full"
+                className="flex gap-2 py-1 md:px-3 items-center cursor-pointer transition-all w-full rounded-full hover:bg-zinc-900"
               >
                 <Link href={`/${rec_user?.id}`}>
                   <Avatar className="h-8 w-8 border-2 border-zinc-700 rounded-full overflow-hidden">
@@ -46,7 +46,7 @@ const RecommendedUsers = ({  currentUser, recommendedUsers }: {  currentUser: Us
               </div>
             ))}
             {recommendedUsers.length === 0 && (
-              <div className="flex justify-center items-center text-gray-400 text-sm">
+              <div className="flex justify-center items-center text-gray-400 text-sm my-4">
                 Sorry, we don't have any recommendations for you yet.
               </div>
             )}

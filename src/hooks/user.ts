@@ -8,6 +8,7 @@ import {
   getUserFollowersQuery,
   getUserFollowingQuery,
   getRecommendedUsersQuery,
+  getSubscriptionQuery,
 } from "@/graphql/query/user";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
@@ -127,4 +128,23 @@ export const useGetRecommendedUsers = () => {
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
+}
+
+export const useGetSubscription = ()=>{
+  const query = useQuery({
+    queryKey: ["subscription"],
+    queryFn: async () => {
+      try {
+        const { data } = await apolloClient.query({
+          query: getSubscriptionQuery,
+        });
+        console.log(data)
+        return data;
+      } catch (error) {
+        return null;
+      }
+    },
+    refetchInterval: 6000
+  })
+  return { ...query, subscription: query.data?.getSubscription };
 }

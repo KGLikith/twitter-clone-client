@@ -3,10 +3,12 @@ import { graphql } from "../../gql";
 export const verifyUserGoogleTokenQuery = graphql(`
   #graphql
   query verifyUserGoogleToken($token: String!) {
-    verifyGoogleToken(token: $token){
+    verifyGoogleToken(token: $token) {
       token
       id
       email
+      name 
+      profileImageUrl
     }
   }
 `);
@@ -14,10 +16,12 @@ export const verifyUserGoogleTokenQuery = graphql(`
 export const verifyUserCredentialQuery = graphql(`
   #graphql
   query verifyUserCredential($email: String!, $password: String!) {
-    verifyUserCredential(email: $email, password: $password){
-      id 
+    verifyUserCredential(email: $email, password: $password) {
+      id
       email
       token
+      name
+      profileImageUrl
     }
   }
 `);
@@ -46,13 +50,14 @@ export const getCurrentUserQuery = graphql(`
       notificationCount
       location
       website
+      followers
+      following
+      isVerified
       notificationPreference {
         likes
         comments
         follows
       }
-      followers 
-      following 
       bookmark {
         id
         bookmarks {
@@ -81,6 +86,7 @@ export const getUserByIdQuery = graphql(`
       createdAt
       followers
       following
+      isVerified
     }
   }
 `);
@@ -111,6 +117,7 @@ export const getNotificationsQuery = graphql(`
         userName
         followers
         following
+        isVerified
       }
       tweet {
         id
@@ -145,6 +152,7 @@ export const getUserBookmarksQuery = graphql(`
             name
             profileImageUrl
             userName
+            isVerified
           }
         }
         comment {
@@ -159,6 +167,7 @@ export const getUserBookmarksQuery = graphql(`
             name
             profileImageUrl
             userName
+            isVerified
           }
           tweet {
             id
@@ -175,7 +184,6 @@ export const getUserBookmarksQuery = graphql(`
   }
 `);
 
-
 export const getRecommendedUsersQuery = graphql(`
   #graphql
   query getRecommendedUsers($cursor: String, $limit: Int) {
@@ -188,6 +196,7 @@ export const getRecommendedUsersQuery = graphql(`
         profileImageUrl
         followers
         following
+        isVerified
       }
       nextCursor
     }
@@ -206,12 +215,12 @@ export const getUserFollowersQuery = graphql(`
         profileImageUrl
         followers
         following
+        isVerified
       }
       nextCursor
     }
   }
 `);
-
 
 export const getUserFollowingQuery = graphql(`
   #graphql
@@ -225,8 +234,37 @@ export const getUserFollowingQuery = graphql(`
         profileImageUrl
         followers
         following
+        isVerified
       }
       nextCursor
+    }
+  }
+`);
+
+export const getSubscriptionQuery = graphql(`
+  #graphql
+  query getSubscription {
+    getSubscription {
+      id
+      userId
+      plan
+      price
+      planId
+      subscriptionId
+      customerId
+      active
+      autorenew
+      interval
+      shortUrl
+      startDate
+      endDate
+      user {
+        id 
+        name 
+        userName
+        email
+        location
+      }
     }
   }
 `);

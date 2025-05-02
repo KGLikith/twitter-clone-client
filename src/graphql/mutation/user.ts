@@ -18,8 +18,8 @@ export const followUserMutation = graphql(`
 `);
 export const unfollowUserMutation = graphql(`
   #graphql
-  mutation unfollowUser($from: ID!,$to: ID!) {
-    unfollowUser(from: $from,to: $to)
+  mutation unfollowUser($from: ID!, $to: ID!) {
+    unfollowUser(from: $from, to: $to)
   }
 `);
 
@@ -58,13 +58,39 @@ export const updateUserMutation = graphql(`
 export const createBookmarkMutation = graphql(`
   #graphql
   mutation createBookmark($tweetId: ID, $commentId: ID) {
-    createBookmark(tweetId: $tweetId, commentId: $commentId) 
+    createBookmark(tweetId: $tweetId, commentId: $commentId)
   }
 `);
 
 export const removeBookmarkMutation = graphql(`
   #graphql
   mutation removeBookmark($tweetId: ID, $commentId: ID) {
-    removeBookmark(tweetId: $tweetId, commentId: $commentId) 
+    removeBookmark(tweetId: $tweetId, commentId: $commentId)
   }
 `);
+
+export const createSubscriptionMutation = graphql(`
+  #graphql
+  mutation createSubscription(
+    $payload: createSubscriptionPayload!
+  ) {
+    createSubscription(payload: $payload) 
+  }
+`);
+
+
+export const cancelSubscriptionMutation = graphql(`
+  #graphql
+  mutation cancelSubscription($subscriptionId: String!, $option: Int!) {
+    cancelSubscription(subscriptionId: $subscriptionId, option: $option)
+  }
+`);
+
+export const updateSubscriptionMutation = graphql(`
+  #graphql
+  mutation updateSubscription($payload: updateSubscriptionPayload!) {
+    updateSubscription(payload: $payload) 
+  }
+`);
+
+

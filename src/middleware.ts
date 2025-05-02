@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import { authConfig } from "./auth.config";
 import { NextResponse } from "next/server";
 
-const publicRoutes = ["/"];
+const publicRoutes = ["/","/billing"];
 const authRoutes = ["/auth", "/api/auth"];
 
 const { auth } = NextAuth(authConfig);
@@ -47,7 +47,7 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    "/((?!_next|favicon.ico|api/auth|user.png|.*\\.(?:js|css|jpg|jpeg|png|svg|gif|ico|woff2?|ttf|webmanifest)$).*)"
+    "/((?!_next|favicon.ico|api/auth|api/razorpay|user.png|.*\\.(?:js|css|jpg|jpeg|png|svg|gif|ico|woff2?|ttf|webmanifest)$).*)"
   ],
 };
 

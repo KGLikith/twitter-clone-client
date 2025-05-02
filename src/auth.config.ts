@@ -12,6 +12,8 @@ declare module "next-auth" {
     user?: {
       id: string;
       email: string;
+      profileImageUrl?: string;
+      name?: string;
     } & DefaultSession["user"];
   }
 
@@ -19,6 +21,8 @@ declare module "next-auth" {
     id: string;
     email: string;
     token: string;
+    profileImageUrl?: string;
+    name?: string;
   }
 }
 
@@ -28,6 +32,8 @@ declare module "next-auth/jwt" {
     user?: {
       id: string;
       email: string;
+      name?: string;
+      profileImageUrl?: string;
     };
   }
 }
@@ -58,11 +64,13 @@ export const authConfig = {
         }
 
         if (data.verifyGoogleToken) {
-          const {email, id, token} = data.verifyGoogleToken;
-          
+          const {email, id, token, name, profileImageUrl } = data.verifyGoogleToken;
+
           user.email = email;
           user.token = token;
           user.id = id
+          user.name = name;
+          user.profileImageUrl = profileImageUrl as string;
           return true;
         }
         await client.resetStore();
@@ -81,6 +89,8 @@ export const authConfig = {
         token.user = {
           id: user.id,
           email: user.email,
+          name: user.name,
+          profileImageUrl: user.profileImageUrl,
         };
       }
       return token;

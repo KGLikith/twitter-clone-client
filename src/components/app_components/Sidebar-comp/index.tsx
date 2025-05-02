@@ -49,25 +49,26 @@ const Sidebar = () => {
     }
   }, [currentUser]);
 
-  const invalidateQueries = async () => {
-    try {
-      await apolloClient.resetStore();
-      await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-    } catch (error) {
-      console.error("Failed to invalidate queries:", error);
-      return Promise.reject(error);
-    }
-  }
   useEffect(() => {
-    if (user || session?.user) {
-      setDialog(false)
-    } else if (!isLoading && !user) {
-      setDialog(true)
-    }
-    if ((session?.user && !user && !isLoading) || (user && !session?.user)) {
-      invalidateQueries();
-    }
-  }, [user, session, isLoading])
+    const syncState = async () => {
+      if ((session?.user && !user && !isLoading) || (user && !session?.user)) {
+        try {
+          await apolloClient.clearStore();
+          await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+        } catch (error) {
+          console.error("Apollo sync error:", error);
+        }
+      }
+
+      if (user || session?.user) {
+        setDialog(false);
+      } else if (!isLoading && (!user || !session?.user)) {
+        setDialog(true);
+      }
+    };
+
+    syncState();
+  }, [user, session, isLoading]);
 
   useEffect(() => {
     if (user || session?.user) {
@@ -127,7 +128,6 @@ const Sidebar = () => {
         <nav className="w-full">
           <ul>
             {menuItems.map((item) => {
-              console.log("item", item)
               return (
                 <SidebarItem
                   href={user ? (item.href == '/profile' ? `/user/${user.id}` : item.href) : (item.href)}

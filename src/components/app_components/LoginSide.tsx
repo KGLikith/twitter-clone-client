@@ -15,9 +15,8 @@ import { apolloClient } from "@/clients/api";
 import { useQueryClient } from "@tanstack/react-query";
 
 const Login = () => {
-  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | undefined>();
-  const { user: currentUser } = useCurrentUser();
+  const { user: currentUser, isLoading } = useCurrentUser();
   const { data } = useGetRecommendedUsers();
   const queryclient = useQueryClient();
 
@@ -26,7 +25,6 @@ const Login = () => {
   useEffect(() => {
     if (currentUser !== undefined) {
       setUser(currentUser as User);
-      setLoading(false);
     }
   }, [currentUser]);
 
@@ -43,7 +41,7 @@ const Login = () => {
     }
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div>
         <Skel />

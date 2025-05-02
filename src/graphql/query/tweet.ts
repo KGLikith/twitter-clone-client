@@ -18,6 +18,7 @@ export const getPaginatedTweetsQuery = graphql(`
           userName
           name
           profileImageUrl
+          isVerified
         }
       }
       nextCursor
@@ -42,6 +43,7 @@ export const getPaginatedUserTweetsQuery = graphql(`
           userName
           name
           profileImageUrl
+          isVerified
         }
       }
       nextCursor
@@ -78,6 +80,7 @@ export const getTweetByIdQuery = graphql(`
         userName
         name
         profileImageUrl
+        isVerified
       }
     }
   }
@@ -99,6 +102,7 @@ export const getPaginatedCommentsByTweetIdQuery = graphql(`
           userName
           name
           profileImageUrl
+          isVerified
         }
       }
       nextCursor

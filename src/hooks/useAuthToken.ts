@@ -11,12 +11,9 @@ export const useAuthToken = () => {
 
   useEffect(() => {
     const token = session?.backendToken;
-    console.log("Token Syncer", token, session?.user?.name);
     if (token && token !== previousToken.current) {
       previousToken.current = token;
       localStorage.setItem("__twitter_token", token);
-
-      console.log("Token Syncer", token, session?.user?.name);
 
       client()
     }
