@@ -3,7 +3,17 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { CalendarDays, CheckCircle, Crown, ArrowUpRight, CheckIcon, XCircle, Home, AlertTriangle } from "lucide-react"
+import {
+  CalendarDays,
+  CheckCircle,
+  Crown,
+  ArrowUpRight,
+  CheckIcon,
+  XCircle,
+  Home,
+  AlertTriangle,
+  Sparkles,
+} from "lucide-react"
 import { Plan, type Subscription } from "@/gql/graphql"
 import { plans } from "@/constants/plans"
 import { useRouter } from "next/navigation"
@@ -20,13 +30,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
-import Image from "next/image"
 import { motion } from "framer-motion"
 import { useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import Loader from "@/components/ui/loader"
+import { Avatar, AvatarImage } from "@/components/ui/avatar"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
 type BillingInterval = "month" | "year"
 type CancelOption = "now" | "end-of-cycle"
@@ -39,16 +51,18 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
   const [cancelOption, setCancelOption] = useState<CancelOption>(subscription.autorenew ? "end-of-cycle" : "now")
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const [showPerksDialog, setShowPerksDialog] = useState(false)
   const [billingInterval, setBillingInterval] = useState<BillingInterval>(
     subscription?.interval == "MONTH" ? "month" : "year",
   )
   const [loading, setLoading] = useState(false)
-  const queryclient = useQueryClient();
+  const queryclient = useQueryClient()
   const router = useRouter()
   const { data: session } = useSession()
+  const isMobile = useMediaQuery("(max-width: 640px)")
 
   if (!subscription || subscription.plan === Plan.Free) {
-    router.push('/')
+    router.push("/")
     return null
   }
 
@@ -64,7 +78,7 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
 
   const totalDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
   const daysElapsed = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-  const progressPercentage =100 - Math.min(Math.max(((daysElapsed) / totalDays) * 100, 0), 100)
+  const progressPercentage = 100 - Math.min(Math.max((daysElapsed / totalDays) * 100, 0), 100)
   const daysRemaining = totalDays - daysElapsed
 
   const formatDate = (dateString?: string | null) => {
@@ -83,7 +97,7 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
     }
     setLoading(true)
     toast.info("You will be redirected to Razorpay for payment", {
-      duration: 2000
+      duration: 2000,
     })
 
     const planId = billingInterval === "month" ? premiumPlan.monthly?.plan_id : premiumPlan.yearly?.plan_id
@@ -108,8 +122,8 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
             interval: billingInterval === "month" ? "MONTHLY" : "YEARLY",
             plan: "PREMIUM" as Plan,
             price: price,
-            shortUrl: sub.short_url
-          }
+            shortUrl: sub.short_url,
+          },
         },
       })
 
@@ -118,11 +132,9 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
         setLoading(false)
         return
       } else {
-        await apolloClient.resetStore();
-        await queryclient.invalidateQueries({ queryKey: ["subscription"] })
         window.open(sub.short_url, "_blank")
       }
-      
+
       setLoading(false)
       setShowUpgradeDialog(false)
     }
@@ -133,33 +145,65 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
       router.push("/auth/sign-in")
       return
     }
-    if(cancelOption === "end-of-cycle" && !subscription.autorenew) {
+    if (cancelOption === "end-of-cycle" && !subscription.autorenew) {
       toast.error("Your subscription is already set to not auto-renew.")
       return
     }
     setLoading(true)
     try {
       if (subscription.subscriptionId) {
-        await cancelSubscription(subscription.subscriptionId, cancelOption === "now" ? 0 : 1)
+        const cancel = await cancelSubscription(subscription.subscriptionId, cancelOption === "now" ? 0 : 1)
+        if (cancel.error && cancel.alreadyCancelled) {
+          toast.info("Subscription was already cancelled.")
+          await apolloClient.mutate({
+            mutation: cancelSubscriptionMutation,
+            variables: {
+              subscriptionId: subscription.subscriptionId,
+              option: 0,
+            },
+          })
+          setShowCancelDialog(false)
+          setLoading(false)
+          await queryclient.invalidateQueries({ queryKey: ["subscription"] })
+          await apolloClient.resetStore()
+          return
+        } else if (cancel.error) {
+          toast.error("Something went wrong while cancelling subscription. Please try again.")
+          setLoading(false)
+          return
+        }
       }
-      if (subscription.subscriptionId) {
-        await apolloClient.mutate({
-          mutation: cancelSubscriptionMutation,
-          variables: {
-            subscriptionId: subscription.subscriptionId,
-            option: cancelOption === "now" ? 0 : 1,
-          },
-        })
-      }
+      await apolloClient.mutate({
+        mutation: cancelSubscriptionMutation,
+        variables: {
+          subscriptionId: subscription.subscriptionId,
+          option: cancelOption === "now" ? 0 : 1,
+        },
+      })
       setShowCancelDialog(false)
       setLoading(false)
-      await apolloClient.resetStore();
       await queryclient.invalidateQueries({ queryKey: ["subscription"] })
+      await apolloClient.resetStore()
       toast.success("Subscription cancelled accordingly")
-    } catch (error) {
-      console.error("Error cancelling subscription:", error)
+    } catch (err: any) {
+      toast.error("Something went wrong while cancelling subscription. Please try again.")
+
+      setLoading(false)
     }
   }
+
+  const PerksList = () => (
+    <div className="space-y-3">
+      {planDetails.features.map((feature, index) => (
+        <div key={index} className="flex items-start gap-2">
+          <CheckIcon className={cn("w-4 h-4 mt-0.5 flex-shrink-0", planDetails.textColor)} />
+          <div>
+            <p className="text-sm font-medium">{feature}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 
   return (
     <>
@@ -174,31 +218,33 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md mx-auto mb-6 text-center"
+        className="w-full max-w-4xl mx-auto mb-6 text-center px-4 sm:px-6"
       >
         <div className="flex items-center justify-center gap-3 mb-2">
-          (
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
           >
-            <Image
-              src={"/user.png"}
-              alt="Profile"
-              width={40}
-              height={40}
-              className="rounded-full border-2 border-white/20"
-            />
+            <Avatar className="h-10 w-10 border-2 border-zinc-700 rounded-full overflow-hidden">
+              <AvatarImage
+                src={
+                  user?.profileImageUrl
+                    ? `${process.env.NEXT_PUBLIC_CDN_URL || ""}${user?.profileImageUrl}`
+                    : "/user.png"
+                }
+                alt="Profile"
+                className="object-cover"
+              />
+            </Avatar>
           </motion.div>
-          )
           <motion.h1
             className="text-2xl font-bold text-white"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.5 }}
           >
-            Hello ,{" "}
+            Hello,{" "}
             <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
               {user?.name || user?.userName}
             </span>
@@ -215,123 +261,170 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
         </motion.p>
       </motion.div>
 
-      <div className="w-full max-w-md mx-auto relative">
-        <Card className="w-full overflow-hidden border-2 border-black bg-black text-white">
-          <div className={cn("h-1 w-full bg-gradient-to-r", planDetails.gradientColor)} />
+      <div className="w-full max-w-4xl mx-auto relative px-4 sm:px-6 flex justify-center items-center ">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 w-full ">
+          <Card className="w-full overflow-hidden border-2 border-black bg-black text-white lg:col-span-3 max-w-lg mx-auto">
+            <div className={cn("h-1 w-full bg-gradient-to-r", planDetails.gradientColor)} />
 
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Icon className={cn("w-6 h-6", planDetails.textColor)} />
-                <CardTitle className="text-xl font-bold">{planDetails.name} Plan</CardTitle>
-              </div>
-              {subscription.active && (
-                <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-400 flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" /> Active
-                </span>
-              )}
-            </div>
-
-            <CardDescription className="text-white/70 mt-1">
-              {subscription.interval === "MONTHLY" ? "Monthly" : "Yearly"} billing •
-              {subscription.autorenew ? " Auto-renews" : " Does not auto-renew"}
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-1.5 text-white/80">
-                <CalendarDays className="w-4 h-4" />
-                <span>Started: {formatDate(subscription.startDate)}</span>
-              </div>
-              <div className="text-white/80">Renews: {formatDate(subscription.endDate)}</div>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-white/70">
-                <span>Billing cycle progress</span>
-                <span>{daysRemaining} days remaining</span>
-              </div>
-              <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${progressPercentage}%`,
-                    background:
-                      planKey === "Basic"
-                        ? "linear-gradient(to right, #2563eb, #9333ea, #db2777)"
-                        : "linear-gradient(to right, #d97706, #ef4444, #f97316)",
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-white/10">
-              <div className="text-sm font-medium mb-2">Subscription details</div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="text-white/70">Plan</div>
-                <div className="font-medium">{planDetails.name}</div>
-
-                <div className="text-white/70">Price</div>
-                <div className="font-medium">
-                  {subscription.price ? `₹${subscription.price}` : "N/A"}
-                  <span className="text-white/70 text-xs ml-1">/{subscription.interval === "MONTHLY" ? " month" : " year"}</span>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Icon className={cn("w-6 h-6", planDetails.textColor)} />
+                  <CardTitle className="text-xl font-bold">{planDetails.name} Plan</CardTitle>
                 </div>
-
-                <div className="text-white/70">Status</div>
-                <div className="font-medium">{subscription.active ? "Active" : "Inactive"}</div>
+                {subscription.active && (
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-400 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" /> Active
+                  </span>
+                )}
               </div>
-            </div>
-          </CardContent>
 
-          <CardFooter className="flex flex-col border-t border-white/10 pt-4">
-            <div className="w-full space-y-4">
-              {subscription.plan === Plan.Basic ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    <ArrowUpRight className={cn("w-5 h-5", plans.Premium.textColor)} />
-                    <span className="font-medium">Upgrade to Premium Plan</span>
+              <CardDescription className="text-white/70 mt-1">
+                {subscription.interval === "MONTHLY" ? "Monthly" : "Yearly"} billing •
+                {subscription.autorenew ? " Auto-renews" : " Does not auto-renew"}
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-1.5 text-white/80">
+                  <CalendarDays className="w-4 h-4" />
+                  <span>Started: {formatDate(subscription.startDate)}</span>
+                </div>
+                <div className="text-white/80">Renews: {formatDate(subscription.endDate)}</div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs text-white/70">
+                  <span>Billing cycle progress</span>
+                  <span>{daysRemaining} days remaining</span>
+                </div>
+                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${progressPercentage}%`,
+                      background:
+                        planKey === "Basic"
+                          ? "linear-gradient(to right, #2563eb, #9333ea, #db2777)"
+                          : "linear-gradient(to right, #d97706, #ef4444, #f97316)",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-white/10">
+                <div className="text-sm font-medium mb-2">Subscription details</div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="text-white/70">Plan</div>
+                  <div className="font-medium">{planDetails.name}</div>
+
+                  <div className="text-white/70">Price</div>
+                  <div className="font-medium">
+                    {subscription.price ? `₹${subscription.price}` : "N/A"}
+                    <span className="text-white/70 text-xs ml-1">
+                      /{subscription.interval === "MONTHLY" ? " month" : " year"}
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      disabled={loading}
-                      onClick={() => setShowUpgradeDialog(true)}
-                      className="w-full"
-                      style={{
-                        background: "linear-gradient(to right, #d97706, #ef4444, #f97316)",
-                        color: "white",
-                      }}
-                    >
-                      Upgrade
-                    </Button>
+                  <div className="text-white/70">Status</div>
+                  <div className="font-medium">{subscription.active ? "Active" : "Inactive"}</div>
+                </div>
+              </div>
 
-                    <Button
-                      disabled={loading}
-                      onClick={() => setShowCancelDialog(true)}
-                      variant="outline"
-                      className="w-full border-white/20 text-white hover:bg-white/10"
-                    >
-                      Cancel Plan
+              <div className="block lg:hidden pt-2">
+                <Dialog open={showPerksDialog} onOpenChange={setShowPerksDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">
+                      <Sparkles className={cn("w-4 h-4 mr-2", planDetails.textColor)} />
+                      View Plan Perks
                     </Button>
-                  </div>
-                </>
-              ) : (
-                <Button
-                  onClick={() => setShowCancelDialog(true)}
-                  variant="outline"
-                  disabled={loading}
-                  className="w-full border-white/20 text-white hover:bg-white/10"
-                >
-                  Cancel Subscription
-                </Button>
-              )}
-            </div>
-          </CardFooter>
-        </Card>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md bg-zinc-900 text-white border-2 border-black">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                        <Icon className={cn("w-5 h-5", planDetails.textColor)} />
+                        {planDetails.name} Plan Perks
+                      </DialogTitle>
+                      <DialogDescription className="text-white/70">
+                        Features included in your subscription
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <PerksList />
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex flex-col border-t border-white/10 pt-4">
+              <div className="w-full space-y-4">
+                {subscription.plan === Plan.Basic ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <ArrowUpRight className={cn("w-5 h-5", plans.Premium.textColor)} />
+                      <span className="font-medium">Upgrade to Premium Plan</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        disabled={loading}
+                        onClick={() => setShowUpgradeDialog(true)}
+                        className="w-full"
+                        style={{
+                          background: "linear-gradient(to right, #d97706, #ef4444, #f97316)",
+                          color: "white",
+                        }}
+                      >
+                        Upgrade
+                      </Button>
+
+                      <Button
+                        disabled={loading}
+                        onClick={() => setShowCancelDialog(true)}
+                        variant="outline"
+                        className="w-full border-white/20 text-white hover:bg-white/10"
+                      >
+                        Cancel Plan
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => setShowCancelDialog(true)}
+                    variant="outline"
+                    disabled={loading}
+                    className="w-full border-white/20 text-white hover:bg-white/10"
+                  >
+                    Cancel Subscription
+                  </Button>
+                )}
+              </div>
+            </CardFooter>
+          </Card>
+
+          <Card className=" h-fit hidden lg:block w-full overflow-hidden border-2 border-black bg-black text-white lg:col-span-2">
+            <div className={cn("h-1 w-full bg-gradient-to-r", planDetails.gradientColor)} />
+
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className={cn("w-5 h-5", planDetails.textColor)} />
+                <CardTitle className="text-xl font-bold">Your Plan Perks</CardTitle>
+              </div>
+              <CardDescription className="text-white/70 mt-1">
+                Features included in your {planDetails.name} plan
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <PerksList />
+            </CardContent>
+          </Card>
+        </div>
       </div>
-      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
 
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
         <DialogContent className="sm:max-w-md bg-zinc-900 text-white border-2 border-black">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-2">
@@ -396,11 +489,11 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
 
             <div className="space-y-4">
               <div className="rounded-md border border-red-500 bg-red-500/10 p-4">
-                <p className="text-sm text-red-400 font-semibold">
-                  ⚠️ Important:
-                </p>
+                <p className="text-sm text-red-400 font-semibold">⚠️ Important:</p>
                 <p className="text-sm text-red-200 pt-1">
-                  Upgrading now will <span className="font-semibold text-red-100">cancel your current subscription immediately</span> and start a new one.
+                  Upgrading now will{" "}
+                  <span className="font-semibold text-red-100">cancel your current subscription immediately</span> and
+                  start a new one.
                   <br />
                   If you prefer, you can wait until the end of your billing cycle to avoid overlapping charges.
                 </p>
@@ -429,7 +522,6 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
       </Dialog>
 
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-
         <DialogContent className="sm:max-w-md bg-zinc-900 text-white border-2 border-black">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-2 text-red-400">
@@ -462,14 +554,17 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
                 onValueChange={(value) => setCancelOption(value as CancelOption)}
                 className="grid grid-cols-2 gap-2"
               >
-                {subscription.autorenew && <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="end-of-cycle" id="cancel-end-of-cycle" />
-                  <Label htmlFor="cancel-end-of-cycle" className="text-sm text-white/80">
-                    At end of cycle
-                    <span className="block text-xs text-white/60">Access until {formatDate(subscription.endDate)}</span>
-                  </Label>
-                </div>
-                }
+                {subscription.autorenew && (
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="end-of-cycle" id="cancel-end-of-cycle" />
+                    <Label htmlFor="cancel-end-of-cycle" className="text-sm text-white/80">
+                      At end of cycle
+                      <span className="block text-xs text-white/60">
+                        Access until {formatDate(subscription.endDate)}
+                      </span>
+                    </Label>
+                  </div>
+                )}
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="now" id="cancel-now" />
                   <Label htmlFor="cancel-now" className="text-sm text-white/80">
@@ -498,7 +593,6 @@ export default function SubscriptionDetailsCard({ subscription }: Props) {
           </Loader>
         </DialogContent>
       </Dialog>
-
     </>
   )
 }

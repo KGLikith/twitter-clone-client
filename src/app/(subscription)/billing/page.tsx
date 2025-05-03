@@ -18,16 +18,7 @@ export default function ({ }: Props) {
       </div>
     )
   }
-
-  // if(user.subscription){
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       <h1 className="text-2xl font-bold">You already have a subscription</h1>
-  //     </div>
-  //   )
-  // }
-
-
+  
   return (
     <>
       {

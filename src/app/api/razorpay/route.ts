@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { RAZORPAY_EVENTS } from "@/constants/plans";
 import { createServerApolloClient } from "@/clients/serverAppoloClient";
-import { updateSubscriptionMutation } from "@/graphql/mutation/user";
+import {
+  cancelSubscriptionMutation,
+  updateSubscriptionMutation,
+} from "@/graphql/mutation/user";
 
 const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET!;
 
@@ -15,10 +18,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
 
+  if (!RAZORPAY_WEBHOOK_SECRET) {
+    console.error("[Webhook] ❌ Webhook secret is missing in env.");
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
+  
   const expectedSignature = crypto
     .createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
     .update(rawBody)
     .digest("hex");
+    
 
   if (signature !== expectedSignature) {
     console.warn("[Webhook] ❌ Invalid signature");
@@ -44,13 +53,6 @@ export async function POST(req: NextRequest) {
   try {
     switch (type) {
       case RAZORPAY_EVENTS.SUBSCRIPTION_AUTHENTICATED:
-        console.log("[Webhook] 🔑 Subscription Authenticated", {
-          id: subscriptionId,
-          customerId: customerId,
-          active: active,
-          planId: planId,
-        });
-
         await client.mutate({
           mutation: updateSubscriptionMutation,
           variables: {
@@ -68,14 +70,7 @@ export async function POST(req: NextRequest) {
         break;
 
       case RAZORPAY_EVENTS.SUBSCRIPTION_ACTIVATED:
-        const amt = payload.payment.entity.amount / 100;
-        console.log("[Webhook] ✅ Subscription Activated", {
-          id: subscriptionId,
-          customerId: customerId,
-          active: active,
-          planId: planId,
-          amount: amt,
-        });
+        const amt = String(payload.payment.entity.amount / 100);
 
         await client.mutate({
           mutation: updateSubscriptionMutation,
@@ -87,6 +82,7 @@ export async function POST(req: NextRequest) {
               planId: planId,
               startDate: startDate,
               endDate: endDate,
+              price: amt,
             },
           },
         });
@@ -94,6 +90,67 @@ export async function POST(req: NextRequest) {
         break;
 
       case RAZORPAY_EVENTS.SUBSCRIPTION_CHARGED:
+        const amtI = String(payload.payment.entity.amount / 100);
+
+        await client.mutate({
+          mutation: updateSubscriptionMutation,
+          variables: {
+            payload: {
+              subscriptionId: subscriptionId,
+              customerId: customerId,
+              active: active,
+              planId: planId,
+              startDate: startDate,
+              endDate: endDate,
+              price: amtI,
+            },
+          },
+        });
+        break;
+
+      case RAZORPAY_EVENTS.SUBSCRIPTION_CANCELLED:
+        await client.mutate({
+          mutation: cancelSubscriptionMutation,
+          variables: {
+            subscriptionId: subscriptionId,
+            option: 1,
+          },
+        });
+        break;
+
+      case RAZORPAY_EVENTS.SUBSCRIPTION_HALTED:
+        await client.mutate({
+          mutation: updateSubscriptionMutation,
+          variables: {
+            payload: {
+              subscriptionId: subscriptionId,
+              customerId: null,
+              active: false,
+              planId: "",
+              startDate: startDate,
+              endDate: startDate,
+            },
+          },
+        });
+        break;
+
+      case RAZORPAY_EVENTS.SUBSCRIPTION_PAUSED:
+        await client.mutate({
+          mutation: updateSubscriptionMutation,
+          variables: {
+            payload: {
+              subscriptionId: subscriptionId,
+              customerId: customerId,
+              active: false,
+              planId: planId,
+              startDate: startDate,
+              endDate: startDate,
+            },
+          },
+        });
+        break;
+
+      case RAZORPAY_EVENTS.SUBSCRIPTION_RESUMED:
         await client.mutate({
           mutation: updateSubscriptionMutation,
           variables: {
@@ -110,12 +167,19 @@ export async function POST(req: NextRequest) {
         break;
 
       case RAZORPAY_EVENTS.SUBSCRIPTION_COMPLETED:
-        console.log("[Webhook] ✅ Subscription Completed", {
-          id: payload.subscription.entity.id,
-          total_count: payload.subscription.entity.total_count,
-          status: payload.subscription.entity.status,
-          startDate: startDate,
-          endDate: endDate,
+        await client.mutate({
+          mutation: updateSubscriptionMutation,
+          variables: {
+            payload: {
+              subscriptionId: "",
+              customerId: "",
+              active: true,
+              planId: "",
+              startDate: startDate,
+              endDate: endDate,
+              price: "",
+            },
+          },
         });
         break;
 

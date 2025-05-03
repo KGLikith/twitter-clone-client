@@ -81,7 +81,7 @@ export const createSubscriptionMutation = graphql(`
 
 export const cancelSubscriptionMutation = graphql(`
   #graphql
-  mutation cancelSubscription($subscriptionId: String!, $option: Int!) {
+  mutation cancelSubscription($subscriptionId: String, $option: Int!) {
     cancelSubscription(subscriptionId: $subscriptionId, option: $option)
   }
 `);

@@ -16,6 +16,31 @@ export const createSubscription = async (planId: string, email: string) => {
 };
 
 export const cancelSubscription = async (subscriptionId: string, cancelOption: number) => {
-  const sub = razorpay.subscriptions.cancel(subscriptionId, cancelOption);
-  return sub;
+  try{
+    const sub = razorpay.subscriptions.cancel(subscriptionId, cancelOption);
+  
+    return {
+      error: false
+    };
+
+  }catch (err: any) {
+    console.error("Razorpay Error:", err);
+  
+    if (err.statusCode === 400 && err.error?.description === "Subscription is not cancellable in cancelled status.") {
+      return ({ error: true,alreadyCancelled: true });
+    }
+  
+    return ({ error: true,message: "Failed to cancel subscription" });
+  }
+  
 };
+
+export const checkSubscription = async (subscriptionId: string) => {
+  try {
+    const sub = await razorpay.subscriptions.fetch(subscriptionId);
+    return sub;
+  } catch (err: any) {
+    console.error("Razorpay Error:", err);
+    return null;
+  }
+}

@@ -91,8 +91,8 @@ export const RAZORPAY_EVENTS = {
   SUBSCRIPTION_HALTED: "subscription.halted",
   SUBSCRIPTION_CANCELLED: "subscription.cancelled",
   SUBSCRIPTION_COMPLETED: "subscription.completed",
-  PAYMENT_CAPTURED: "payment.captured",
-  PAYMENT_FAILED: "payment.failed",
+  SUBSCRIPTION_PAUSED: "subscription.paused",
+  SUBSCRIPTION_RESUMED: "subscription.resumed",
 } as const;
 
 export type RazorpayEvent = typeof RAZORPAY_EVENTS[keyof typeof RAZORPAY_EVENTS];

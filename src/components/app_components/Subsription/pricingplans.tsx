@@ -10,14 +10,14 @@ import { useRouter } from "next/navigation"
 import { Plan, Subscription, User } from "@/gql/graphql"
 import { plans } from "@/constants/plans"
 import { useSession } from "next-auth/react"
-import { createSubscription } from "@/actions/subscription"
+import { checkSubscription, createSubscription } from "@/actions/subscription"
 import { apolloClient } from "@/clients/api"
-import { createSubscriptionMutation } from "@/graphql/mutation/user"
+import { createSubscriptionMutation, updateSubscriptionMutation } from "@/graphql/mutation/user"
 import { motion } from "framer-motion"
-import Image from "next/image"
 import { toast } from "sonner"
 import Loader from "@/components/ui/loader"
 import { useQueryClient } from "@tanstack/react-query"
+import { Avatar, AvatarImage } from "@/components/ui/avatar"
 type BillingInterval = "year" | "month"
 
 type Props = {
@@ -83,15 +83,35 @@ export default function PricingPlans({ subscription }: Props) {
 
   }
 
-  const checkSubscriptionAndShowUpgrade = () => {
-    if (subscription && !subscription.active && subscription.shortUrl) {
-      setUpgradeUrl(subscription.shortUrl)
-      setShowUpgradePopup(true)
+  const checkSubscriptionStatus = async () => {
+    if (subscription.subscriptionId && subscription.shortUrl) {
+      const sub = await checkSubscription(subscription.subscriptionId);
+      if (sub) {
+        if (sub.status === "active") {
+          await apolloClient.mutate({
+            mutation: updateSubscriptionMutation,
+            variables: {
+              payload: {
+                subscriptionId: sub.id,
+                customerId: sub.customer_id,
+                active: true,
+                planId: sub.plan_id,
+                startDate: new Date((sub.current_start || 0) * 1000),
+                endDate: new Date((sub.current_end || 0) * 1000),
+              },
+            },
+          })
+          await queryClient.invalidateQueries({ queryKey: ["subscription"] })
+        } else {
+          setUpgradeUrl(sub.short_url)
+          setShowUpgradePopup(true)
+        }
+      }
     }
   }
 
   useEffect(() => {
-    checkSubscriptionAndShowUpgrade()
+    checkSubscriptionStatus();
   }, [subscription])
 
   return (
@@ -118,13 +138,13 @@ export default function PricingPlans({ subscription }: Props) {
               animate={{ scale: 1 }}
               transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
             >
-              <Image
-                src={user.profileImageUrl || "/user.png"}
-                alt="Profile"
-                width={40}
-                height={40}
-                className="rounded-full border-2 border-white/20"
-              />
+              <Avatar className="h-10 w-10 border-2 border-zinc-700 rounded-full overflow-hidden">
+                <AvatarImage
+                  src={user?.profileImageUrl ? `${process.env.NEXT_PUBLIC_CDN_URL || ""}${user?.profileImageUrl}` : "/user.png"}
+                  alt="Profile"
+                  className="object-cover"
+                />
+              </Avatar>
             </motion.div>)
             <motion.h1
               className="text-2xl font-bold text-white"
@@ -284,14 +304,22 @@ export default function PricingPlans({ subscription }: Props) {
           })}
         </div>
         {showUpgradePopup && (
-          <div className="fixed inset-0 bg-black/80  flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="bg-zinc-900 border border-white/10 rounded-xl p-6 max-w-md w-full"
             >
               <h3 className="text-xl font-bold text-white mb-2">Subscription Inactive</h3>
-              <p className="text-white/80 mb-4">Your subscription is inactive. Please press continue to go with the previous plan you selected.</p>
+              <p className="text-white/80 mb-4">
+                Your subscription is inactive. Please press continue to go with the previous plan you selected.
+              </p>
+
+              <div className="bg-blue-900/30 text-blue-300 text-sm rounded-md px-3 py-2 mb-4 border border-blue-500/50">
+                ℹ️ If you’ve already completed the payment, please wait a moment — your subscription status will update shortly.
+                Or refresh the page to check your subscription status.
+              </div>
+
               <div className="flex gap-3">
                 <Button
                   className="bg-white hover:opacity-90"
@@ -313,6 +341,7 @@ export default function PricingPlans({ subscription }: Props) {
               </div>
             </motion.div>
           </div>
+
         )}
       </Loader>
     </section>

@@ -137,14 +137,14 @@ export const useGetSubscription = ()=>{
       try {
         const { data } = await apolloClient.query({
           query: getSubscriptionQuery,
+          fetchPolicy: "network-only",
         });
-        console.log(data)
         return data;
       } catch (error) {
         return null;
       }
     },
-    refetchInterval: 6000
+    refetchInterval: 30000
   })
   return { ...query, subscription: query.data?.getSubscription };
 }

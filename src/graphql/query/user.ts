@@ -262,6 +262,7 @@ export const getSubscriptionQuery = graphql(`
         id 
         name 
         userName
+        profileImageUrl
         email
         location
       }
