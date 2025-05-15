@@ -75,3 +75,4 @@ export const deleteMediaMutation = graphql(`
         deleteMedia(mediaUrl: $mediaUrl)
     }
 `)
+

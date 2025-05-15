@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { GoogleOAuthProvider } from "@react-oauth/google";
+import { ThemeProvider } from "@/components/provider/theme-provider";
 import { Inter } from "next/font/google";
-import ClientProvider from "@/components/ClientProvider";
-import ProviderApollo from "@/components/ApolloProvider";
+import ClientProvider from "@/components/provider/ClientProvider";
+import ProviderApollo from "@/components/provider/ApolloProvider";
 import { Toaster } from "@/components/ui/sonner";
-import { TokenSyncer } from "./tokenSycer";
 import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -23,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}  >
+      <body className={inter.className} suppressContentEditableWarning suppressHydrationWarning  >
           <SessionProvider>
             <ProviderApollo>
               <ThemeProvider

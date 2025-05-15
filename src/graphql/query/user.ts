@@ -7,7 +7,7 @@ export const verifyUserGoogleTokenQuery = graphql(`
       token
       id
       email
-      name 
+      name
       profileImageUrl
     }
   }
@@ -259,13 +259,118 @@ export const getSubscriptionQuery = graphql(`
       startDate
       endDate
       user {
-        id 
-        name 
+        id
+        name
         userName
         profileImageUrl
         email
         location
       }
+    }
+  }
+`);
+
+export const getConversationsQuery = graphql(`
+  #graphql
+  query GetConversations($limit: Int, $cursor: ID) {
+    getConversations(limit: $limit, cursor: $cursor) {
+      conversations {
+        id
+        name
+        lastMessageAt
+        lastMessage
+        createdAt
+        admin {
+          id
+          name
+          userName
+          profileImageUrl
+        }
+        participants {
+          id
+          name
+          userName
+          profileImageUrl
+        }
+      }
+      nextCursor
+    }
+  }
+`);
+
+export const getConversationByIdQuery = graphql(`
+  #graphql
+  query GetConversation($conversationId: ID!) {
+    getConversation(conversationId: $conversationId) {
+      id
+      name
+      lastMessageAt
+      lastMessage
+      createdAt
+      numberOfUnreadMessages
+      read
+      admin {
+        id
+        name
+        userName
+        profileImageUrl
+      }
+      participants {
+        id
+        name
+        userName
+        profileImageUrl
+      }
+    }
+  }
+`);
+
+export const getMessaagesQuery = graphql(`
+  #graphql
+  query GetMessages($conversationId: ID!, $limit: Int, $cursor: ID) {
+    getMessages(
+      conversationId: $conversationId
+      limit: $limit
+      cursor: $cursor
+    ) {
+      messages {
+        id
+        content
+        createdAt
+        updatedAt
+        deletedAt
+        read
+        readAt
+        sender {
+          id
+          name
+          userName
+          profileImageUrl
+        }
+        read
+        deletedBy {
+          id
+          name
+          userName
+          profileImageUrl
+        }
+      }
+      nextCursor
+    }
+  }
+`);
+
+export const getUsersForConversationQuery = graphql(`
+  #graphql
+  query GetUsersForConversation($limit: Int, $cursor: ID, $search: String) {
+    getUsersForConversation(limit: $limit, cursor: $cursor, search: $search) {
+      users {
+        id
+        name
+        userName
+        profileImageUrl
+      }
+      nextCursor
     }
   }
 `);

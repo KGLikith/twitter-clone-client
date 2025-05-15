@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import SideabrSkel from "@/components/global/Skeleton/SidebarSkel"
+import SidebarSkel from "@/components/global/Skeleton/SidebarSkel"
 import { useSession } from "next-auth/react"
 import { apolloClient } from "@/clients/api"
 import { useQueryClient } from "@tanstack/react-query"
@@ -29,18 +29,18 @@ type MenuItemProps = {
   activeColor: string;
   hoverColor: string;
   textColor: string;
-  notifications?: number; // ✅ add this
+  notifications?: number;
 };
 
-const Sidebar = () => {
+const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
   const { user: currentUser, isLoading } = useCurrentUser();
   const [user, setUser] = useState(currentUser);
   const pathName = usePathname()
-  const [isMobile, setIsMobile] = useState(true)
+  const [isMobile, setIsMobile] = useState<boolean | null>(!!isClosed || false)
   const [menuItems, setMenu] = useState<MenuItemProps[]>(loggedOutmenuItems)
   const [dialog, setDialog] = useState(false)
   const router = useRouter();
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -51,24 +51,23 @@ const Sidebar = () => {
 
   useEffect(() => {
     const syncState = async () => {
-      if ((session?.user && !user && !isLoading) || (user && !session?.user)) {
+      if ((session?.user && !user && !isLoading) || (user && !session?.user && status !== "loading")) {
         try {
-          await apolloClient.clearStore();
+          await apolloClient.resetStore();
           await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
         } catch (error) {
           console.error("Apollo sync error:", error);
         }
       }
-
-      if (user || session?.user) {
+      if ((user && session?.user) || isLoading || status === "loading") {
         setDialog(false);
-      } else if (!isLoading && (!user || !session?.user)) {
+      } else if (!user || !session?.user) {
         setDialog(true);
       }
     };
 
     syncState();
-  }, [user, session, isLoading]);
+  }, [user, session, isLoading, status]);
 
   useEffect(() => {
     if (user || session?.user) {
@@ -89,7 +88,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 640)
+      setIsMobile((window.innerWidth < 640) || !!isClosed)
     }
 
     checkIfMobile()
@@ -98,11 +97,11 @@ const Sidebar = () => {
     return () => {
       window.removeEventListener("resize", checkIfMobile)
     }
-  }, [])
+  }, [isClosed])
 
   if (isLoading) return <>
-    <div className="w-full sm:min-w-[250px] h-full flex  justify-center">
-      <SideabrSkel />
+    <div className="w-full sm:min-w-[250px] h-full flex justify-center">
+      {isMobile !== null && <SidebarSkel isClosed={isMobile} />}
     </div>
   </>
 
@@ -127,19 +126,19 @@ const Sidebar = () => {
 
         <nav className="w-full">
           <ul>
-            {menuItems.map((item) => {
+            {menuItems.map((item: MenuItemProps) => {
               return (
                 <SidebarItem
                   href={user ? (item.href == '/profile' ? `/user/${user.id}` : item.href) : (item.href)}
                   icon={item.icon}
-                  selected={pathName === item.href}
+                  selected={pathName === item.href || (item.href == "/messages" ? pathName.includes(item.href) : false ) || (item.href == '/profile' ? pathName== `/user/${user?.id}` : false)}
                   title={item.title}
                   key={item.title}
                   notifications={item.notifications ?? 0}
                   activeColor={item.activeColor}
                   hoverColor={item.hoverColor}
                   textColor={item.textColor}
-                  isMobile={isMobile}
+                  isMobile={isMobile ?? undefined}
                 />
               )
             })}
@@ -161,7 +160,7 @@ const Sidebar = () => {
         }
 
         <div className="mt-auto mb-4 w-full">
-          <Badge></Badge>
+          <Badge isClosed={isClosed ?? undefined} />
         </div>
       </div>
       <Dialog open={dialog} onOpenChange={setDialog}>

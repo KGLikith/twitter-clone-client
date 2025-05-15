@@ -13,8 +13,9 @@ import { useQueryClient } from "@tanstack/react-query"
 import { signOut } from "next-auth/react"
 import { toast } from "sonner"
 
-const Badge = () => {
+const Badge = ({isClosed}:{isClosed?: boolean}) => {
   const queryclient = useQueryClient()
+  const [closed, setClosed] = useState(isClosed)
 
   const router = useRouter()
   const [user, setUser] = useState<User | undefined>()
@@ -80,12 +81,17 @@ const Badge = () => {
     [router],
   )
 
+  // console.log(isClosed)
+  useEffect(()=>{
+    setClosed(isClosed)
+  },[isClosed])
+
   return (
     <>
       {user ? (
         <DropdownMenu>
           <DropdownMenuTrigger className="w-full focus-visible:outline-none">
-            <div className="flex items-center hover:bg-gray-900 border-2 border-zinc-800 cursor-pointer transition-all w-full text-center rounded-full p-2 justify-center md:justify-start md:gap-2 md:px-3 md:py-3">
+            <div className="flex items-center gap-2 hover:bg-gray-900 border-2 border-zinc-800 cursor-pointer transition-all w-full text-center rounded-full p-1 justify-center md:justify-start md:gap-2 md:px-3 md:py-3">
               <Avatar className="h-8 w-8 border-2 border-zinc-200 ">
                 <AvatarImage src={user.profileImageUrl?`${process.env.NEXT_PUBLIC_CDN_URL || ""}${user.profileImageUrl}` : "/user.png"}
                 />
@@ -94,7 +100,7 @@ const Badge = () => {
                 </AvatarFallback>
               </Avatar>
 
-              <div className="hidden sm:flex justify-between w-full items-center">
+              <div className={`  ${closed?"hidden":"hidden sm:flex"}  justify-between w-full items-center`}>
                 <div className="text-left">
                   <h3 className="text-white text-sm font-medium">
                     {user.name}

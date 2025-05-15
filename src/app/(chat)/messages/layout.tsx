@@ -1,19 +1,19 @@
-import TwitterLayout from '@/components/layout/TwitterLayout'
+import { TokenSyncer } from '@/app/tokenSycer'
+import MessagingLayout from '@/components/app_components/messaging/MessagingLayout'
 import React from 'react'
-import { TokenSyncer } from '../tokenSycer'
 
 type Props = {
     children: React.ReactNode
 }
 
 export default function layout({ children }: Props) {
+    
     return (
         <>
             <TokenSyncer />
-            <TwitterLayout>
+            <MessagingLayout>
                 {children}
-            </TwitterLayout>
-
+            </MessagingLayout>
         </>
     )
 }

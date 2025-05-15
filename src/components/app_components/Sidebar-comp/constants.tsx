@@ -1,5 +1,5 @@
 import { BadgePlus, Bell, Chat, CreditCard, Explore, FileDuoToneBlack, Home, Settings, ZapDouToneBlack } from "@/components/icons"
-import { MoreHorizontal } from "lucide-react"
+import { Mail, MoreHorizontal } from "lucide-react"
 
 export const loggedOutmenuItems = [
   {
@@ -25,7 +25,7 @@ export const LoggedInmenuItems = [
     title: "Explore",
     href: `/explore`,
     icon: (
-      <div className="h-5 w-5 text-orange-400 group-hover:text-orange-300  group-hover:stroke-orange-400">
+      <div className="h-5 w-5 group-hover:text-orange-300  group-hover:stroke-orange-400">
         <Explore />
       </div>
     ),
@@ -37,8 +37,8 @@ export const LoggedInmenuItems = [
     title: "Messages",
     href: `/messages`,
     icon: (
-      <div className="h-5 w-5 text-orange-400 group-hover:text-orange-300  group-hover:stroke-orange-400">
-        <FileDuoToneBlack />
+      <div className="h-5 w-5  group-hover:text-orange-300  group-hover:stroke-orange-400">
+        <Chat />
       </div>),
     activeColor: "bg-orange-500/10",
     hoverColor: "bg-orange-500/5",

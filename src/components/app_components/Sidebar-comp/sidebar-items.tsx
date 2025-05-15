@@ -32,8 +32,6 @@ const SidebarItem = ({
   notifications,
   isMobile = false,
 }: Props) => {
-  const pathname = usePathname()
-  const isActive = pathname === href
   const isBookmarkRelated = title.toLowerCase().includes("more")
 
   const renderContent = () => {
@@ -64,13 +62,13 @@ const SidebarItem = ({
 
   const linkClasses = cn(
     "flex items-center gap-3 rounded-md transition-all duration-200 group relative cursor-pointer ",
-    isActive ? activeColor : "hover:" + hoverColor,
+    selected ? activeColor : "hover:" + hoverColor,
     isMobile ? "justify-center py-3 px-2" : "px-3 py-2.5",
   )
 
   const linkContent = (
     <>
-      {isActive && (
+      {selected && (
         <motion.div
           layoutId="activeIndicator"
           className={cn(
@@ -83,8 +81,8 @@ const SidebarItem = ({
         />
       )}
       {icon}
-      {!isMobile && <span className={cn(textColor, isActive && "!text-orange-400 font-medium")}>{title}</span>}
-      {!isMobile && isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500"></div>}
+      {!isMobile && <span className={cn(textColor, selected && "!text-orange-400 font-medium")}>{title}</span>}
+      {!isMobile && selected && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500"></div>}
       {typeof notifications === "number" && notifications > 0 && (
         <div
           className={cn(

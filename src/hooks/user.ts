@@ -9,7 +9,13 @@ import {
   getUserFollowingQuery,
   getRecommendedUsersQuery,
   getSubscriptionQuery,
+  getConversationsQuery,
+  getMessaagesQuery,
+  getConversationByIdQuery,
+  getUsersForConversationQuery,
 } from "@/graphql/query/user";
+import { messageSubscription, USER_TYPING_SUBSCRIPTION } from "@/graphql/subscription/user";
+import { useSubscription } from "@apollo/client";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 export const useCurrentUser = () => {
@@ -91,7 +97,7 @@ export const useGetFollowers = (id: string) => {
         variables: { id, cursor: pageParam, limit: 10 },
         fetchPolicy: "network-only",
       });
-      return data.getUserFollowers
+      return data.getUserFollowers;
     },
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
@@ -128,9 +134,9 @@ export const useGetRecommendedUsers = () => {
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
-}
+};
 
-export const useGetSubscription = ()=>{
+export const useGetSubscription = () => {
   const query = useQuery({
     queryKey: ["subscription"],
     queryFn: async () => {
@@ -144,7 +150,91 @@ export const useGetSubscription = ()=>{
         return null;
       }
     },
-    refetchInterval: 30000
-  })
+    refetchInterval: 30000,
+  });
   return { ...query, subscription: query.data?.getSubscription };
+};
+
+export const useGetPaginatedConversations = () => {
+  return useInfiniteQuery({
+    queryKey: ["conversations"],
+    queryFn: async ({ pageParam=null }: { pageParam: string | null}) => {
+      const { data} = await apolloClient.query({
+        query: getConversationsQuery, 
+        variables: { cursor: pageParam, limit: 10 },
+        fetchPolicy: "network-only",
+      })
+      return data.getConversations
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) =>lastPage?.nextCursor ?? null,
+  });
+};
+
+export const useGetConversation = (conversationId: string) => {
+  const query= useQuery({
+    queryKey: ["conversation", conversationId],
+    queryFn: async () => {
+      try{
+        const { data } = await apolloClient.query({
+          query: getConversationByIdQuery,
+          variables: { conversationId },
+          fetchPolicy: "network-only",
+        });
+        return data;
+      }catch(error){
+        console.error("Error fetching conversation:", error);
+        return null;
+      }
+    },
+    // enabled: !!conversationId,
+  });
+
+  return { ...query, conversation: query.data?.getConversation };
 }
+
+export const useGetPaginatedMessages = (conversationId: string) => {
+  return useInfiniteQuery({
+    queryKey: ["messages", conversationId],
+    queryFn: async ({ pageParam=null }: { pageParam: string | null}) => {
+      const { data} = await apolloClient.query({
+        query: getMessaagesQuery, 
+        variables: { conversationId, cursor: pageParam, limit: 10 },
+        fetchPolicy: "network-only",
+      })
+      return data.getMessages
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) =>lastPage?.nextCursor ?? null,
+  });
+};
+
+export const useMessageSubscription = (conversationId: string) => {
+  return useSubscription(messageSubscription, {
+    variables: { conversationId },
+    skip: !conversationId,
+  });
+};
+
+export const useTypingSubscription = (conversationId: string) => {
+  return useSubscription(USER_TYPING_SUBSCRIPTION, {
+    variables: { conversationId },
+    skip: !conversationId,
+  });
+};
+
+export const getConversationUsers = (search?: string) => {
+  return useInfiniteQuery({
+    queryKey: ["conversationUsers", search],
+    queryFn: async ({ pageParam }: { pageParam?: string | null }) => {
+      const { data } = await apolloClient.query({
+        query: getUsersForConversationQuery,
+        variables: { cursor: pageParam, limit: 10, search },
+        fetchPolicy: "network-only",
+      });
+      return data.getUsersForConversation;
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage?.nextCursor ?? null,
+  })
+};

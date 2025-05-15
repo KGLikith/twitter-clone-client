@@ -94,3 +94,19 @@ export const updateSubscriptionMutation = graphql(`
 `);
 
 
+export const createConversationMutation = graphql(`
+  #graphql
+  mutation CreateConversation($userIds: [ID!]!, $name: String) {
+    createConversation(userIds: $userIds, name: $name) {
+      id
+      existing
+    }
+  }
+`);
+
+export const handleUserTyping = graphql(`
+  #graphql
+  mutation handleUserTyping($userId: ID!, $conversationId: ID!) {
+    handleUserTyping(userId: $userId, conversationId: $conversationId)
+  }
+`);
