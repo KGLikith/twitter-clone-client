@@ -3,9 +3,11 @@ import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { formatDistanceToNow } from "date-fns"
-import { useOnlineSubscription, useTypingSubscription } from '@/hooks/subscriptions'
+import { useMessageSubscription, useOnlineSubscription, useTypingSubscription } from '@/hooks/subscriptions'
 import { getOnlineUsersQuery } from '@/hooks/user'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useQueryClient } from '@tanstack/react-query'
+import { Message } from '@/components/icons'
 
 type Props = {
   conversation: Conversation
@@ -19,6 +21,7 @@ export default function ConversationBlock({ conversation, currentUserId, selecte
   const timeAgo = formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })
   const [onlineStatusMap, setOnlineStatusMap] = useState<Record<string, boolean>>({})
   const initialOnlineUsersData = getOnlineUsersQuery(conversation.participants.filter((p) => p.id != currentUserId).map((p) => p.id), conversation.id)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     if (initialOnlineUsersData.length > 0) {
@@ -38,6 +41,8 @@ export default function ConversationBlock({ conversation, currentUserId, selecte
     conversation.participants.filter((p) => p.id != currentUserId).map((p) => p.id),
   )
 
+  const { data: MessageData } = useMessageSubscription(conversation.id)
+
   const { data: typingData } = useTypingSubscription(conversation.id)
   const isTyping = typingData?.userTyping?.typing && typingData?.userTyping?.userId !== currentUserId
   const typingUser = isTyping ? conversation.participants.find((user) => user.id === typingData?.userTyping?.userId) : null
@@ -51,6 +56,19 @@ export default function ConversationBlock({ conversation, currentUserId, selecte
       }))
     }
   }, [onlineStatusUpdateData])
+
+  async function invalidateQueryCache() {
+    await queryClient.invalidateQueries({ queryKey: ["messageNotification"] })
+    await queryClient.invalidateQueries({ queryKey: ["messages", conversation.id] })
+    await queryClient.invalidateQueries({ queryKey: ["conversations"] })
+  }
+
+  useEffect(() => {
+    if (MessageData?.messageSent) {
+      if(MessageData.messageSent.sender.id === currentUserId) return;
+      invalidateQueryCache();
+    }
+  }, [MessageData?.messageSent])
 
   const getDisplayName = () => {
     const otherParticipants = conversation.participants.filter(p => p.id !== currentUserId)

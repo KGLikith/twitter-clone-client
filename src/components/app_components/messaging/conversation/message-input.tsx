@@ -133,7 +133,7 @@ export default function MessageInput({ conversationId, currentUserId }: Props) {
         content: newMessage,
       },
     })
-    
+
     setNewMessage("")
     setSelectedFiles([])
     setPreviewUrls((prev) => {

@@ -282,7 +282,7 @@ export const getConversationsQuery = graphql(`
         createdAt
         numberOfUnreadMessages
         lastMessageSenderId
-        readBy 
+        readBy
         admin {
           id
           name
@@ -383,5 +383,12 @@ export const onlineUsersQuery = graphql(`
       userId
       online
     }
+  }
+`);
+
+export const getMessageNotificationQuery = graphql(`
+  #graphql
+  query getMessageNotification {
+    getMessageNotification 
   }
 `);

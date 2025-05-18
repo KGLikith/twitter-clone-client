@@ -4,10 +4,10 @@ import { Separator } from "@/components/ui/separator"
 import { usePathname, useRouter, } from "next/navigation"
 import SidebarItem from "./sidebar-items"
 import { cn } from "@/lib/utils"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { loggedOutmenuItems, LoggedInmenuItems } from "./constants"
 import Badge from "@/components/_components/Badge"
-import { useCurrentUser } from "@/hooks/user"
+import { useCurrentUser, useGetMessageNotificationCount } from "@/hooks/user"
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import SidebarSkel from "@/components/global/Skeleton/SidebarSkel"
 import { useSession } from "next-auth/react"
 import { apolloClient } from "@/clients/api"
 import { useQueryClient } from "@tanstack/react-query"
-import { useOnlineSubscription } from "@/hooks/subscriptions"
+import { useNotificationUpdateSubscription, useOnlineSubscription } from "@/hooks/subscriptions"
 
 type MenuItemProps = {
   title: string;
@@ -42,7 +42,9 @@ const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
   const [dialog, setDialog] = useState(false)
   const router = useRouter();
   const { data: session, status } = useSession()
+  const { messageNotificationCount } = useGetMessageNotificationCount()
   const queryClient = useQueryClient()
+  const { data: notificationData } = useNotificationUpdateSubscription(user?.id ?? "")
 
   useEffect(() => {
     if (currentUser !== undefined) {
@@ -50,27 +52,36 @@ const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
     }
   }, [currentUser]);
 
-  
+  async function invalidateQueries(conversationId: string) {
+    await queryClient.invalidateQueries({queryKey: ["messageNotification"]})
+    await queryClient.invalidateQueries({queryKey: ["conversations"]})
+    await queryClient.invalidateQueries({queryKey: ["conversation", conversationId]})
+  }
+
+  useEffect(()=>{
+    if(notificationData?.messageNotificationUpdated){
+      invalidateQueries(notificationData.messageNotificationUpdated.conversationId)
+    }
+  },[notificationData?.messageNotificationUpdated])
 
   useEffect(() => {
     const syncState = async () => {
-      if ((session?.user && !user && !isLoading) || (user && !session?.user && status !== "loading")) {
+      if ((session?.user && !currentUser && !isLoading) || (currentUser && !session?.user && status !== "loading")) {
         try {
-          // await apolloClient.resetStore();
           await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
         } catch (error) {
           console.error("Apollo sync error:", error);
         }
       }
-      if ((user && session?.user) || isLoading || status === "loading") {
+      if ((currentUser && session?.user) || isLoading || status === "loading") {
         setDialog(false);
-      } else if (!user || !session?.user) {
+      } else if (!currentUser || !session?.user) {
         setDialog(true);
       }
     };
 
     syncState();
-  }, [user, session, isLoading, status]);
+  }, [currentUser, session, isLoading, status]);
 
   useEffect(() => {
     if (user || session?.user) {
@@ -81,13 +92,20 @@ const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
             notifications: user?.notificationCount ?? 0,
           };
         }
+        if(item.title.toLowerCase() === "messages"){
+          return {
+            ...item,
+            notifications: messageNotificationCount ?? 0,
+          }
+        }
         return item;
       });
+
       setMenu(updatedMenu);
     } else {
       setMenu(loggedOutmenuItems)
     }
-  }, [user])
+  }, [user,messageNotificationCount])
 
   useEffect(() => {
     const checkIfMobile = () => {

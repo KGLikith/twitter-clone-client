@@ -81,8 +81,9 @@ export default function MessagesContainer({
         conversationId: conversation.id,
       },
     })
-      .then((data) => {
-        queryClient.invalidateQueries({ queryKey: ["conversations"] })
+      .then(async (data) => {
+        await queryClient.invalidateQueries({ queryKey: ["messageNotification"] })
+        await invalidateQueryCache();
       })
       .catch((error) => {
         console.error("Error marking conversation as read:", error)
@@ -90,8 +91,9 @@ export default function MessagesContainer({
   }
 
   async function invalidateQueryCache() {
-    queryClient.invalidateQueries({ queryKey: ["messages", conversation.id] })
-    queryClient.invalidateQueries({ queryKey: ["conversations"] })
+    queryClient.invalidateQueries({ queryKey: ["messageNotification"] })
+    await queryClient.invalidateQueries({ queryKey: ["messages", conversation.id] })
+    await queryClient.invalidateQueries({ queryKey: ["conversations"] })
   }
 
   useEffect(() => {
@@ -356,7 +358,7 @@ export default function MessagesContainer({
                     {!isCurrentUser && showAvatar && (
                       <Link
                         href={`/user/${message.sender.id}`}
-                        className={cn(" mr-2 h-8 w-8 flex-shrink-0 self-end", isLastFromUser ? "mb-6" : "mb-3")}
+                        className={cn(" mr-2 h-8 w-8 flex-shrink-0 self-end", isLastFromUser ? "mb-6" : "mb-2")}
                       >
                         <Avatar className=" cursor-pointer h-8 w-8">
                           <AvatarImage
@@ -375,7 +377,7 @@ export default function MessagesContainer({
 
                     <div className={cn("max-w-[75%] flex flex-col", !isCurrentUser && !showAvatar && "ml-10")}>
                       {!isCurrentUser && showName && (
-                        <div className="text-xs text-muted-foreground mb-1 ml-1 font-medium">{message.sender.name}</div>
+                        <div className="text-xs text-muted-foreground mb-1 ml-1 mt-3 font-medium">{message.sender.name}</div>
                       )}
 
                       <TooltipProvider>
@@ -419,9 +421,9 @@ export default function MessagesContainer({
                                     {seenUsers.length === participants.length
                                       ? "Seen by all"
                                       : participants
-                                          .filter((user) => seenUsers.includes(user.id) && user.id !== currentUserId)
-                                          .map((user) => user.name)
-                                          .join(", ")}
+                                        .filter((user) => seenUsers.includes(user.id) && user.id !== currentUserId)
+                                        .map((user) => user.name)
+                                        .join(", ")}
                                   </TooltipContent>
                                 )}
                               </Tooltip>

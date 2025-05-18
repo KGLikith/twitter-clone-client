@@ -14,6 +14,7 @@ import {
   getConversationByIdQuery,
   getUsersForConversationQuery,
   onlineUsersQuery,
+  getMessageNotificationQuery,
 } from "@/graphql/query/user";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
@@ -24,6 +25,7 @@ export const useCurrentUser = () => {
       try {
         const { data } = await apolloClient.query({
           query: getCurrentUserQuery,
+          fetchPolicy: "network-only",
         });
         return data;
       } catch (error) {
@@ -245,4 +247,23 @@ export const getOnlineUsersQuery = (userIds: string[], conversationId: string) =
   });
 
   return data?.onlineUsers || [];
+}
+
+export const useGetMessageNotificationCount = () =>{
+  const query = useQuery({
+    queryKey: ["messageNotification"],
+    queryFn: async () => {
+      try {
+        const { data } = await apolloClient.query({
+          query: getMessageNotificationQuery,
+          fetchPolicy: "network-only",
+        });
+        return data.getMessageNotification;
+      } catch (error) {
+        console.error("Error fetching message notification count:", error);
+        return null;
+      }
+    },
+  });
+  return { ...query, messageNotificationCount: query.data };
 }

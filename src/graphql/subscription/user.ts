@@ -62,3 +62,13 @@ export const seenSusbcription = graphql(`
     }
   }
 `);
+
+export const messageNotificationUpdatedSubscripiton = graphql(`
+  subscription MessageNotificationUpdated($userId: ID!) {
+    messageNotificationUpdated(userId: $userId) {
+      userId
+      conversationId
+      timeStamp
+    }
+  }
+`);

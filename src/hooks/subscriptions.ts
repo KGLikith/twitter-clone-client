@@ -6,6 +6,7 @@ import type {
   UserTypingSubscriptionVariables,
 } from "@/gql/graphql";
 import {
+  messageNotificationUpdatedSubscripiton,
   messageSubscription,
   ONLINE_STATUS_SUBSCRIPTION,
   seenSusbcription,
@@ -53,5 +54,12 @@ export function useOnlineSubscription(userIds: string[]) {
   return useSubscription(ONLINE_STATUS_SUBSCRIPTION, {
     variables: { userIds },
     skip: userIds.length === 0,
+  });
+}
+
+export function useNotificationUpdateSubscription(userId: string) {
+  return useSubscription(messageNotificationUpdatedSubscripiton, {
+    variables: { userId },
+    skip: !userId,
   });
 }
