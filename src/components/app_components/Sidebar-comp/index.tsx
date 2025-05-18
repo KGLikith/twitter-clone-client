@@ -21,6 +21,7 @@ import SidebarSkel from "@/components/global/Skeleton/SidebarSkel"
 import { useSession } from "next-auth/react"
 import { apolloClient } from "@/clients/api"
 import { useQueryClient } from "@tanstack/react-query"
+import { useOnlineSubscription } from "@/hooks/subscriptions"
 
 type MenuItemProps = {
   title: string;
@@ -36,7 +37,7 @@ const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
   const { user: currentUser, isLoading } = useCurrentUser();
   const [user, setUser] = useState(currentUser);
   const pathName = usePathname()
-  const [isMobile, setIsMobile] = useState<boolean | null>(!!isClosed || false)
+  const [isMobile, setIsMobile] = useState<boolean | null>(null)
   const [menuItems, setMenu] = useState<MenuItemProps[]>(loggedOutmenuItems)
   const [dialog, setDialog] = useState(false)
   const router = useRouter();
@@ -49,11 +50,13 @@ const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
     }
   }, [currentUser]);
 
+  
+
   useEffect(() => {
     const syncState = async () => {
       if ((session?.user && !user && !isLoading) || (user && !session?.user && status !== "loading")) {
         try {
-          await apolloClient.resetStore();
+          // await apolloClient.resetStore();
           await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
         } catch (error) {
           console.error("Apollo sync error:", error);
@@ -131,7 +134,7 @@ const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
                 <SidebarItem
                   href={user ? (item.href == '/profile' ? `/user/${user.id}` : item.href) : (item.href)}
                   icon={item.icon}
-                  selected={pathName === item.href || (item.href == "/messages" ? pathName.includes(item.href) : false ) || (item.href == '/profile' ? pathName== `/user/${user?.id}` : false)}
+                  selected={pathName === item.href || (item.href == "/messages" ? pathName.includes(item.href) : false) || (item.href == '/profile' ? pathName == `/user/${user?.id}` : false)}
                   title={item.title}
                   key={item.title}
                   notifications={item.notifications ?? 0}

@@ -21,7 +21,6 @@ export const useSignInForm = () => {
 
     const onHandleSubmit = methods.handleSubmit(async (values: UserLoginProps) => {
         try {
-            console.log("values", values)
             setLoading(true);
             const { email, password } = await UserLoginSchema.parseAsync(values);
             const { data: { checkLoginCredentials } } = await apolloClient.query({

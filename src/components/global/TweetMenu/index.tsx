@@ -3,11 +3,9 @@ import { HiOutlinePhotograph } from 'react-icons/hi'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { AiOutlineGif } from 'react-icons/ai'
 import { Input } from '@/components/ui/input'
-import { searchGifs } from '../postMenu/handleSelect'
 import { FiSmile } from 'react-icons/fi'
 import Picker from "@emoji-mart/react"
 import data from "@emoji-mart/data"
-
 
 type Props = {
   handleSelectImage: () => void

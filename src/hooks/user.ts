@@ -13,9 +13,8 @@ import {
   getMessaagesQuery,
   getConversationByIdQuery,
   getUsersForConversationQuery,
+  onlineUsersQuery,
 } from "@/graphql/query/user";
-import { messageSubscription, USER_TYPING_SUBSCRIPTION } from "@/graphql/subscription/user";
-import { useSubscription } from "@apollo/client";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 export const useCurrentUser = () => {
@@ -161,7 +160,7 @@ export const useGetPaginatedConversations = () => {
     queryFn: async ({ pageParam=null }: { pageParam: string | null}) => {
       const { data} = await apolloClient.query({
         query: getConversationsQuery, 
-        variables: { cursor: pageParam, limit: 10 },
+        variables: { cursor: pageParam, limit: 15 },
         fetchPolicy: "network-only",
       })
       return data.getConversations
@@ -197,29 +196,20 @@ export const useGetPaginatedMessages = (conversationId: string) => {
   return useInfiniteQuery({
     queryKey: ["messages", conversationId],
     queryFn: async ({ pageParam=null }: { pageParam: string | null}) => {
-      const { data} = await apolloClient.query({
-        query: getMessaagesQuery, 
-        variables: { conversationId, cursor: pageParam, limit: 10 },
-        fetchPolicy: "network-only",
-      })
-      return data.getMessages
+      try {
+        const { data} = await apolloClient.query({
+          query: getMessaagesQuery, 
+          variables: { conversationId, cursor: pageParam, limit: 20 },
+          fetchPolicy: "network-only",
+        })
+        return data.getMessages
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+        throw error;
+      }
     },
     initialPageParam: null,
     getNextPageParam: (lastPage) =>lastPage?.nextCursor ?? null,
-  });
-};
-
-export const useMessageSubscription = (conversationId: string) => {
-  return useSubscription(messageSubscription, {
-    variables: { conversationId },
-    skip: !conversationId,
-  });
-};
-
-export const useTypingSubscription = (conversationId: string) => {
-  return useSubscription(USER_TYPING_SUBSCRIPTION, {
-    variables: { conversationId },
-    skip: !conversationId,
   });
 };
 
@@ -238,3 +228,21 @@ export const getConversationUsers = (search?: string) => {
     getNextPageParam: (lastPage) => lastPage?.nextCursor ?? null,
   })
 };
+
+
+export const getOnlineUsersQuery = (userIds: string[], conversationId: string) => {
+  if(userIds.length === 0) return [];
+  const { data } = useQuery({
+    queryKey: ["onlineUsers", conversationId],
+    queryFn: async () => {
+      const { data } = await apolloClient.query({
+        query: onlineUsersQuery,
+        variables: { userIds },
+        fetchPolicy: "network-only",
+      });
+      return data;
+    },
+  });
+
+  return data?.onlineUsers || [];
+}

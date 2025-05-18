@@ -280,6 +280,9 @@ export const getConversationsQuery = graphql(`
         lastMessageAt
         lastMessage
         createdAt
+        numberOfUnreadMessages
+        lastMessageSenderId
+        readBy 
         admin {
           id
           name
@@ -308,7 +311,8 @@ export const getConversationByIdQuery = graphql(`
       lastMessage
       createdAt
       numberOfUnreadMessages
-      read
+      lastMessageSenderId
+      readBy
       admin {
         id
         name
@@ -339,15 +343,12 @@ export const getMessaagesQuery = graphql(`
         createdAt
         updatedAt
         deletedAt
-        read
-        readAt
         sender {
           id
           name
           userName
           profileImageUrl
         }
-        read
         deletedBy {
           id
           name
@@ -371,6 +372,16 @@ export const getUsersForConversationQuery = graphql(`
         profileImageUrl
       }
       nextCursor
+    }
+  }
+`);
+
+export const onlineUsersQuery = graphql(`
+  #graphql
+  query OnlineUsers($userIds: [ID!]!) {
+    onlineUsers(userIds: $userIds) {
+      userId
+      online
     }
   }
 `);

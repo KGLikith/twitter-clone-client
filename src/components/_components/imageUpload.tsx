@@ -16,7 +16,6 @@ export default function ProfileImageUpload({
 
     useEffect(() => {
         // Set the initial image URL from props
-        console.log(imageUrl)
         if (imageUrl?.startsWith("/")) {
             setPreviewUrl(`${process.env.NEXT_PUBLIC_CDN_URL}${imageUrl}`)
         }else if(imageUrl){

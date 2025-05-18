@@ -1,9 +1,8 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import MessageView from "@/components/app_components/messaging/message-view"
+import ConversationView from "@/components/app_components/messaging/conversation/conversation-view"
 import {
-  useCurrentUser,
   useGetConversation,
   useGetPaginatedMessages,
 } from "@/hooks/user"
@@ -31,7 +30,7 @@ export default function ConversationPage() {
     isFetchingNextPage,
     isLoading: messagesLoading,
   } = useGetPaginatedMessages(conversationId as string)
-
+  
   const messages = data?.pages.flatMap((page) => page.messages) || []
 
   if (conversationLoading || !currentUserId || status === "loading") {
@@ -68,11 +67,9 @@ export default function ConversationPage() {
     )
   }
 
-  console.log(messagesLoading)
-
   return (
     <div className="flex h-full w-full">
-      <MessageView
+      <ConversationView
         messages={messages as Message[]}
         hasNextPage={!!hasNextPage}
         isFetchingNextPage={isFetchingNextPage}

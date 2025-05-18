@@ -104,9 +104,23 @@ export const createConversationMutation = graphql(`
   }
 `);
 
-export const handleUserTyping = graphql(`
+export const handleUserTypingStatusMutation = graphql(`
   #graphql
-  mutation handleUserTyping($userId: ID!, $conversationId: ID!) {
-    handleUserTyping(userId: $userId, conversationId: $conversationId)
+  mutation handleUserTypingStatus($userId: ID!, $conversationId: ID!, $typingStatus: Boolean!) {
+    handleUserTypingStatus(userId: $userId, conversationId: $conversationId, typingStatus: $typingStatus) 
+  }
+`);
+
+export const sendMessageMutation = graphql(`
+  #graphql
+  mutation SendMessage($conversationId: ID!, $content: String!) {
+    sendMessage(conversationId: $conversationId, content: $content)
+  }
+`);
+
+export const markConversationAsReadMutation = graphql(`
+  #graphql
+  mutation MarkConversationAsRead($conversationId: ID!) {
+    markConversationAsRead(conversationId: $conversationId)
   }
 `);
