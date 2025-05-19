@@ -23,6 +23,20 @@ export default function ConversationBlock({ conversation, currentUserId, selecte
   const initialOnlineUsersData = getOnlineUsersQuery(conversation.participants.filter((p) => p.id != currentUserId).map((p) => p.id), conversation.id)
   const queryClient = useQueryClient()
 
+    const { data: onlineStatusUpdateData } = useOnlineSubscription(
+    conversation.participants.filter((p) => p.id != currentUserId).map((p) => p.id),
+  )
+
+  const { data: MessageData } = useMessageSubscription(conversation.id)
+
+  const { data: typingData } = useTypingSubscription(conversation.id)
+  const isTyping = typingData?.userTyping?.typing && typingData?.userTyping?.userId !== currentUserId
+  const typingUser = isTyping ? conversation.participants.find((user) => user.id === typingData?.userTyping?.userId) : null
+
+  console.log(initialOnlineUsersData, "initialOnlineUsersData")
+  console.log(onlineStatusMap, "onlineStatusMap")
+  console.log(onlineStatusUpdateData, "onlineStatusUpdateData")
+
   useEffect(() => {
     if (initialOnlineUsersData.length > 0) {
       const initialOnline = initialOnlineUsersData
@@ -37,15 +51,7 @@ export default function ConversationBlock({ conversation, currentUserId, selecte
     }
   }, [initialOnlineUsersData, conversation.participants])
 
-  const { data: onlineStatusUpdateData } = useOnlineSubscription(
-    conversation.participants.filter((p) => p.id != currentUserId).map((p) => p.id),
-  )
 
-  const { data: MessageData } = useMessageSubscription(conversation.id)
-
-  const { data: typingData } = useTypingSubscription(conversation.id)
-  const isTyping = typingData?.userTyping?.typing && typingData?.userTyping?.userId !== currentUserId
-  const typingUser = isTyping ? conversation.participants.find((user) => user.id === typingData?.userTyping?.userId) : null
 
   useEffect(() => {
     const onlineStatusData = onlineStatusUpdateData?.onlineStatusUpdated

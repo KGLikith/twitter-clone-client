@@ -19,6 +19,8 @@ type Props = {
   currentUserId: string
 }
 
+// WIP : try removing all the invalidation from the frontend and let the backend handle it. for messaging 
+
 export default function MessageInput({ conversationId, currentUserId }: Props) {
   const [newMessage, setNewMessage] = useState("")
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false)
