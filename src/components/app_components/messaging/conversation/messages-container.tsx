@@ -47,6 +47,8 @@ export default function MessagesContainer({
   const [seenUsers, setSeenUsers] = useState<string[]>(conversation.readBy)
   const queryClient = useQueryClient()
   const [markConversationAsRead] = useMutation(markConversationAsReadMutation)
+  const [isAtBottom, setIsAtBottom] = useState(true)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const { data: TypingData } = useTypingSubscription(conversation.id)
   const isTyping = TypingData?.userTyping.typing
@@ -58,7 +60,7 @@ export default function MessagesContainer({
 
   useEffect(() => {
     if (seenData?.seenMessage) {
-      if (seenData.seenMessage.readAt < localMessages[localMessages.length - 1].createdAt) return
+      if (seenData.seenMessage.readAt < localMessages[localMessages.length - 1]?.createdAt) return
       setSeenUsers((prevSeenUsers) => {
         const newSeenUser = seenData.seenMessage.userId
         if (!prevSeenUsers.includes(newSeenUser)) {
@@ -100,15 +102,6 @@ export default function MessagesContainer({
     if (MessageData?.messageSent) {
       setSeenUsers([])
       markConvoRead()
-    }
-  }, [MessageData])
-
-  useEffect(() => {
-    markConvoRead()
-  }, [])
-
-  useEffect(() => {
-    if (MessageData?.messageSent) {
       setLocalMessages((prevMessages) => {
         const newMessage = MessageData.messageSent
         const existingIndex = prevMessages.findIndex((m) => m.id === newMessage.id)
@@ -121,15 +114,32 @@ export default function MessagesContainer({
           return updated
         }
       })
+      if (isAtBottom) {
+        setTimeout(() => {
+          messagesContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+        }, 100)
+      } else {
+        setUnreadCount((count) => count + 1)
+      }
       invalidateQueryCache()
     }
   }, [MessageData])
+
+  useEffect(() => {
+    markConvoRead()
+  }, [])
 
   useEffect(() => {
     if (messages.length > localMessages.length) {
       setLocalMessages(messages)
     }
   }, [messages])
+
+  useEffect(() => {
+    if (isTyping && typingUser?.id !== currentUserId && isAtBottom) {
+      messagesContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+    }
+  }, [isTyping, typingUser?.id])
 
   useEffect(() => {
     if (!initialScrollDone && localMessages.length > 0) {
@@ -196,7 +206,10 @@ export default function MessagesContainer({
     if (!container) return
 
     const scrollThreshold = -300
-    setShowScrollButton(container.scrollTop < scrollThreshold)
+    const isUserNotAtBottom = container.scrollTop < scrollThreshold
+
+    setIsAtBottom(!isUserNotAtBottom)
+    setShowScrollButton(isUserNotAtBottom)
   }
 
   const scrollToBottom = () => {
@@ -205,6 +218,7 @@ export default function MessagesContainer({
       container.scrollTo({ top: 0, behavior: "smooth" })
 
       setTimeout(() => setShowScrollButton(false), 500)
+      setUnreadCount(0)
     }
   }
 
@@ -250,6 +264,7 @@ export default function MessagesContainer({
       if (participants.length === 2) {
         if (!currentUserSender) return
         if (readBy.length === 2) return "Seen"
+        return;
       }
 
       const totalParticipants = participants.length
@@ -259,14 +274,14 @@ export default function MessagesContainer({
         (user) =>
           readBy.includes(user.id) &&
           user.id !== currentUserId &&
-          user.id !== localMessages[localMessages.length - 1].sender.id,
+          user.id !== conversation.lastMessageSenderId,
       )
 
       if (currentUserId === conversation.lastMessageSenderId) {
         if (otherReaders.length === totalParticipants - 1) {
           return `Seen by everyone`
         }
-      } else if (otherReaders.length >= totalParticipants - 2) {
+      } else if (otherReaders.length === totalParticipants - 2) {
         return "Seen by everyone"
       }
 
@@ -447,6 +462,11 @@ export default function MessagesContainer({
           size="icon"
         >
           <ChevronDown className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <div className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center">
+              {unreadCount < 10 ? unreadCount : "!"}
+            </div>
+          )}
         </Button>
       )}
     </div>

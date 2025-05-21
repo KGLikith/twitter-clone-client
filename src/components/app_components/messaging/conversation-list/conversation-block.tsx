@@ -33,10 +33,6 @@ export default function ConversationBlock({ conversation, currentUserId, selecte
   const isTyping = typingData?.userTyping?.typing && typingData?.userTyping?.userId !== currentUserId
   const typingUser = isTyping ? conversation.participants.find((user) => user.id === typingData?.userTyping?.userId) : null
 
-  console.log(initialOnlineUsersData, "initialOnlineUsersData")
-  console.log(onlineStatusMap, "onlineStatusMap")
-  console.log(onlineStatusUpdateData, "onlineStatusUpdateData")
-
   useEffect(() => {
     if (initialOnlineUsersData.length > 0) {
       const initialOnline = initialOnlineUsersData
@@ -51,8 +47,6 @@ export default function ConversationBlock({ conversation, currentUserId, selecte
     }
   }, [initialOnlineUsersData, conversation.participants])
 
-
-
   useEffect(() => {
     const onlineStatusData = onlineStatusUpdateData?.onlineStatusUpdated
     if (onlineStatusData) {
@@ -65,8 +59,9 @@ export default function ConversationBlock({ conversation, currentUserId, selecte
 
   async function invalidateQueryCache() {
     await queryClient.invalidateQueries({ queryKey: ["messageNotification"] })
-    await queryClient.invalidateQueries({ queryKey: ["messages", conversation.id] })
+    await queryClient.refetchQueries({ queryKey: ["messages", conversation.id] })
     await queryClient.invalidateQueries({ queryKey: ["conversations"] })
+    await queryClient.invalidateQueries({ queryKey: ["conversation", conversation.id] })
   }
 
   useEffect(() => {

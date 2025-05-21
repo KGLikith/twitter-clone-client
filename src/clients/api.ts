@@ -7,8 +7,10 @@ import {
 } from "@apollo/client";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { getMainDefinition } from "@apollo/client/utilities";
-import { createClient } from "graphql-ws";
+import { Client, createClient } from "graphql-ws";
 import { setContext } from "@apollo/client/link/context";
+
+let wsClient: Client | null = null;
 
 const createApolloClient = () => {
   const httpLink = createHttpLink({
@@ -26,8 +28,8 @@ const createApolloClient = () => {
 
   const wsLink = typeof window !== "undefined"
     ? new GraphQLWsLink(
-        createClient({
-          url: process.env.NEXT_PUBLIC_WS_URL!, // e.g., ws://localhost:4000/graphql
+        (wsClient = createClient({
+          url: process.env.NEXT_PUBLIC_WS_URL!, 
           connectionParams: () => {
             const token = window.localStorage.getItem("__twitter_token");
             return {
@@ -36,7 +38,7 @@ const createApolloClient = () => {
               },
             };
           },
-        })
+        }))
       )
     : null;
 
@@ -60,6 +62,14 @@ const createApolloClient = () => {
   });
 
   return client;
+};
+
+
+export const disposeWsClient = () => {
+  if (wsClient) {
+    wsClient.dispose();
+    wsClient = null;
+  }
 };
 
 export const apolloClient = createApolloClient();

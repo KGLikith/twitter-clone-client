@@ -146,9 +146,9 @@ export default function MessageInput({ conversationId, currentUserId }: Props) {
       return []
     })
 
-    await queryClient.invalidateQueries({ queryKey: ["conversation", conversationId] })
-    await queryClient.invalidateQueries({ queryKey: ["messages", conversationId] })
-    await queryClient.invalidateQueries({ queryKey: ["conversations"] })
+    // await queryClient.invalidateQueries({ queryKey: ["conversation", conversationId] })
+    // await queryClient.invalidateQueries({ queryKey: ["messages", conversationId] })
+    // await queryClient.invalidateQueries({ queryKey: ["conversations"] })
     
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto"

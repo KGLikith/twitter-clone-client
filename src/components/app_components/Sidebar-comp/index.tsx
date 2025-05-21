@@ -53,13 +53,15 @@ const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
   }, [currentUser]);
 
   async function invalidateQueries(conversationId: string) {
-    await queryClient.invalidateQueries({queryKey: ["messageNotification"]})
-    await queryClient.invalidateQueries({queryKey: ["conversations"]})
-    await queryClient.invalidateQueries({queryKey: ["conversation", conversationId]})
+    await queryClient.refetchQueries({queryKey: ["messages", conversationId]})
+    await queryClient.refetchQueries({queryKey: ["messageNotification"]})
+    await queryClient.refetchQueries({queryKey: ["conversations"]})
+    await queryClient.refetchQueries({queryKey: ["conversation", conversationId]})
   }
 
   useEffect(()=>{
     if(notificationData?.messageNotificationUpdated){
+      console.log(notificationData.messageNotificationUpdated)
       invalidateQueries(notificationData.messageNotificationUpdated.conversationId)
     }
   },[notificationData?.messageNotificationUpdated])
