@@ -155,7 +155,6 @@ export default function MessageInput({ conversationId, currentUserId }: Props) {
     }
   }
 
-
   return (
     <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-card/80 backdrop-blur-sm">
       {selectedFiles.length > 0 && (

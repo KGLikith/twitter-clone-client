@@ -31,7 +31,7 @@ export default function ConversationPage() {
     isLoading: messagesLoading,
   } = useGetPaginatedMessages(conversationId as string)
   
-  const messages = data?.pages.flatMap((page) => page.messages) || []
+  const messages = data?.pages.flatMap((page) => page?.messages) || []
 
   if (conversationLoading || !currentUserId || status === "loading") {
     return (
@@ -61,7 +61,7 @@ export default function ConversationPage() {
         <div className="text-center space-y-2">
           <AlertTriangle className="w-10 h-10 text-red-500 mx-auto" />
           <h2 className="text-xl font-bold text-white">Conversation not found</h2>
-          <p className="text-sm text-gray-400">The conversation you are trying to access does not exist or has been deleted.</p>
+          <p className="text-sm text-gray-400">The conversation you are trying to access does not exist or you don't have access.</p>
         </div>
       </div>
     )

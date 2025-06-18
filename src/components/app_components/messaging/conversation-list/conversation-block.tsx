@@ -58,7 +58,6 @@ export default function ConversationBlock({ conversation, currentUserId, selecte
   }, [onlineStatusUpdateData])
 
   async function invalidateQueryCache() {
-    await queryClient.invalidateQueries({ queryKey: ["messageNotification"] })
     await queryClient.refetchQueries({ queryKey: ["messages", conversation.id] })
     await queryClient.invalidateQueries({ queryKey: ["conversations"] })
     await queryClient.invalidateQueries({ queryKey: ["conversation", conversation.id] })

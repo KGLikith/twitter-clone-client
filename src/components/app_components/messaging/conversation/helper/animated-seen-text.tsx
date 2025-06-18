@@ -12,7 +12,6 @@ export default function EnhancedAnimatedSeenText({ text, className = "" }: Anima
   const [displayText, setDisplayText] = useState(text)
   const prevTextRef = useRef(text)
 
-  // Split text into individual characters for more granular animation
   const getTextArray = (text: string | null) => {
     if (!text) return []
     return text.split("")
@@ -34,7 +33,6 @@ export default function EnhancedAnimatedSeenText({ text, className = "" }: Anima
     <div className={`relative overflow-hidden ${className}`}>
       <div className="flex">
         {currentTextArray.map((char, index) => {
-          // Determine if this character has changed from the previous text
           const hasChanged = index >= prevTextArray.length || char !== prevTextArray[index]
 
           return (
@@ -44,7 +42,7 @@ export default function EnhancedAnimatedSeenText({ text, className = "" }: Anima
               animate={{ y: 0, opacity: 1 }}
               transition={{
                 duration: 0.3,
-                delay: index * 0.02, // Stagger the animation
+                delay: index * 0.02, 
                 ease: "easeOut",
               }}
               className="inline-block"

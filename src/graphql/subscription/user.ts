@@ -34,15 +34,6 @@ export const USER_TYPING_SUBSCRIPTION = graphql(`
   }
 `);
 
-// export const USER_ONLINE_SUBSCRIPTION = graphql(`
-//   subscription IsOnline($userId: ID!) {
-//     isOnline(userId: $userId) {
-//       online
-//       userId
-//     }
-//   }
-// `);
-
 export const ONLINE_STATUS_SUBSCRIPTION = graphql(`
   subscription onlineStatusUpdated($userIds: [ID!]!) {
     onlineStatusUpdated(userIds: $userIds) {
@@ -51,7 +42,6 @@ export const ONLINE_STATUS_SUBSCRIPTION = graphql(`
     }
   }
 `);
-
 
 export const seenSusbcription = graphql(`
   subscription SeenMessage($conversationId: ID!) {
@@ -69,6 +59,107 @@ export const messageNotificationUpdatedSubscripiton = graphql(`
       userId
       conversationId
       timeStamp
+    }
+  }
+`);
+
+export const incomingCallSubscription = graphql(`
+  subscription OnIncomingCall($userId: String!) {
+    onIncomingCall(userId: $userId) {
+      id
+      type
+      status
+      conversationId
+      callerId
+      startedAt
+      endedAt
+      conversation {
+        id
+        name
+      }
+      participants {
+        user {
+          id
+          name
+          userName
+          profileImageUrl
+        }
+        joinedAt
+        leftAt
+        audioEnabled
+        videoEnabled
+        accepted
+      }
+    }
+  }
+`);
+
+export const callAnswerSubscription = graphql(`
+  subscription OnCallAnswer($callId: String!) {
+    onCallAnswer(callId: $callId) {
+      userId
+      callId
+      accepted
+      declined
+    }
+  }
+`);
+
+export const getOfferSubscription = graphql(`
+  subscription OnOffer($userId: String!) {
+    onOffer(userId: $userId) {
+      sdp
+      fromUserId
+      callId
+    }
+  }
+`);
+
+export const getAnswerSubscription = graphql(`
+  subscription OnAnswer($userId: String!) {
+    onAnswer(userId: $userId) {
+      sdp
+      fromUserId
+      callId
+    }
+  }
+`);
+
+export const getIceCandidateSubscription = graphql(`
+  subscription OnIceCandidate($userId: String!) {
+    onIceCandidate(userId: $userId) {
+      candidate
+      fromUserId
+      callId
+    }
+  }
+`);
+
+export const callEndedSubscription = graphql(`
+  subscription OnCallEnded($callId: String!) {
+    onCallEnded(callId: $callId) {
+      callId
+      host
+    }
+  }
+`);
+
+export const callParticipantLeftSubscription = graphql(`
+  subscription OnParticipantLeft($callId: String!) {
+    onParticipantLeft(callId: $callId) {
+      callId
+      userId
+    }
+  }
+`);
+
+export const callMediaUpdateSubscription = graphql(`
+  subscription OnMediaUpdate($callId: String!) {
+    onMediaUpdate(callId: $callId) {
+      callId
+      userId
+      audioEnabled
+      videoEnabled
     }
   }
 `);

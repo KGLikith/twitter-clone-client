@@ -124,3 +124,90 @@ export const markConversationAsReadMutation = graphql(`
     markConversationAsRead(conversationId: $conversationId)
   }
 `);
+
+export const startCallMutation = graphql(`
+  #graphql
+  mutation StartCall($participants: [ID]!, $conversationId: String!, $type: CallType!) {
+    startCall(participants: $participants, conversationId: $conversationId, type: $type){
+      callId
+      success
+      error
+    }
+  }
+`);
+
+export const acceptCallMutation = graphql(`
+  #graphql
+  mutation AcceptCall($callId: String!) {
+    acceptCall(callId: $callId)
+  }
+`);
+
+export const declineCallMutation = graphql(`
+  #graphql
+  mutation DeclineCall($callId: String!) {
+    declineCall(callId: $callId)
+  }
+`);
+
+export const missedCallMutation = graphql(`
+  #graphql
+  mutation MissedCall($callId: String!) {
+    missedCall(callId: $callId)
+  }
+`);
+export const sendOfferMutation = graphql(`
+  #graphql
+  mutation SendOffer($callId: String!, $sdp: String!, $targetUserId: String!) {
+    sendOffer(callId: $callId, sdp: $sdp, targetUserId: $targetUserId)
+  }
+`);
+
+export const sendAnswerMutation = graphql(`
+  #graphql
+  mutation SendAnswer($callId: String!, $sdp: String!, $targetUserId: String!) {
+    sendAnswer(callId: $callId, sdp: $sdp, targetUserId: $targetUserId)
+  }
+`);
+
+export const sendIceCandidateMutation = graphql(`
+  #graphql
+  mutation SendIceCandidate($callId: String!, $candidate: String!, $targetUserId: String!) {
+    sendIceCandidate(callId: $callId, candidate: $candidate, targetUserId: $targetUserId)
+  }
+`);
+
+export const endCallMutation = graphql(`
+  #graphql
+  mutation EndCall($callId: String!) {
+    endCall(callId: $callId)
+  }
+`);
+
+export const muteAudioMutation = graphql(`
+  #graphql
+  mutation MuteAudio($callId: String!) {
+    muteAudio(callId: $callId)
+  }
+`);
+
+export const unmuteAudioMutation = graphql(`
+  #graphql
+  mutation UnmuteAudio($callId: String!) {
+    unmuteAudio(callId: $callId)
+  }
+`);
+
+export const showVideoMutation = graphql(`
+  #graphql
+  mutation ShowVideo($callId: String!) {
+    showVideo(callId: $callId)
+  }
+`);
+
+export const hideVideoMutation = graphql(`
+  #graphql
+  mutation HideVideo($callId: String!) {
+    hideVideo(callId: $callId)
+  }
+`);

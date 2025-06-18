@@ -53,7 +53,6 @@ const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
   }, [currentUser]);
 
   async function invalidateQueries(conversationId: string) {
-    await queryClient.refetchQueries({queryKey: ["messages", conversationId]})
     await queryClient.refetchQueries({queryKey: ["messageNotification"]})
     await queryClient.refetchQueries({queryKey: ["conversations"]})
     await queryClient.refetchQueries({queryKey: ["conversation", conversationId]})
@@ -61,7 +60,11 @@ const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
 
   useEffect(()=>{
     if(notificationData?.messageNotificationUpdated){
-      console.log(notificationData.messageNotificationUpdated)
+      if( pathName === `/messages/${notificationData.messageNotificationUpdated.conversationId}`){
+        queryClient.invalidateQueries({ queryKey: ["conversations"] })
+        queryClient.invalidateQueries({ queryKey: ["conversation", notificationData.messageNotificationUpdated.conversationId] })
+        return;
+      }
       invalidateQueries(notificationData.messageNotificationUpdated.conversationId)
     }
   },[notificationData?.messageNotificationUpdated])
@@ -198,7 +201,7 @@ const Sidebar = ({ isClosed }: { isClosed?: boolean }) => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push('/auth/sign-in')}
+              onClick={() => { router.push('/auth/sign-in')}}
               className="border-gray-700 text-white hover:bg-gray-900 hover:text-white"
             >
               Sign In

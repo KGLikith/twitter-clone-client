@@ -15,6 +15,7 @@ import {
   getUsersForConversationQuery,
   onlineUsersQuery,
   getMessageNotificationQuery,
+  getCallDetailsQuery,
 } from "@/graphql/query/user";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
@@ -33,7 +34,7 @@ export const useCurrentUser = () => {
         return null;
       }
     },
-  });
+  }); 
   return { ...query, user: query.data?.getCurrentUser };
 };
 
@@ -207,7 +208,7 @@ export const useGetPaginatedMessages = (conversationId: string) => {
         return data.getMessages
       } catch (error) {
         console.error("Error fetching messages:", error);
-        throw error;
+        return null;
       }
     },
     initialPageParam: null,
@@ -260,10 +261,29 @@ export const useGetMessageNotificationCount = () =>{
         });
         return data.getMessageNotification;
       } catch (error) {
-        console.error("Error fetching message notification count:", error);
         return null;
       }
     },
   });
   return { ...query, messageNotificationCount: query.data };
+}
+
+export const useGetCallDetails = (callId: string) => {  
+  const query = useQuery({
+    queryKey: ["call", callId],
+    queryFn: async () => {
+      try {
+        const { data } = await apolloClient.query({
+          query: getCallDetailsQuery,
+          variables: { callId },
+          fetchPolicy: "network-only",
+        });
+        return data;
+      } catch (error) {
+        console.error("Error fetching call details:", error);
+        return null;
+      }
+    },
+  });
+  return { ...query, callDetails: query.data?.getCallDetails };
 }

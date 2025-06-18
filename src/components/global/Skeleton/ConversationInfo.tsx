@@ -13,7 +13,11 @@ export function ConversationInfoSkeleton() {
           <Skeleton className="h-6 w-32 bg-gray-500/20" />
           <Skeleton className="h-5 w-20 mt-1 bg-gray-500/20" />
         </div>
-        <Skeleton className="h-7 w-7 rounded-full bg-gray-500/20" />
+        <div className="flex  items-center justify-between gap-2">
+          <Skeleton className="h-10 w-10  bg-gray-500/20" />
+          <Skeleton className="h-10 w-10  bg-gray-500/20" />
+          <Skeleton className="h-8 w-8 rounded-full bg-gray-500/20" />
+        </div>
       </div>
     </div>
   )

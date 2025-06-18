@@ -5,7 +5,6 @@ import { useCurrentUser, useGetRecommendedUsers } from "@/hooks/user";
 import { User } from "@/gql/graphql";
 import { toast } from "sonner";
 import Link from "next/link";
-import Image from "next/image";
 import { FcGoogle } from "react-icons/fc";
 import Skel from "../global/Skeleton/Skeleton";
 import { Button } from "@/components/ui/button";

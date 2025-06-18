@@ -7,6 +7,7 @@ import type { Conversation } from "@/gql/graphql"
 import ConversationList from "./conversation-list/conversation-list"
 import { useParams } from "next/navigation"
 import { useSession } from "next-auth/react"
+import IncomingCallNotification from "../call/incomingCall"
 
 type Props = {
   children: React.ReactNode
@@ -62,7 +63,7 @@ export default function MessagingLayout({ children }: Props) {
 
   return (
     <>
-      <div className="font-sans text-base bg-gradient-to-br from-black via-zinc-900 to-black text-gray-100 h-screen">
+      <div className="relative font-sans text-base bg-gradient-to-br from-black via-zinc-900 to-black text-gray-100 h-screen">
         <div className="grid grid-cols-12 h-full w-full xl:pl-12 xl:pr-12">
           <div className="col-span-2 sm:col-span-2 md:col-span-1 lg:col-span-1 xl:col-span-3 flex justify-center md:justify-end pt-4 p-2">
             <div className="h-full bg-black/40 text-white w-full sm:w-fit transition-all duration-300">
@@ -101,6 +102,8 @@ export default function MessagingLayout({ children }: Props) {
             </div>
           </div>
         </div>
+        <IncomingCallNotification />
+
       </div>
     </>
   )

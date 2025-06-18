@@ -1,8 +1,7 @@
-"use client";
-
 import React, { lazy, Suspense } from "react";
 import Skel from "../global/Skeleton/Skeleton";
 import Sidebar from "../app_components/Sidebar-comp";
+import IncomingCallNotification from "../app_components/call/incomingCall";
 
 const Login = lazy(() => import("../app_components/LoginSide"));
 
@@ -12,7 +11,7 @@ interface TwitterLayoutProps {
 
 const TwitterLayout: React.FC<TwitterLayoutProps> = ({ children }) => {
   return (
-    <div className="font-sans text-base bg-gradient-to-br from-black via-zinc-900 to-black text-gray-100 h-screen">
+    <div className="relative font-sans text-base bg-gradient-to-br from-black via-zinc-900 to-black text-gray-100 h-screen">
       <div className="grid grid-cols-12 h-full w-full lg:pr-2 lg:pl-2 md:pr-0 xl:px-24">
         
         <div className="col-span-2 sm:col-span-4 flex justify-center lg:col-span-3 xl:col-span-3 md:justify-end pt-4 p-2">
@@ -38,6 +37,7 @@ const TwitterLayout: React.FC<TwitterLayoutProps> = ({ children }) => {
           </div>
         </div>
       </div>
+      <IncomingCallNotification  />
     </div>
   );
 };

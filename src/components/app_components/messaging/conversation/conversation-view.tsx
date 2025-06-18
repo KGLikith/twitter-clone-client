@@ -1,20 +1,21 @@
 "use client"
 
-import type React from "react"
-
 import { useEffect, useState } from "react"
 import { ArrowLeft, Info } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from "date-fns"
 import { useRouter } from "next/navigation"
-import type { Conversation, Message } from "@/gql/graphql"
+import { CallType, type Conversation, type Message } from "@/gql/graphql"
 import { ConversationInfoSkeleton } from "@/components/global/Skeleton/ConversationInfo"
 import { useOnlineSubscription } from "@/hooks/subscriptions"
 import { getOnlineUsersQuery } from "@/hooks/user"
 import ConversationInfoDialog from "./conversation-info-dialog"
 import MessageInput from "./message-input"
 import MessagesContainer from "./messages-container"
+import { Phone, Video } from "lucide-react"
+import { toast } from "sonner"
+import { startCall } from "@/actions/call"
 
 interface ConversationViewProps {
   conversation: Conversation
@@ -40,7 +41,10 @@ export default function ConversationView({
   const participants = conversation?.participants
   const otherUser = participants.find((p) => p.id !== currentUserId)!
   const [onlineStatusMap, setOnlineStatusMap] = useState<Record<string, boolean>>({})
-  const initialOnlineUsersData = getOnlineUsersQuery(participants.filter((p) => p.id != currentUserId).map((p) => p.id), conversation.id)
+  const initialOnlineUsersData = getOnlineUsersQuery(
+    participants.filter((p) => p.id != currentUserId).map((p) => p.id),
+    conversation.id,
+  )
 
   const { data: onlineStatusUpdateData } = useOnlineSubscription(
     participants.filter((p) => p.id != currentUserId).map((p) => p.id),
@@ -88,6 +92,50 @@ export default function ConversationView({
 
   const handleBackToList = () => {
     router.push("/messages")
+  }
+
+  const initialAudioCall = async() =>{
+    try{
+      const participants = conversation.participants
+        .filter((p) => p.id !== currentUserId)
+        .map((p) => p.id)
+      const data = await startCall(CallType.Audio, participants, conversation.id)
+
+      if(!data?.success){
+        toast.error(data?.error || "Failed to start audio call. Please try again after some time.")
+        return
+      }
+
+      const callId = data.callId
+      if(callId)
+        router.push(`/call/${callId}`)
+
+    }catch(err){
+      console.error("Error starting audio call:", err)
+      toast.error("Failed to start audio call. Please try again after some time.")
+    }
+  }
+
+  const initiateVideoCall =async () => {
+    try{
+      const participants = conversation.participants
+        .filter((p) => p.id !== currentUserId)
+        .map((p) => p.id)
+      const data = await startCall(CallType.Video, participants, conversation.id)
+
+      if(!data?.success){
+        toast.error(data?.error || "Failed to start video call. Please try again after some time.")
+        return
+      }
+
+      const callId = data.callId
+      if(callId)
+        router.push(`/call/${callId}`)
+
+    }catch(err){
+      console.error("Error starting audio call:", err)
+      toast.error("Failed to start audio call. Please try again after some time.")
+    }
   }
 
   return (
@@ -174,14 +222,35 @@ export default function ConversationView({
                 )
               )}
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsInfoOpen(true)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Info className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground"
+                  title="Audio Call"
+                  onClick={initialAudioCall}
+                >
+                  <Phone className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={initiateVideoCall}
+                  title="Video Call"
+                >
+                  <Video className="h-6 w-6" />
+                </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsInfoOpen(true)}
+                className="text-muted-foreground hover:text-foreground"
+                title="Info"
+              >
+                <Info className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -197,12 +266,7 @@ export default function ConversationView({
         participants={participants}
       />
 
-      {!isLoading && (
-        <MessageInput
-          conversationId={conversation.id}
-          currentUserId={currentUserId}
-        />
-      )}
+      {!isLoading && <MessageInput conversationId={conversation.id} currentUserId={currentUserId} />}
 
       <ConversationInfoDialog
         setIsInfoOpen={setIsInfoOpen}
@@ -214,7 +278,6 @@ export default function ConversationView({
         participants={participants}
         onlineStatusMap={onlineStatusMap}
       />
-
     </div>
   )
 }

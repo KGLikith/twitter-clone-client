@@ -60,6 +60,7 @@ export const getCurrentUserQuery = graphql(`
       }
       bookmark {
         id
+        userId
         bookmarks {
           id
           type
@@ -329,6 +330,15 @@ export const getConversationByIdQuery = graphql(`
   }
 `);
 
+export const getConversationByUserIdQuery = graphql(`
+  #graphql
+  query GetConversationByUserId($userId: ID!) {
+    getConversationByUserId(userId: $userId) {
+      id
+    }
+  }
+`);
+
 export const getMessaagesQuery = graphql(`
   #graphql
   query GetMessages($conversationId: ID!, $limit: Int, $cursor: ID) {
@@ -389,6 +399,42 @@ export const onlineUsersQuery = graphql(`
 export const getMessageNotificationQuery = graphql(`
   #graphql
   query getMessageNotification {
-    getMessageNotification 
+    getMessageNotification
+  }
+`);
+
+export const getCallDetailsQuery = graphql(`
+  #graphql
+  query getCallDetails($callId: String!) {
+    getCallDetails(callId: $callId) {
+      id
+      type
+      status
+      startedAt
+      callerId
+      endedAt
+      callPickedAt
+      conversationId
+      conversation{
+        name
+        id
+        
+      }
+      participants {
+        callId
+        userId
+        joinedAt
+        leftAt
+        audioEnabled
+        videoEnabled
+        accepted
+        user {
+          id
+          name
+          userName
+          profileImageUrl
+        }
+      }
+    }
   }
 `);

@@ -84,7 +84,7 @@ export default function PricingPlans({ subscription }: Props) {
   }
 
   const checkSubscriptionStatus = async () => {
-    if (subscription.subscriptionId && subscription.shortUrl) {
+    if (subscription && subscription.subscriptionId && subscription.shortUrl) {
       const sub = await checkSubscription(subscription.subscriptionId);
       if (sub) {
         if (sub.status === "active") {
