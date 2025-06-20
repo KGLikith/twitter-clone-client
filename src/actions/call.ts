@@ -1,17 +1,22 @@
 import { apolloClient } from "@/clients/api";
 import { CallType } from "@/gql/graphql";
 import { startCallMutation } from "@/graphql/mutation/user";
+import { getConversationByUserIdQuery } from "@/graphql/query/user";
 import { toast } from "sonner";
 
-export const startCall = async (type: CallType, participants: string[], conversationId: string) => {
+export const startCall = async (
+  type: CallType,
+  participants: string[],
+  conversationId: string
+) => {
   try {
-    const {data} = await apolloClient.mutate({
+    const { data } = await apolloClient.mutate({
       mutation: startCallMutation,
-      variables: { 
+      variables: {
         type,
         participants,
         conversationId,
-       },  
+      },
     });
     return data?.startCall;
   } catch (error) {
@@ -22,3 +27,16 @@ export const startCall = async (type: CallType, participants: string[], conversa
     });
   }
 };
+
+export const getConversationUser = async(userId: string) => {
+  const {
+    data: { getConversationByUserId },
+  } = await apolloClient.query({
+    query: getConversationByUserIdQuery,
+    variables: {
+      userId: userId,
+    },
+  });
+  return getConversationByUserId
+};
+

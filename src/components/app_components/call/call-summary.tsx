@@ -6,21 +6,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Phone, Video, Users, PhoneOff, ArrowRight, ChevronDown, ChevronUp } from "lucide-react"
-import { type CallParticipants, CallType, type Call, type User } from "@/gql/graphql"
-import { apolloClient } from "@/clients/api"
+import { type CallParticipants, CallType, type Call, type User, UserInfo } from "@/gql/graphql"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
-import { getConversationByUserIdQuery } from "@/graphql/query/user"
-import { startCall } from "@/actions/call"
+import { getConversationUser, startCall } from "@/actions/call"
 import type { Participants } from "@/app/(full_page)/call/[callId]/page"
 import { Badge } from "@/components/ui/badge"
+import { formatDuration } from "./helper"
+import RenderParticipantAvatars from "./helper/renderParticipnatAvatars"
 
 export interface CallSummaryProps {
   call: Call
   currentUser: User
-  participants: Participants
+  participants: Participants[]
   declinedParticipants: string[]
   callEndedParticipants: string[]
   callType: "AUDIO" | "VIDEO"
@@ -83,6 +83,7 @@ export default function CallSummary({
         ?.map((p: CallParticipants) => (p.userId !== currentUser.id ? p.userId : null))
         .filter((id): id is string => Boolean(id)) || []
     try {
+
       const data = await startCall(CallType.Audio, participants, call?.conversationId || "")
 
       if (!data?.success) {
@@ -105,6 +106,7 @@ export default function CallSummary({
         call?.participants
           ?.map((p: CallParticipants) => (p.userId !== currentUser.id ? p.userId : null))
           .filter((id): id is string => Boolean(id)) || []
+
       const data = await startCall(CallType.Video, participants, call?.conversationId || "")
 
       if (!data?.success) {
@@ -136,24 +138,6 @@ export default function CallSummary({
     })
   }
 
-  const formatDuration = (startTime: string, endTime: string): string => {
-    const start = new Date(startTime)
-    const end = new Date(endTime)
-    const durationMs = end.getTime() - start.getTime()
-
-    const hours = Math.floor(durationMs / (1000 * 60 * 60))
-    const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((durationMs % (1000 * 60)) / 1000)
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${seconds}s`
-    } else if (minutes > 0) {
-      return `${minutes}m ${seconds}s`
-    } else {
-      return `${seconds}s`
-    }
-  }
-
   const getCurrentUserDuration = (): string => {
     if (isCurrentUserHost && call.callPickedAt && call.endedAt) {
       return formatDuration(call.callPickedAt, call.endedAt)
@@ -166,70 +150,6 @@ export default function CallSummary({
     }
 
     return "0s"
-  }
-
-  const getCallTitle = () => {
-    if (isGroupCall) {
-      return `Call with "${call.conversation?.name || ""}"`
-    } else {
-      return `Call with "${otherUser?.name || "Unknown"}"`
-    }
-  }
-
-  const renderParticipantAvatars = () => {
-    if (!isGroupCall) {
-      return (
-        <div className="flex items-center justify-center">
-          <Avatar
-            className={cn("h-16 w-16 shadow-lg", recieverUser?.id === currentUser.id ? "ring-2 ring-primary" : "")}
-          >
-            <AvatarImage
-              src={
-                recieverUser?.profileImageUrl
-                  ? `${process.env.NEXT_PUBLIC_CDN_URL || ""}${recieverUser.profileImageUrl}`
-                  : "/user.png"
-              }
-            />
-            <AvatarFallback className={"text-lg font-semibold"}>
-              {recieverUser?.name?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        </div>
-      )
-    }
-
-    const visibleParticipants = allParticipants.filter((p) => p.userId != call.callerId).slice(0, 5)
-    const remainingCount = allParticipants.length - 6
-
-    return (
-      <div className="flex items-center justify-center">
-        <div className="flex -space-x-3">
-          {visibleParticipants.map((participant, index) => (
-            <Avatar
-              key={participant.userId}
-              className="h-12 w-12 border-4 border-background shadow-lg relative z-10"
-              style={{ zIndex: visibleParticipants.length - index }}
-            >
-              <AvatarImage
-                src={
-                  participant.user.profileImageUrl
-                    ? `${process.env.NEXT_PUBLIC_CDN_URL || ""}${participant.user.profileImageUrl}`
-                    : "/user.png"
-                }
-              />
-              <AvatarFallback className="text-sm font-semibold">
-                {participant.user.name?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          ))}
-          {remainingCount > 0 && (
-            <div className="h-12 w-12 rounded-full bg-muted border-4 border-background shadow-lg flex items-center justify-center relative z-0">
-              <span className="text-sm font-semibold">+{remainingCount}</span>
-            </div>
-          )}
-        </div>
-      </div>
-    )
   }
 
   const getCallStatusMessage = () => {
@@ -267,7 +187,7 @@ export default function CallSummary({
     <div className="min-h-screen bg-background p-4 flex items-center justify-center">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">{getCallTitle()}</CardTitle>
+          <CardTitle className="text-2xl">{isGroupCall ? `Call with "${call.conversation?.name || ""}"`: `Call with "${otherUser?.name || "Unknown"}"`}</CardTitle>
           <p className="text-muted-foreground">{callType === "VIDEO" ? "Video" : "Audio"} call ended</p>
         </CardHeader>
 
@@ -312,7 +232,14 @@ export default function CallSummary({
                   <div
                     className={`flex flex-col items-center gap-2 transition-all duration-1000 delay-300 ${animationStep >= 1 ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}`}
                   >
-                    {renderParticipantAvatars()}
+                    <RenderParticipantAvatars 
+                      isGroupCall={isGroupCall} 
+                      currentUser={currentUser} 
+                      recieverUser={recieverUser as UserInfo} 
+                      callerId={call.callerId} 
+                      allParticipants={allParticipants} 
+                    />
+
                     <span className="text-sm font-medium text-muted-foreground">
                       {isGroupCall ? (
                         `${allParticipants.length - 1} total participants`
@@ -361,28 +288,19 @@ export default function CallSummary({
                               const isStillInCall = stillInCallParticipants.includes(participant.userId)
                               const isHost = participant.userId === call.callerId
                               const endTime = participant.leftAt || call.endedAt
-                              const duration =
-                                participant.joinedAt && endTime && !isStillInCall
-                                  ? formatDuration(participant.joinedAt, endTime)
-                                  : "0s"
+
                               const isCurrentUser = participant.userId === currentUser.id
 
                               const initiateAudioCallWithUser = async () => {
                                 if (!currentUser || !currentUser.id) return
                                 try {
-                                  const {
-                                    data: { getConversationByUserId },
-                                  } = await apolloClient.query({
-                                    query: getConversationByUserIdQuery,
-                                    variables: {
-                                      userId: participant.userId,
-                                    },
-                                  })
-                                  if (getConversationByUserId?.id) {
+                                  const conversationData = await getConversationUser(participant.userId)
+
+                                  if (conversationData?.id) {
                                     const data = await startCall(
                                       CallType.Audio,
                                       [participant.userId],
-                                      getConversationByUserId?.id,
+                                      conversationData?.id,
                                     )
 
                                     if (!data?.success) {
@@ -404,19 +322,13 @@ export default function CallSummary({
                               const initiateVideoCallWithUser = async () => {
                                 if (!currentUser || !currentUser.id) return
                                 try {
-                                  const {
-                                    data: { getConversationByUserId },
-                                  } = await apolloClient.query({
-                                    query: getConversationByUserIdQuery,
-                                    variables: {
-                                      userId: participant.userId,
-                                    },
-                                  })
-                                  if (getConversationByUserId?.id) {
+                                  const conversationData = await getConversationUser(participant.userId)
+
+                                  if (conversationData?.id) {
                                     const data = await startCall(
                                       CallType.Video,
                                       [participant.userId],
-                                      getConversationByUserId?.id,
+                                      conversationData?.id,
                                     )
 
                                     if (!data?.success) {
@@ -436,18 +348,10 @@ export default function CallSummary({
                               }
 
                               const messageUser = async () => {
-                                const {
-                                  data: { getConversationByUserId },
-                                } = await apolloClient.query({
-                                  query: getConversationByUserIdQuery,
-                                  variables: {
-                                    userId: participant.userId,
-                                  },
-                                })
-                                console.log(getConversationByUserId)
+                                const conversationData = await getConversationUser(participant.userId)
 
-                                if (getConversationByUserId?.id) {
-                                  router.push(`/messages/${getConversationByUserId?.id}`)
+                                if (conversationData?.id) {
+                                  router.push(`/messages/${conversationData?.id}`)
                                 } else {
                                   toast.error("Failed to find conversation with user. Please try again later.")
                                 }
@@ -617,6 +521,7 @@ export default function CallSummary({
                   </div>
                 </div>
               </div>
+
             </div>
           )}
 

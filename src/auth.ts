@@ -30,6 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (!isValid.success) {
             return null;
           }
+          console.log("Credentials:", isValid.data);
           const { email, password } = isValid.data
           const client =  createServerApolloClient();
           const {data} =await client.query({
@@ -39,6 +40,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               password,
             } 
           })
+
+          console.log("Data from verifyUserCredentialQuery:", data);
           const user = data.verifyUserCredential;
           if (user) {
             return {

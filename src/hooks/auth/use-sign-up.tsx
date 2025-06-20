@@ -65,15 +65,17 @@ export const useSignUpForm = () => {
                         router.push('/auth/sign-in')
                     }
                 } else {
+                    console.log(res?.createUser?.message)
                     toast.error(res?.createUser?.message || "Something went wrong. Please try again later.", {
                         duration: 2000,
-                        description: "Could not bookmark tweet",
+                        description: res?.createUser?.message || "Could not create account",
                     });
                 }
             } catch (err) {
+                console.log(err)
                 toast.error("Something went wrong. Please try again later.", {
                     duration: 2000,
-                    description: "Could not bookmark tweet",
+                    description: err instanceof Error ? err.message : String(err),
                 });
                 console.log(err)
             } finally {
