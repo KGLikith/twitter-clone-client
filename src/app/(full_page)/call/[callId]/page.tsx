@@ -91,7 +91,9 @@ export default function CallPage() {
           })
 
           setCallEnded(true)
-          toast.info("Call ended due to no participants.")
+          toast.info("Call ended due to no participants.", {
+            duration: 2000
+          })
         } catch (err) {
           console.error("Auto-end call error:", err)
         }
@@ -146,16 +148,23 @@ export default function CallPage() {
         refetch()
         toast.info(
           `${call?.participants.find((p: CallParticipants) => p.userId === answeredCallDetails.userId)?.user.name} has joined the call.`,
+          {
+            duration: 2000,
+          }
         )
       } else {
         setDeclinedParticipants((prev) => [...prev, answeredCallDetails.userId])
         if (answeredCallDetails.declined)
           toast.error(
-            `${call?.participants.find((p: CallParticipants) => p.userId === answeredCallDetails.userId)?.user.name} has declined the call.`,
+            `${call?.participants.find((p: CallParticipants) => p.userId === answeredCallDetails.userId)?.user.name} has declined the call.`, {
+            duration: 2000,
+          }
           )
         else
           toast.error(
-            `${call?.participants.find((p: CallParticipants) => p.userId === answeredCallDetails.userId)?.user.name} has missed the call.`,
+            `${call?.participants.find((p: CallParticipants) => p.userId === answeredCallDetails.userId)?.user.name} has missed the call.`, {
+            duration: 2000,
+          }
           )
       }
     }
@@ -175,9 +184,13 @@ export default function CallPage() {
           if (call?.callerId === user?.id) {
             return
           }
-          toast.info("The host has ended the call.")
+          toast.info("The host has ended the call.", {
+            duration: 2000,
+          })
         } else {
-          toast.info("The call has ended.")
+          toast.info("The call has ended.", {
+            duration: 2000,
+          })
           setHostEnded(false)
         }
       }
@@ -197,7 +210,9 @@ export default function CallPage() {
           return
         }
         toast.info(
-          `${call?.participants.find((p: CallParticipants) => p.userId === leftParticipantDetails.userId)?.user.name} has left the call.`,
+          `${call?.participants.find((p: CallParticipants) => p.userId === leftParticipantDetails.userId)?.user.name} has left the call.`, {
+          duration: 2000,
+        }
         )
       }
     }

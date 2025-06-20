@@ -13,7 +13,6 @@ import { type Call, CallStatus, CallType, type User } from "@/gql/graphql"
 import { acceptCallMutation, declineCallMutation, missedCallMutation } from "@/graphql/mutation/user"
 import { apolloClient } from "@/clients/api"
 import { useCurrentUser } from "@/hooks/user"
-import { convertOffsetToTimes } from "framer-motion"
 
 export default function IncomingCallNotification() {
   const router = useRouter()
@@ -46,7 +45,9 @@ export default function IncomingCallNotification() {
           mutation: missedCallMutation,
           variables: { callId: incomingCall.id },
         })
-        toast.info("Missed call")
+        toast.info("Missed call", {
+          duration: 2000,
+        })
         setIncomingCall(null)
         setCaller(null)
         setAcceptedParticipants([])
@@ -92,7 +93,9 @@ export default function IncomingCallNotification() {
     if (callEndedData?.onCallEnded) {
       const endedCall = callEndedData.onCallEnded
       if (endedCall.callId === incomingCall?.id) {
-        toast.info("Call has ended by the host.")
+        toast.info("Call has ended by the host.", {
+          duration: 2000,
+        })
         setIncomingCall(null)
         setCaller(null)
         setAcceptedParticipants([])
@@ -111,7 +114,9 @@ export default function IncomingCallNotification() {
       })
       if (data) {
         router.push(`/call/${incomingCall.id}`)
-        toast.success("Call accepted")
+        toast.success("Call accepted", {
+          duration: 2000,
+        })
         setIncomingCall(null)
         setCaller(null)
         setAcceptedParticipants([])
@@ -130,7 +135,9 @@ export default function IncomingCallNotification() {
         variables: { callId: incomingCall.id },
       })
       if (data) {
-        toast.success("Call declined")
+        toast.success("Call declined", {
+          duration: 2000,
+        })
         setIncomingCall(null)
         setCaller(null)
         setAcceptedParticipants([])

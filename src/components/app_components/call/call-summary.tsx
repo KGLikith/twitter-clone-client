@@ -87,7 +87,9 @@ export default function CallSummary({
       const data = await startCall(CallType.Audio, participants, call?.conversationId || "")
 
       if (!data?.success) {
-        toast.error(data?.error || "Failed to start audio call. Please try again after some time.")
+        toast.error(data?.error || "Failed to start audio call. Please try again after some time.",{
+            duration: 2000,
+          })
         return
       }
 
@@ -95,7 +97,9 @@ export default function CallSummary({
       if (callId) router.push(`/call/${callId}`)
     } catch (err) {
       console.error("Error starting audio call:", err)
-      toast.error("Failed to start audio call. Please try again after some time.")
+      toast.error("Failed to start audio call. Please try again after some time.",{
+            duration: 2000,
+          })
     }
   }
 
@@ -110,7 +114,9 @@ export default function CallSummary({
       const data = await startCall(CallType.Video, participants, call?.conversationId || "")
 
       if (!data?.success) {
-        toast.error(data?.error || "Failed to start video call. Please try again after some time.")
+        toast.error(data?.error || "Failed to start video call. Please try again after some time.",{
+            duration: 2000,
+          })
         return
       }
 
@@ -118,7 +124,9 @@ export default function CallSummary({
       if (callId) router.push(`/call/${callId}`)
     } catch (err) {
       console.error("Error starting video call:", err)
-      toast.error("Failed to start video call. Please try again after some time.")
+      toast.error("Failed to start video call. Please try again after some time.",{
+            duration: 2000,
+          })
     }
   }
 
@@ -187,7 +195,7 @@ export default function CallSummary({
     <div className="min-h-screen bg-background p-4 flex items-center justify-center">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">{isGroupCall ? `Call with "${call.conversation?.name || ""}"`: `Call with "${otherUser?.name || "Unknown"}"`}</CardTitle>
+          <CardTitle className="text-2xl">{isGroupCall ? `Call with "${call.conversation?.name || ""}"` : `Call with "${otherUser?.name || "Unknown"}"`}</CardTitle>
           <p className="text-muted-foreground">{callType === "VIDEO" ? "Video" : "Audio"} call ended</p>
         </CardHeader>
 
@@ -232,12 +240,12 @@ export default function CallSummary({
                   <div
                     className={`flex flex-col items-center gap-2 transition-all duration-1000 delay-300 ${animationStep >= 1 ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}`}
                   >
-                    <RenderParticipantAvatars 
-                      isGroupCall={isGroupCall} 
-                      currentUser={currentUser} 
-                      recieverUser={recieverUser as UserInfo} 
-                      callerId={call.callerId} 
-                      allParticipants={allParticipants} 
+                    <RenderParticipantAvatars
+                      isGroupCall={isGroupCall}
+                      currentUser={currentUser}
+                      recieverUser={recieverUser as UserInfo}
+                      callerId={call.callerId}
+                      allParticipants={allParticipants}
                     />
 
                     <span className="text-sm font-medium text-muted-foreground">
@@ -305,7 +313,9 @@ export default function CallSummary({
 
                                     if (!data?.success) {
                                       toast.error(
-                                        data?.error || "Failed to start audio call. Please try again after some time.",
+                                        data?.error || "Failed to start audio call. Please try again after some time.", {
+                                        duration: 2000,
+                                      }
                                       )
                                       return
                                     }
@@ -315,7 +325,9 @@ export default function CallSummary({
                                   }
                                 } catch (err) {
                                   console.error("Error starting audio call:", err)
-                                  toast.error("Failed to start audio call. Please try again after some time.")
+                                  toast.error("Failed to start audio call. Please try again after some time.", {
+                                    duration: 2000,
+                                  })
                                 }
                               }
 
@@ -333,7 +345,9 @@ export default function CallSummary({
 
                                     if (!data?.success) {
                                       toast.error(
-                                        data?.error || "Failed to start video call. Please try again after some time.",
+                                        data?.error || "Failed to start video call. Please try again after some time.", {
+                                        duration: 2000,
+                                      }
                                       )
                                       return
                                     }
@@ -343,7 +357,9 @@ export default function CallSummary({
                                   }
                                 } catch (err) {
                                   console.error("Error starting video call:", err)
-                                  toast.error("Failed to start video call. Please try again after some time.")
+                                  toast.error("Failed to start video call. Please try again after some time.", {
+                                    duration: 2000,
+                                  })
                                 }
                               }
 
@@ -353,7 +369,9 @@ export default function CallSummary({
                                 if (conversationData?.id) {
                                   router.push(`/messages/${conversationData?.id}`)
                                 } else {
-                                  toast.error("Failed to find conversation with user. Please try again later.")
+                                  toast.error("Failed to find conversation with user. Please try again later.", {
+                                    duration: 2000,
+                                  })
                                 }
                               }
 

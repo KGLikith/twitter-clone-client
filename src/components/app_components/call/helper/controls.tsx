@@ -15,18 +15,18 @@ type Props = {
   currentUserParticipant: Participants
 }
 
-export default function Controls({ call, videoCallComponent, audioPermissationGranted, currentUserParticipant,videoPermissationGranted }: Props) {
-  const [isMuted, setIsMuted] = useState(audioPermissationGranted ? (!currentUserParticipant?.audio) :true )
-  const [isVideoOn, setIsVideoOn] = useState(videoPermissationGranted ? currentUserParticipant?.video || false: false)
+export default function Controls({ call, videoCallComponent, audioPermissationGranted, currentUserParticipant, videoPermissationGranted }: Props) {
+  const [isMuted, setIsMuted] = useState(audioPermissationGranted ? (!currentUserParticipant?.audio) : true)
+  const [isVideoOn, setIsVideoOn] = useState(videoPermissationGranted ? currentUserParticipant?.video || false : false)
 
-  useEffect(()=>{
-    if(audioPermissationGranted && currentUserParticipant.audio){
+  useEffect(() => {
+    if (audioPermissationGranted && currentUserParticipant.audio) {
       setIsMuted(false)
     }
-    if(videoPermissationGranted && currentUserParticipant.video){
+    if (videoPermissationGranted && currentUserParticipant.video) {
       setIsVideoOn(true)
     }
-  },[audioPermissationGranted, videoPermissationGranted, currentUserParticipant.audio, currentUserParticipant.video])
+  }, [audioPermissationGranted, videoPermissationGranted, currentUserParticipant.audio, currentUserParticipant.video])
 
   const handleEndCall = async () => {
     try {
@@ -38,17 +38,23 @@ export default function Controls({ call, videoCallComponent, audioPermissationGr
       })
 
       if (!data?.endCall) {
-        toast.error("Failed to end the call. Please try again. Sorry for the inconvenience.")
+        toast.error("Failed to end the call. Please try again. Sorry for the inconvenience.", {
+          duration: 2000,
+        })
       }
     } catch (err) {
-      toast.error("An error occurred while ending the call. Please try again later.")
+      toast.error("An error occurred while ending the call. Please try again later.", {
+        duration: 2000,
+      })
     }
   }
 
   const toggleMute = async () => {
     try {
-      if(!audioPermissationGranted && isMuted){
-        toast.error("You need to grant microphone permissions to toggle mute.")
+      if (!audioPermissationGranted && isMuted) {
+        toast.error("You need to grant microphone permissions to toggle mute.", {
+          duration: 2000,
+        })
         return;
       }
       await apolloClient.mutate({
@@ -58,14 +64,18 @@ export default function Controls({ call, videoCallComponent, audioPermissationGr
       setIsMuted(!isMuted)
     } catch (err) {
       console.error("Error toggling mute:", err)
-      toast.error("Failed to toggle mute. Please try again.")
+      toast.error("Failed to toggle mute. Please try again.", {
+        duration: 2000,
+      })
     }
   }
 
   const toggleVideo = async () => {
     try {
-      if(!videoPermissationGranted && !isVideoOn){
-        toast.error("You need to grant camera permissions to toggle video.")
+      if (!videoPermissationGranted && !isVideoOn) {
+        toast.error("You need to grant camera permissions to toggle video.", {
+          duration: 2000,
+        })
         return;
       }
       if (!setIsVideoOn) return;
@@ -76,7 +86,9 @@ export default function Controls({ call, videoCallComponent, audioPermissationGr
       setIsVideoOn && setIsVideoOn(!isVideoOn)
     } catch (err) {
       console.error("Error toggling video:", err)
-      toast.error("Failed to toggle video. Please try again.")
+      toast.error("Failed to toggle video. Please try again.", {
+        duration: 2000,
+      })
     }
   }
   return (

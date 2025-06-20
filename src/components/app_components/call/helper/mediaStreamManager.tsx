@@ -64,7 +64,6 @@ export default function MediaStreamManager({
   const pathname = usePathname()
   const prevPathRef = useRef(pathname)
 
-  // All the existing useEffect hooks remain the same
   useEffect(() => {
     if (!call) return
 
@@ -104,6 +103,7 @@ export default function MediaStreamManager({
       }
     }
   }, [answerData])
+
 
   useEffect(() => {
     if (candidateData?.onIceCandidate) {
