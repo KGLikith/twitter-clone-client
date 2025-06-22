@@ -1,6 +1,6 @@
-# Twitter Clone
+# Chirp
 
-A powerful, real-time Twitter inspired clone built with **Next.js**, **GraphQL**, **WebRTC**, and **Prisma**. This full-stack application replicates the core functionality of Twitter, including **real-time tweeting, messaging, video/audio calling, and user presence detection** — all with a sleek and responsive UI.
+A powerful, real-time X(Twitter) inspired clone built with **Next.js**, **GraphQL**, **WebRTC**, and **Prisma**. This full-stack application replicates the core functionality of Twitter, including **real-time tweeting, messaging, video/audio calling, and user presence detection** — all with a sleek and responsive UI.
 
 ---
 
