@@ -13,11 +13,14 @@ type Props = {
   audioPermissationGranted: boolean
   videoPermissationGranted?: boolean
   currentUserParticipant: Participants
+  isMuted: boolean
+  setIsMuted: React.Dispatch<React.SetStateAction<boolean>>
+  setIsVideoOn: React.Dispatch<React.SetStateAction<boolean>>
+  isVideoOn: boolean
 }
 
-export default function Controls({ call, videoCallComponent, audioPermissationGranted, currentUserParticipant, videoPermissationGranted }: Props) {
-  const [isMuted, setIsMuted] = useState(audioPermissationGranted ? (!currentUserParticipant?.audio) : true)
-  const [isVideoOn, setIsVideoOn] = useState(videoPermissationGranted ? currentUserParticipant?.video || false : false)
+export default function Controls({ call, videoCallComponent, audioPermissationGranted, currentUserParticipant, videoPermissationGranted,isMuted, isVideoOn, setIsMuted, setIsVideoOn }: Props) {
+  
 
   useEffect(() => {
     if (audioPermissationGranted && currentUserParticipant.audio) {

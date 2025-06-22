@@ -1,12 +1,13 @@
-import { Participants } from "@/app/(full_page)/call/[callId]/page";
-import { apolloClient } from "@/clients/api";
-import { ConversationSkeleton } from "@/components/global/Skeleton/ConversationSkel";
+import { useEffect, useRef, useState } from "react";
 import {
+  sendOfferMutation,
   sendAnswerMutation,
   sendIceCandidateMutation,
-  sendOfferMutation,
 } from "@/graphql/mutation/user";
-import { useEffect, useRef, useState } from "react";
+import { apolloClient } from "@/clients/api";
+import { Participants } from "@/app/(full_page)/call/[callId]/page";
+import { Call } from "@/gql/graphql";
+import { px } from "framer-motion";
 
 export function useWebRTCPeer(
   localUserId: string,
@@ -14,110 +15,23 @@ export function useWebRTCPeer(
   callId: string,
   callEnded: boolean,
   video: boolean,
-  setAudioPermissionGranted: (granted: boolean) => void,
-  setVideoPermissionGranted?: (granted: boolean) => void
+  setIsMuted: (muted: boolean) => void,
+  setIsVideoOn: (videoOn: boolean) => void
 ) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<
     Record<string, MediaStream>
   >({});
   const peerConnections = useRef<Record<string, RTCPeerConnection>>({});
-  const currentUserParticipant = participants.find(
-    (p) => p.userId === localUserId
-  );
+  const senders = useRef<
+    Record<string, { audio?: RTCRtpSender; video?: RTCRtpSender }>
+  >({});
+  const localTracks = useRef<{
+    audio?: MediaStreamTrack;
+    video?: MediaStreamTrack;
+  }>({});
 
-  useEffect(() => {
-    (async () => {
-      try {
-        if (!callEnded) {
-          if (localStream) return;
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: currentUserParticipant?.audio !== false,
-            video:
-              currentUserParticipant?.video !== false && video
-                ? {
-                    width: { min: 640, ideal: 1920, max: 1920 },
-                    height: { min: 480, ideal: 1080, max: 1080 },
-                  }
-                : false,
-          });
-          setLocalStream(stream);
-
-          setAudioPermissionGranted(true);
-          setVideoPermissionGranted?.(video);
-        }
-      } catch (error) {
-        try {
-          const fallbackConstraints: MediaStreamConstraints = {
-            audio: true,
-            video: video
-              ? {
-                  width: { min: 640, ideal: 1920, max: 1920 },
-                  height: { min: 480, ideal: 1080, max: 1080 },
-                }
-              : false,
-          };
-
-          const fallbackStream = await navigator.mediaDevices.getUserMedia(
-            fallbackConstraints
-          );
-          setLocalStream(fallbackStream);
-
-          setAudioPermissionGranted(true);
-          setVideoPermissionGranted?.(video);
-        } catch (fallbackError) {
-          console.log("Completely failed to get any media:", fallbackError);
-          setLocalStream(null);
-          setAudioPermissionGranted(false);
-        }
-      }
-    })();
-  }, [video, callEnded, currentUserParticipant]);
-
-  useEffect(() => {
-    if (!localStream) return;
-
-    setTimeout(() => {
-      participants.forEach((p) => {
-        if (
-          p.userId !== localUserId &&
-          !peerConnections.current[p.userId] &&
-          p.userId > localUserId
-        ) {
-          createOffer(p.userId);
-        }
-      });
-    }, 500);
-  }, [participants]);
-
-  useEffect(() => {
-    if (!currentUserParticipant || !localStream) return;
-
-    let videoTrack = localStream
-      .getTracks()
-      .find((track) => track.kind === "video");
-
-    if (videoTrack) {
-      if (currentUserParticipant.video) {
-        videoTrack.enabled = true;
-      } else {
-        console.log("Disabling video track for user:", localUserId);
-        videoTrack.enabled = false;
-      }
-    }
-
-    let audioTrack = localStream
-      .getTracks()
-      .find((track) => track.kind === "audio");
-    if (audioTrack) {
-      if (currentUserParticipant.audio) {
-        audioTrack.enabled = true;
-      } else {
-        console.log("Disabling audio track for user:", localUserId);
-        audioTrack.enabled = false;
-      }
-    }
-  }, [currentUserParticipant?.audio, currentUserParticipant?.video, currentUserParticipant, localStream]);
+  const currentUser = participants.find((p) => p.userId === localUserId);
 
   const createConnection = async (remoteUserId: string) => {
     if (peerConnections.current[remoteUserId])
@@ -127,31 +41,17 @@ export function useWebRTCPeer(
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
     peerConnections.current[remoteUserId] = pc;
-    let stream;
-    if (!localStream) {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false,
-      });
-      setLocalStream(stream);
-    }
-    const Stream = (localStream || stream)!;
-    Stream.getTracks().forEach((track) => pc.addTrack(track, Stream));
 
-    pc.ontrack = (event) => {
-      setRemoteStreams((prev) => {
-        const existingStream = prev[remoteUserId] ?? new MediaStream();
-        event.streams[0].getTracks().forEach((track) => {
-          if (!existingStream.getTracks().find((t) => t.id === track.id)) {
-            existingStream.addTrack(track);
-          }
-        });
-
-        return {
-          ...prev,
-          [remoteUserId]: existingStream,
-        };
-      });
+    // Add transceivers
+    const audioTransceiver = pc.addTransceiver("audio", {
+      direction: "sendrecv",
+    });
+    const videoTransceiver = pc.addTransceiver("video", {
+      direction: "sendrecv",
+    });
+    senders.current[remoteUserId] = {
+      audio: audioTransceiver.sender,
+      video: videoTransceiver.sender,
     };
 
     pc.onicecandidate = async (event) => {
@@ -159,110 +59,200 @@ export function useWebRTCPeer(
         await apolloClient.mutate({
           mutation: sendIceCandidateMutation,
           variables: {
+            callId,
             targetUserId: remoteUserId,
             candidate: JSON.stringify(event.candidate.toJSON()),
-            callId,
           },
         });
       }
+    };
+
+    pc.ontrack = (event) => {
+      const track = event.track;
+      setRemoteStreams((prev) => {
+        const existing = prev[remoteUserId] ?? new MediaStream();
+        if (!existing.getTracks().some((t) => t.id === track.id)) {
+          existing.addTrack(track);
+        }
+        return { ...prev, [remoteUserId]: existing };
+      });
     };
 
     return pc;
   };
 
   const createOffer = async (remoteUserId: string) => {
-    if (peerConnections.current[remoteUserId]) {
-      return;
-    }
-    if (!localStream) {
-      console.warn("Local stream is not available, cannot create offer.");
-      return;
-    }
-
     const pc = await createConnection(remoteUserId);
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    // console.log("Creating offer for remote user:", remoteUserId, offer);
-
     await apolloClient.mutate({
       mutation: sendOfferMutation,
-      variables: {
-        targetUserId: remoteUserId,
-        sdp: String(offer.sdp),
-        callId: callId,
-      },
+      variables: { callId, targetUserId: remoteUserId, sdp: String(offer.sdp) },
     });
   };
 
   const createAnswer = async (remoteUserId: string, sdp: string) => {
-    if (peerConnections.current[remoteUserId]) {
-      console.warn(`Peer connection already exists for user: ${remoteUserId}`);
-      return;
-    }
     const pc = await createConnection(remoteUserId);
     await pc.setRemoteDescription(
-      new RTCSessionDescription({ type: "offer", sdp: sdp })
+      new RTCSessionDescription({ type: "offer", sdp })
     );
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
-
     await apolloClient.mutate({
       mutation: sendAnswerMutation,
       variables: {
+        callId,
         targetUserId: remoteUserId,
         sdp: String(answer.sdp),
-        callId: callId,
       },
     });
   };
 
-  const setRemoteDescription = (remoteUserId: string, desc: string) => {
-    // console.log("Setting remote description for user:", remoteUserId);
-    peerConnections.current[remoteUserId]?.setRemoteDescription(
-      new RTCSessionDescription({ type: "answer", sdp: desc })
-    );
+  const setRemoteDescription = (remoteUserId: string, sdp: string) => {
+    const pc = peerConnections.current[remoteUserId];
+    if (pc) {
+      pc.setRemoteDescription(
+        new RTCSessionDescription({ type: "answer", sdp })
+      );
+    }
   };
 
   const addIceCandidate = (remoteUserId: string, candidate: string) => {
-    const parsedCandidate = JSON.parse(candidate) as RTCIceCandidateInit;
-    if (!peerConnections.current[remoteUserId]) {
-      console.warn(`No peer connection found for user: ${remoteUserId}`);
-      return;
+    const pc = peerConnections.current[remoteUserId];
+    if (pc) {
+      pc.addIceCandidate(new RTCIceCandidate(JSON.parse(candidate)));
     }
-    // console.log(
-    //   "Adding ICE candidate for remote user:",
-    //   remoteUserId,
-    //   parsedCandidate
-    // );
-
-    peerConnections.current[remoteUserId]?.addIceCandidate(
-      new RTCIceCandidate(parsedCandidate)
-    );
   };
 
-  const closeAllConnections = () => {
-    Object.values(peerConnections.current).forEach((pc) => pc.close());
-    Object.keys(peerConnections.current).forEach(
-      (key) => delete peerConnections.current[key]
-    );
-    if (localStream) {
-      for (const track of localStream.getTracks()) {
-        track.stop();
-      }
-      setLocalStream(null);
-    }
+  const setupInitialMedia = async () => {
+    if (localStream) return;
 
-    setRemoteStreams({});
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: video,
+      });
+      setLocalStream(stream);
+
+      stream.getTracks().forEach((track) => {
+        if (track.kind === "audio") localTracks.current.audio = track;
+        if (track.kind === "video") localTracks.current.video = track;
+      });
+
+      // Add local tracks to all peer connections
+      for (const remoteUserId of Object.keys(senders.current)) {
+        const sender = senders.current[remoteUserId];
+        if (sender.audio && localTracks.current.audio) {
+          await sender.audio.replaceTrack(localTracks.current.audio);
+        }
+        if (sender.video && localTracks.current.video) {
+          await sender.video.replaceTrack(localTracks.current.video);
+        }
+      }
+
+      setIsMuted(false);
+      setIsVideoOn(true);
+    } catch (err) {
+      console.error("Media error:", err);
+      setIsMuted(true);
+      setIsVideoOn(false);
+    }
+  };
+
+  const toggleTrack = async (kind: "audio" | "video", enable: boolean) => {
+    if (enable) {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        [kind]: true,
+      });
+      const track = stream.getTracks()[0];
+      localTracks.current[kind] = track;
+
+      if (localStream) {
+        console.log("Adding track:", track.id);
+        localStream.addTrack(track); 
+      }
+
+      // Update all peer connections
+      for (const remoteUserId of Object.keys(peerConnections.current)) {
+        const sender = senders.current[remoteUserId];
+        if (sender) {
+          await sender[kind]?.replaceTrack(track);
+        }
+      }
+
+      if (kind === "audio") setIsMuted(false);
+      if (kind === "video") setIsVideoOn(true);
+    } else {
+      const oldTrack = localTracks.current[kind];
+      for (const remoteUserId of Object.keys(peerConnections.current)) {
+        const sender = senders.current[remoteUserId];
+        if (sender) {
+          await sender[kind]?.replaceTrack(null);
+        }
+      }
+
+      console.log(oldTrack, "oldTrack");
+      if (oldTrack instanceof MediaStreamTrack) {
+        // Stop the track and remove it from the local stream
+        console.log("Stopping track:", oldTrack.id);
+        oldTrack.stop();
+        if (
+          localStream &&
+          localStream.getTracks().some((t) => t.id === oldTrack.id)
+        ) {
+          localStream.removeTrack(oldTrack);
+        }
+      }
+      localTracks.current[kind] = undefined;
+
+      if (kind === "audio") setIsMuted(true);
+      if (kind === "video") setIsVideoOn(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!localStream) return;
+    participants.forEach((p) => {
+      if (
+        p.userId !== localUserId &&
+        !peerConnections.current[p.userId] &&
+        p.userId > localUserId
+      ) {
+        createOffer(p.userId);
+      }
+    });
+  }, [participants, localStream]);
+
+  useEffect(() => {
+    (async () => {
+      await setupInitialMedia();
+      await toggleTrack("audio", !!currentUser?.audio);
+      await toggleTrack("video", !!currentUser?.video);
+    })();
+  }, [currentUser?.audio, currentUser?.video]);
+
+  const closeAllConnections = () => {
+    Promise.all([
+      ...Object.values(peerConnections.current).map((pc) => pc.close()),
+      ...Object.values(localTracks.current).map((track) => track?.stop()),
+      localStream?.getTracks().forEach((track) => track.stop()),
+    ]).then(() => {
+      setLocalStream(null);
+      setRemoteStreams({});
+      peerConnections.current = {};
+      senders.current = {};
+      localTracks.current = {};
+    });
   };
 
   return {
     localStream,
     remoteStreams,
-    peerConnections: peerConnections.current,
     createOffer,
     createAnswer,
     setRemoteDescription,
     addIceCandidate,
+    toggleTrack,
     closeAllConnections,
   };
 }

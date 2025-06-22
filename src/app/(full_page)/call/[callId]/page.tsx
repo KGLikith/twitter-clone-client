@@ -50,12 +50,12 @@ export default function CallPage() {
     if (!call || !user) return
 
     const handleUnload = () => {
-      // if (!call?.endedAt) {
-      //   apolloClient.mutate({
-      //     mutation: endCallMutation,
-      //     variables: { callId: call.id },
-      //   }).catch((err) => console.error("Call end error:", err))
-      // }
+      if (!call?.endedAt) {
+        apolloClient.mutate({
+          mutation: endCallMutation,
+          variables: { callId: call.id },
+        }).catch((err) => console.error("Call end error:", err))
+      }
     }
 
     window.addEventListener("beforeunload", handleUnload)

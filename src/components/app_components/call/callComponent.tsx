@@ -26,8 +26,10 @@ export default function CallComponent({ call, currentUser, participants, setPart
   const router = useRouter()
   const currentUserParticipant = participants.find((p) => p.userId === currentUser.id)
   const isHost = currentUserParticipant?.userId === call.callerId
-  const [audioPermissationGranted, setAudioPermissionGranted] = useState(false)
-  const [videoPermissationGranted, setVideoPermissionGranted] = useState(false)
+  const [audioPermissationGranted, setAudioPermissionGranted] = useState(true)
+  const [videoPermissationGranted, setVideoPermissionGranted] = useState(true)
+  const [isMuted, setIsMuted] = useState(true)
+  const [isVideoOn, setIsVideoOn] = useState(false)
 
   const { data: mediaData } = useOnCallMediaUpdateSubscription(call.id)
   const { callDuration, timerStarted } = useCallTimer(call, currentUser, participants)
@@ -99,6 +101,9 @@ export default function CallComponent({ call, currentUser, participants, setPart
         currentUser={currentUser}
         video={video}
         setAudioPermissionGranted={setAudioPermissionGranted}
+        setIsMuted={setIsMuted}
+        setIsVideoOn={setIsVideoOn}
+        
         {...(video && { setVideoPermissionGranted })}
       />
 
@@ -108,6 +113,10 @@ export default function CallComponent({ call, currentUser, participants, setPart
         call={call}
         videoCallComponent={video}
         {...(video && { videoPermissationGranted })}
+        isMuted={isMuted}
+        setIsMuted={setIsMuted}
+        isVideoOn={isVideoOn}
+        setIsVideoOn={setIsVideoOn}
       />
     </div>
   )

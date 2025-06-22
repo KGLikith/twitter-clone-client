@@ -40,3 +40,30 @@ export const getConversationUser = async(userId: string) => {
   return getConversationByUserId
 };
 
+
+export function getVolumeFromStream(stream: MediaStream): { analyser: AnalyserNode | null, getVolume: () => number } {
+  try{
+    const audioCtx = new window.AudioContext();
+    const source = audioCtx.createMediaStreamSource(stream);
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+  
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    source.connect(analyser);
+  
+    const getVolume = () => {
+      analyser.getByteFrequencyData(dataArray);
+      const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+      return volume;
+    };
+  
+    return { analyser, getVolume };
+
+  }catch(err){
+    console.log("Error getting volume from stream:", err);
+    return {
+      analyser: null,
+      getVolume: () => 0,
+    };
+  }
+}

@@ -280,3 +280,19 @@ body {
     transform: translateY(-3px);
   }
 }
+
+
+@keyframes ping-delayed {
+    75%, 100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  
+  .animation-delay-75 {
+    animation-delay: 75ms;
+  }
+  
+  .animation-delay-150 {
+    animation-delay: 150ms;
+  }
