@@ -44,6 +44,7 @@ A powerful, real-time Twitter inspired clone built with **Next.js**, **GraphQL**
 
 ### ⚙️ Backend
 
+-**NodeJS** - Powers the entire backend of the application
 - **WebRTC + SFU(pending)** – Real-time media engine
 - **Apollo Server** – GraphQL API with Subscriptions
 - **graphql-ws** – WebSocket transport for real-time GraphQL
