@@ -4,22 +4,22 @@ A powerful, real-time Twitter inspired clone built with **Next.js**, **GraphQL**
 
 ---
 
-## ✨ Features
+## Features
 
-### 🔥 Major Features
+### Major Features
 
 - ⚡ **Real-Time Tweet Feed** – Instant updates via GraphQL Subscriptions
-- 🎥 **Video/Audio Calls** – One-on-one & group calling with WebRTC
-- 📨 **DMs & Group Messaging** – Real-time chat system with groups
-- 🟢 **Online Presence** – Track user availability via GraphQL presence system
+- 🎥 **Video/Audio Calls** – **One-on-one & group calling with WebRTC**
+- 📨 **DMs & Group Messaging** – **Real-time chat system with groups**
+- 🟢 **Online Presence** – **Track user availability via GraphQL presence system**
 - 🔒 **Auth System** – Secure JWT-based login & signup
 - 🧑‍🤝‍🧑 **Follow System** – Follow/unfollow other users
-- 📝 **Tweet, Like, Retweet, Reply** – All core tweet interactions
+- 📝 **Tweet, Like, Reply** – All core tweet interactions
 - 📎 **Media Support** – Upload & display images in tweets
 - 🔔 **Notifications** – Real-time notifications for interactions
 ---
 
-### 🧩 Additional Features
+### Additional Features
 
 - 🧑‍💼 Custom Profiles (bio, avatar, banner)
 - 📌 Tweet Bookmarking
@@ -31,20 +31,20 @@ A powerful, real-time Twitter inspired clone built with **Next.js**, **GraphQL**
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
-### 💻 Frontend
+### Frontend
 
 - **Next.js**
 - **Tailwind CSS** + **Shadcn UI**
-- **Apollo Client** – GraphQL queries, mutations, subscriptions
-- **Framer Motion** – Animations
-- **Lucide Icons** – Modern icon set
 - **React Query** - State management and caching
+- **Apollo Client** – GraphQL queries, mutations, subscriptions
+- **Framer Motion** – Simpler animations(not the main focus)
 
-### ⚙️ Backend
 
--**NodeJS** - Powers the entire backend of the application
+### Backend
+
+- **NodeJS** - Powers the entire backend of the application
 - **WebRTC + SFU(pending)** – Real-time media engine
 - **Apollo Server** – GraphQL API with Subscriptions
 - **graphql-ws** – WebSocket transport for real-time GraphQL
@@ -52,7 +52,7 @@ A powerful, real-time Twitter inspired clone built with **Next.js**, **GraphQL**
 - **PostgreSQL** – Main database
 - **Redis** – PubSub for subscriptions & online presence
 
-### 🧪 Dev & Tooling
+### Dev & Tooling
 
 - **TypeScript** – Full type-safety
 - **ESLint & Prettier** – Code quality
