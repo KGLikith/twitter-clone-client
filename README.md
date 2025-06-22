@@ -1,79 +1,61 @@
-# Twitter Clone Client
+# 🐦 Twitter Clone
 
-This is the client-side application for the Twitter Clone project.
- 
-A feature-rich Twitter clone built with modern web technologies such as Next.js, Prisma, GraphQL, and more. The app allows users to engage in social interactions through posts, likes, comments, follows, and much more. 
+A powerful, real-time Twitter inspired clone built with **Next.js**, **GraphQL**, **WebRTC**, and **Prisma**. This full-stack application replicates the core functionality of Twitter, including **real-time tweeting, messaging, video/audio calling, and user presence detection** — all with a sleek and responsive UI.
 
-## Demo
+---
 
-https://github.com/user-attachments/assets/c0942adb-3c48-4b79-8ac1-b189eb7abec0
+## ✨ Features
 
-## Features
+### 🔥 Major Features
 
-- **User Authentication**: Secure user authentication using NextAuth.js.
-- **User Profiles**: Each user has a personal profile page displaying their posts and relevant information.
-- **Follow/Unfollow Users**: Users can follow and unfollow each other to stay updated with posts from people they are interested in.
-- **Posts**: Users can create, like, and delete posts.
-- **Image Uploads**: Users can upload images as part of their posts.
-- **Like System**: Engage with other users by liking their posts.
-- **Recommended Users**: Explore and discover new users to follow through a recommendation system.
-- **Comment System**: Users can comment on the posts.
+- ⚡ **Real-Time Tweet Feed** – Instant updates via GraphQL Subscriptions
+- 🎥 **Video/Audio Calls** – One-on-one & group calling with WebRTC
+- 📨 **DMs & Group Messaging** – Real-time chat system with groups
+- 🟢 **Online Presence** – Track user availability via GraphQL presence system
+- 🔒 **Auth System** – Secure JWT-based login & signup
+- 🧑‍🤝‍🧑 **Follow System** – Follow/unfollow other users
+- 📝 **Tweet, Like, Retweet, Reply** – All core tweet interactions
+- 📎 **Media Support** – Upload & display images in tweets
+- 🔔 **Notifications** – Real-time notifications for interactions
+---
 
-## Technologies Used
+### 🧩 Additional Features
 
-- **Next.js**: The React framework used for building the user interface and handling server-side rendering.
-- **Prisma**: A modern database ORM used to interact with the database layer.
-- **GraphQL**: Used for flexible, efficient data querying and mutation.
-- **React Query**: For caching and synchronizing server-state in React applications.
-- **Apollo Client**: Manages GraphQL queries and mutations on the client side.
-- **AWS**: Utilized for image uploads and media storage.
-- **Codegen**: Provides type safety and schema synching
+- 🧑‍💼 Custom Profiles (bio, avatar, banner)
+- 📌 Tweet Bookmarking
+- 🎯 Active Speaker Detection in Calls
+- 🔄 Infinite Scroll + Pagination
+- 🧭 Explore Page
+- 🎨 Responsive Design & Accessibility
+- 📅 Call History & Metadata Tracking
 
-# Run It Locally
+---
 
-## Prerequisites
+## 🛠 Tech Stack
 
-### Ensure you have the server-side application set up. Follow the instructions at [twitter-clone-server](https://github.com/KGLikith/twitter-clone-server).
+### 💻 Frontend
 
-## Installation
+- **Next.js**
+- **Tailwind CSS** + **Shadcn UI**
+- **Apollo Client** – GraphQL queries, mutations, subscriptions
+- **Framer Motion** – Animations
+- **Lucide Icons** – Modern icon set
+- **React Query** - State management and caching
 
-1. Clone the repository:
+### ⚙️ Backend
 
-    ```bash
-    git clone https://github.com/KGLikith/twitter-clone-client.git
-    ```
+- **WebRTC + SFU(pending)** – Real-time media engine
+- **Apollo Server** – GraphQL API with Subscriptions
+- **graphql-ws** – WebSocket transport for real-time GraphQL
+- **Prisma ORM** – Type-safe PostgreSQL access
+- **PostgreSQL** – Main database
+- **Redis** – PubSub for subscriptions & online presence
 
-2. Navigate to the project directory:
+### 🧪 Dev & Tooling
 
-    ```bash
-    cd twitter-clone-client
-    ```
+- **TypeScript** – Full type-safety
+- **ESLint & Prettier** – Code quality
+- **Ngrok** – WebRTC signaling during local development
+- **Docker**(pending) – Containerization
 
-3. Install dependencies:
-
-    ```bash
-    npm install
-    ```
-
-## Environment Variables
-
-Create a `.env` file in the root directory and add the following variables:
-
-```bash
-AUTH_SECRET=auth_secret
-NEXT_PUBLIC_API_URL=http://localhost:8000/graphql
-GOOGLE_ID=Google-cloud-client-id
-GOOGLE_SECRET=Google-cloud-client-secret
-```
-
-
-### Add Host Name and Domain in [next.config.mjs](https://github.com/KGLikith/twitter-clone-client/blob/main/next.config.mjs) for images(ex: bucker_name.ap-south-1.amazonaws.com)
-
-### 
-
-## Building and Starting the application for production build
-
-```bash
-npm run build
-npm start
-```
+---
