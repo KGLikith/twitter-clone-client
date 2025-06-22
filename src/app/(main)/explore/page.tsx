@@ -75,6 +75,8 @@ const CATEGORIES = [
   { id: "for-you", name: "For You" },
 ]
 
+// WIP: Have to get the categories from the server and create a table for it....
+
 export default function ExplorePage() {
   const router = useRouter()
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -87,7 +89,6 @@ export default function ExplorePage() {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
 
   useEffect(() => {
-    // Simulate loading
     const timer = setTimeout(() => {
       setIsLoading(false)
     }, 1000)
@@ -95,11 +96,9 @@ export default function ExplorePage() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Debounced search preview function
   const updateSearchPreview = useCallback(
     debounce((query: string) => {
       if (query) {
-        // Filter users for preview
         const users = MOCK_USERS.filter(
           (user) =>
             user.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -107,7 +106,6 @@ export default function ExplorePage() {
         )
         setFilteredUsers(users)
 
-        // Filter hashtags for preview
         const hashtags = TRENDING_TOPICS.filter((topic) => topic.name.toLowerCase().includes(query.toLowerCase()))
         setFilteredHashtags(hashtags)
         setShowSearchDropdown(true)
@@ -128,7 +126,6 @@ export default function ExplorePage() {
     }
   }, [searchQuery, updateSearchPreview])
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
@@ -167,7 +164,6 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
       <div className="sticky top-0 z-10 bg-black bg-opacity-80 backdrop-blur-sm border-b border-gray-800">
         <div className="flex items-center p-2 gap-2">
           <Button variant="ghost" size="icon" className="text-white">
@@ -273,7 +269,6 @@ export default function ExplorePage() {
                       </div>
                     )}
 
-                    {/* Hashtag results */}
                     {filteredHashtags.length > 0 && (
                       <div>
                         {filteredHashtags.slice(0, 3).map((topic) => (
@@ -292,7 +287,6 @@ export default function ExplorePage() {
                   </>
                 )}
 
-                {/* Go to full search */}
                 <div className="p-3 border-t border-gray-800">
                   <Button
                     onClick={handleSearchSubmit}
@@ -327,7 +321,6 @@ export default function ExplorePage() {
         )}
       </div>
 
-      {/* Main content */}
       <div className="p-0">
         <Tabs value={activeTab} className="w-full">
           <TabsContent value="for-you" className="mt-0">
